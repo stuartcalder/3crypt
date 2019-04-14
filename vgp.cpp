@@ -86,6 +86,10 @@ void VGP::cbc_decrypt_file(const char * const input_filename, const char * const
   }
   size_t bytes_to_read = get_file_size( input_file );
   //Check if the file is the right size to be decrypted
+  if( bytes_to_read < (Block_Bytes * 2) ) {
+    fprintf( stderr, "The input file does not appear to be big enough to have been ThreeFish-512-CBC encrypted.\n" );
+    exit( 1 );
+  }
   if( bytes_to_read % Block_Bytes != 0 ) {
     fprintf( stderr, "The input file does ont appear to be the right size to be decrypted.\n"
                      "The file was %zu bytes.\n", bytes_to_read );
