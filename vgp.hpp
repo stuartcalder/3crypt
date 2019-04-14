@@ -12,11 +12,10 @@ public:
   using cbc_t = CBC< ThreeFish<512>, 512 >;
   static constexpr const bool Debug = true;
 
-  void cbc_encrypt_file(const std::string * const filename, const uint8_t * const key, const uint8_t * const iv,
-                        const std::string * const optional_output_filename = nullptr) const;
-  void cbc_decrypt_file(const std::string * const encrypted_filename, const uint8_t * const key, const uint8_t * const iv,
-                        const std::string * const plaintext_filename) const;
-
+  void cbc_encrypt_file(const char * const input_filename, const char * const output_filename,
+                        const uint8_t * const key, const uint8_t * const iv) const;
+  void cbc_decrypt_file(const char * const input_filename, const char * const output_filename,
+                        const uint8_t * const key, const uint8_t * const iv) const;
 private:
 };
 

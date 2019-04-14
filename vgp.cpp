@@ -1,8 +1,8 @@
 #include "include/files/files.hpp"
 #include "vgp.hpp"
 
-void VGP::cbc_encrypt_file(const std::string * const filename, const uint8_t * const key, const uint8_t * const iv,
-                           const std::string * const optional_output_filename) const
+void VGP::cbc_encrypt_file(const char * const input_filename, const char * const output_filename,
+                           const uint8_t * const key, const uint8_t * const iv) const
 {
   using namespace std;
   //Validate arguments somewhat
@@ -21,13 +21,10 @@ void VGP::cbc_encrypt_file(const std::string * const filename, const uint8_t * c
   }
 
   //Open the input file, and the file to write to.
-  string new_filename = (*filename) + ".3f512"; // appended file extension
-  if( optional_output_filename != nullptr )     // if we were given an optional output filename, make sure we open and write to that specified filename
-    new_filename = (*optional_output_filename);
   cbc_t cbc{ ThreeFish<512>{ reinterpret_cast<const uint64_t*>(key) } }; // feed key
   cbc.manually_set_state( iv );                // & iv into the cbc_t object
-  FILE * const input_file = fopen( filename->c_str(), "rb" );      // open the input file
-  FILE * const output_file = fopen( new_filename.c_str(), "wb" ); // open the output file
+  FILE * const input_file = fopen ( input_filename , "rb" );   // open the input file
+  FILE * const output_file = fopen( output_filename, "wb" ); // open the output file
   //Check if files successfully opened
   if constexpr( Debug ) {
     if( (input_file == nullptr) || (output_file == nullptr) ) {
