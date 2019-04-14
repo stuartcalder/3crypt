@@ -98,17 +98,20 @@ void VGP::cbc_decrypt_file(const char * const input_filename, const char * const
     cbc.manually_set_state( file_iv );
   }//-
   //Decrypt up to the last block
-  uint8_t buffer[ Block_Bytes ];
+  uint8_t buffer[ Block_Bytes * 2 ];
   const size_t last_input_block_offset = input_file_size - Block_Bytes;
   for( size_t b_off = 0; b_off < last_input_block_offset; b_off += Block_Bytes ) {
-    fread( buffer, 1, sizeof(buffer), input_file );
-    cbc.decrypt_no_padding( buffer, buffer, sizeof(buffer) );
-    fwrite( buffer, 1, sizeof(buffer), output_file );
+    fread( buffer, 1, Block_Bytes, input_file );
+    cbc.decrypt_no_padding( buffer, buffer, Block_Bytes );
+    fwrite( buffer, 1, Block_Bytes, output_file );
   }
   //Decrypt last block with padding
   {//+
-    fread( buffer, 1, sizeof(buffer), input_file );
-    size_t last_block = cbc.decrypt( buffer, buffer, sizeof(buffer) );
+    fread( buffer, 1, Block_Bytes, input_file );
+    size_t last_block = cbc.decrypt( buffer, buffer, Block_Bytes );
+#if 0
+    fwrite( buffer, 1, last_block, output_file );
+#endif
     fwrite( buffer, 1, last_block, output_file );
   }//-
   //Cleanup
