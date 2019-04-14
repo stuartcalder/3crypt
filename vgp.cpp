@@ -40,9 +40,9 @@ void VGP::cbc_encrypt_file(const char * const input_filename, const char * const
   const size_t last_input_block_offset = (input_file_size > Block_Bytes) ? (input_file_size - Block_Bytes) : 0; // offset of the final block
   cbc.manually_set_state( iv ); // set the iv
   for( size_t in_off = 0; in_off < last_input_block_offset; in_off += Block_Bytes ) { // iterate over all blocks except the last
-    fread( buffer, 1, sizeof(buffer), input_file );   // get 512 bits (64 bytes) from file into buffer
+    fread( buffer, 1, Block_Bytes, input_file );   // get 512 bits (64 bytes) from file into buffer
     cbc.encrypt_no_padding( buffer, buffer, Block_Bytes );   // encrypt those 64 bytes
-    fwrite( buffer, 1, sizeof(buffer), output_file ); // write the encryptd 64 bytes to output_file
+    fwrite( buffer, 1, Block_Bytes, output_file ); // write the encryptd 64 bytes to output_file
   }
   //Encrypt the last block with padding
   {//+
@@ -109,7 +109,7 @@ void VGP::cbc_decrypt_file(const char * const input_filename, const char * const
   {//+
     fread( buffer, 1, sizeof(buffer), input_file );
     size_t last_block = cbc.decrypt( buffer, buffer, sizeof(buffer) );
-    fwrite( buffer, 1, sizeof(buffer), output_file );
+    fwrite( buffer, 1, last_block, output_file );
   }//-
   //Cleanup
   explicit_bzero( buffer, sizeof(buffer) );
