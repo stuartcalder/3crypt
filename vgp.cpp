@@ -64,10 +64,9 @@ void VGP::cbc_decrypt_file(const char * const input_filename, const char * const
   //Validate arguments somewhat
   if constexpr( Debug ) {
     {//+
-      if( (key == nullptr) || (iv == nullptr) ) { // Diallow key or iv from being nullptr. That wouldn't make sense.
+      if( (key == nullptr) ) { // Diallow key from being nullptr. That wouldn't make sense.
         fprintf( stderr, "ERROR: VGP::encrypt_file -- Either the key or the initialization vector was a nullptr\n"
-                         "The Key: %p\n"
-                         "The IV : %p\n", key, iv );
+                         "The Key: %p\n", key );
         exit( 1 );
       }
     }//-
@@ -93,13 +92,11 @@ void VGP::cbc_decrypt_file(const char * const input_filename, const char * const
     exit( 1 );
   }
   //Get the initialization vector
-  if( iv != nullptr )
-    cbc.manually_set_state( iv );
-  else {
+  {//+
     uint8_t file_iv[ Block_Bytes ];
     fread( file_iv, 1, sizeof(file_iv), input_file );
     cbc.manually_set_state( file_iv );
-  }
+  }//-
   //Decrypt up to the last block
   uint8_t buffer[ Block_Bytes ];
   const size_t last_input_block_offset = input_file_size - Block_Bytes;
