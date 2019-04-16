@@ -21,6 +21,7 @@ public:
   void cbc_decrypt_file(const char * const input_filename, const char * const output_filename,
                         const uint8_t * const key,
                         const size_t file_buffer_size = Default_File_Buffer_Size) const;
+  static void generate_random_bytes(uint8_t * const buffer, size_t num_bytes);
 private:
 };
 
