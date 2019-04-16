@@ -1,17 +1,9 @@
 #include "include/files/files.hpp"
 #include "vgp.hpp"
 
-static size_t last_block_divisible_offset( const size_t length, const size_t block_size )
-{
-  if( length > block_size ) {
-    return length - (length % block_size);
-  } else {
-    return 0;
-  }
-}
-
 void VGP::cbc_encrypt_file(const char * const input_filename, const char * const output_filename,
-                           const uint8_t * const key, const uint8_t * const iv) const
+                           const uint8_t * const key, const uint8_t * const iv,
+                           const size_t file_buffer_size) const
 {
   using namespace std;
   //Validate arguments somewhat
@@ -41,15 +33,15 @@ void VGP::cbc_encrypt_file(const char * const input_filename, const char * const
     }
   }
   size_t bytes_to_encrypt = get_file_size( input_file );           // see how big the file is
-  auto buffer = make_unique<uint8_t[]>( File_Buffer_Size );
+  auto buffer = make_unique<uint8_t[]>( file_buffer_size );
   //Write the IV into the beginning of the output file.
   fwrite( iv, 1, Block_Bytes, output_file );
   cbc.manually_set_state( iv );
-  while( bytes_to_encrypt > File_Buffer_Size ) {
-    fread( buffer.get(), File_Buffer_Size, 1, input_file );
-    cbc.encrypt_no_padding( buffer.get(), buffer.get(), File_Buffer_Size );
-    fwrite( buffer.get(), File_Buffer_Size, 1, output_file );
-    bytes_to_encrypt -= File_Buffer_Size;
+  while( bytes_to_encrypt > file_buffer_size ) {
+    fread( buffer.get(), file_buffer_size, 1, input_file );
+    cbc.encrypt_no_padding( buffer.get(), buffer.get(), file_buffer_size );
+    fwrite( buffer.get(), file_buffer_size, 1, output_file );
+    bytes_to_encrypt -= file_buffer_size;
   }
   {//+
     fread( buffer.get(), 1, bytes_to_encrypt, input_file );
@@ -57,7 +49,7 @@ void VGP::cbc_encrypt_file(const char * const input_filename, const char * const
     fwrite( buffer.get(), 1, encrypted, output_file );
   }//-
   //Cleanup
-  explicit_bzero( buffer.get(), File_Buffer_Size );
+  explicit_bzero( buffer.get(), file_buffer_size );
   fclose( input_file );
   fclose( output_file );
 #if 0
