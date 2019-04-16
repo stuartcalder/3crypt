@@ -18,7 +18,7 @@ void VGP::cbc_encrypt_file(const char * const input_filename, const char * const
   }
 
   //Open the input file, and the file to write to.
-  cbc_t cbc{ ThreeFish<512>{ reinterpret_cast<const uint64_t*>(key) } }; // feed key
+  cbc_t cbc{ Threefish_t{ reinterpret_cast<const uint64_t*>(key) } }; // feed key
   cbc.manually_set_state( iv );                // & iv into the cbc_t object
   FILE * const input_file = fopen ( input_filename , "rb" );   // open the input file
   FILE * const output_file = fopen( output_filename, "wb" ); // open the output file
@@ -73,7 +73,7 @@ void VGP::cbc_decrypt_file(const char * const input_filename, const char * const
   }
 
   //Open the input file and the output file
-  cbc_t cbc{ ThreeFish<512>{ reinterpret_cast<const uint64_t*>(key) } };
+  cbc_t cbc{ Threefish_t{ reinterpret_cast<const uint64_t*>(key) } };
   FILE * const input_file = fopen( input_filename, "rb" ); // open the input file
   FILE * const output_file = fopen( output_filename, "wb" ); // open the output file
   //Check if files successfully opened
