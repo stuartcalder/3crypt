@@ -19,7 +19,8 @@ public:
                         const uint8_t * const key, const uint8_t * const iv,
                         const size_t file_buffer_size = Default_File_Buffer_Size) const;
   void cbc_decrypt_file(const char * const input_filename, const char * const output_filename,
-                        const uint8_t * const key) const;
+                        const uint8_t * const key,
+                        const size_t file_buffer_size = Default_File_Buffer_Size) const;
 private:
 };
 

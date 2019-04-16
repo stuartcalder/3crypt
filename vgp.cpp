@@ -52,33 +52,10 @@ void VGP::cbc_encrypt_file(const char * const input_filename, const char * const
   explicit_bzero( buffer.get(), file_buffer_size );
   fclose( input_file );
   fclose( output_file );
-#if 0
-  uint8_t buffer[ Block_Bytes * 2 ];                 // Make the buffer 2 blocks wide, to accomodate for padding at the end.
-  //Write the IV into the beginning of the file.
-  fwrite( iv, 1, Block_Bytes, output_file );
-
-  //Encrypt up to the last block
-  size_t bytes_to_encrypt = input_file_size;
-  cbc.manually_set_state( iv );
-  while( bytes_to_encrypt > Block_Bytes ) {
-    fread( buffer, 1, Block_Bytes, input_file );
-    cbc.encrypt_no_padding( buffer, buffer, Block_Bytes );
-    fwrite( buffer, 1, Block_Bytes, output_file );
-    bytes_to_encrypt -= Block_Bytes;
-  }
-  {//+
-    fread( buffer, 1, bytes_to_encrypt, input_file );
-    size_t encrypted = cbc.encrypt( buffer, buffer, bytes_to_encrypt );
-    fwrite( buffer, 1, encrypted, output_file );
-  }//-
-  //Cleanup
-  explicit_bzero( buffer, sizeof(buffer) );
-  fclose( input_file );
-  fclose( output_file );
-#endif
 }
 
-void VGP::cbc_decrypt_file(const char * const input_filename, const char * const output_filename, const uint8_t * const key) const
+void VGP::cbc_decrypt_file(const char * const input_filename, const char * const output_filename, const uint8_t * const key,
+                           const size_t file_buffer_size) const
 {
   using namespace std;
 
@@ -104,44 +81,43 @@ void VGP::cbc_decrypt_file(const char * const input_filename, const char * const
       fprintf( stderr, "Failed to open input file or output file\n"
                        "Input file is: %p\n"
                        "Output file is: %p\n", input_file, output_file );
+      exit( 1 );
     }
   }
-  size_t bytes_to_read = get_file_size( input_file );
-  //Check if the file is the right size to be decrypted
-  if( bytes_to_read < (Block_Bytes * 2) ) {
-    fprintf( stderr, "The input file does not appear to be big enough to have been ThreeFish-512-CBC encrypted.\n" );
+  size_t bytes_to_decrypt = get_file_size( input_file );
+  if( bytes_to_decrypt < (Block_Bytes * 2) ) {
+    fprintf( stderr, "Error: The input file does not appear to be big enough to have been Threefish-512-CBC encrypted.\n" );
     exit( 1 );
   }
-  if( bytes_to_read % Block_Bytes != 0 ) {
-    fprintf( stderr, "The input file does ont appear to be the right size to be decrypted.\n"
-                     "The file was %zu bytes.\n", bytes_to_read );
+  if( (bytes_to_decrypt % Block_Bytes) != 0 ) {
+    fprintf( stderr, "Error: The input files does not appear to be a multiple of Threefish-512-CBC encrypted blocks.\n" );
+    exit( 1 );
+  }
+  if( (file_buffer_size % Block_Bytes) != 0 ) {
+    fprintf( stderr, "Error: The file buffer size must be a multiple of 64-bytes.\n" );
     exit( 1 );
   }
   //Get the initialization vector
   {//+
     uint8_t file_iv[ Block_Bytes ];
-    bytes_to_read -= fread( file_iv, 1, sizeof(file_iv), input_file );
+    bytes_to_decrypt -= fread( file_iv, 1, sizeof(file_iv), input_file );
     cbc.manually_set_state( file_iv );
   }//-
-  //Decrypt up to the last block
-  uint8_t buffer[ Block_Bytes * 2 ];
-  const size_t last_input_block_offset = (bytes_to_read > Block_Bytes) ? (bytes_to_read - Block_Bytes) : 0;
-  for( size_t b_off = 0; b_off < last_input_block_offset; b_off += Block_Bytes ) {
-    fread( buffer, 1, Block_Bytes, input_file );
-    cbc.decrypt_no_padding( buffer, buffer, Block_Bytes );
-    fwrite( buffer, 1, Block_Bytes, output_file );
+  //Decrypt
+  auto buffer = make_unique<uint8_t[]>( file_buffer_size );
+  while( bytes_to_decrypt > file_buffer_size ) {
+    fread( buffer.get(), file_buffer_size, 1, input_file );
+    cbc.decrypt_no_padding( buffer.get(), buffer.get(), file_buffer_size );
+    fwrite( buffer.get(), file_buffer_size, 1, output_file );
+    bytes_to_decrypt -= file_buffer_size;
   }
-  //Decrypt last block with padding
   {//+
-    fread( buffer, 1, Block_Bytes, input_file );
-    size_t last_block = cbc.decrypt( buffer, buffer, Block_Bytes );
-#if 0
-    fwrite( buffer, 1, last_block, output_file );
-#endif
-    fwrite( buffer, 1, last_block, output_file );
+    fread( buffer.get(), 1, bytes_to_decrypt, input_file );
+    size_t last = cbc.decrypt( buffer.get(), buffer.get(), bytes_to_decrypt );
+    fwrite( buffer.get(), 1, last, output_file );
   }//-
   //Cleanup
-  explicit_bzero( buffer, sizeof(buffer) );
+  explicit_bzero( buffer.get(), file_buffer_size );
   fclose( input_file );
   fclose( output_file );
 }
