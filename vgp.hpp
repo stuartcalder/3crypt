@@ -12,6 +12,7 @@ public:
   using Threefish_t = Threefish_Precomputed_Keyschedule<512>;
   using cbc_t = CBC< Threefish_t, Threefish_t::Key_Bits >;
   static constexpr const size_t Block_Bytes = (Threefish_t::Number_Words * 8);
+  static constexpr const size_t File_Buffer_Size = 1024 * 1024; // 1 MiB
   static constexpr const bool Debug = true;
 
   void cbc_encrypt_file(const char * const input_filename, const char * const output_filename,

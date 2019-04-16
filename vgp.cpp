@@ -1,6 +1,15 @@
 #include "include/files/files.hpp"
 #include "vgp.hpp"
 
+static size_t last_block_divisible_offset( const size_t length, const size_t block_size )
+{
+  if( length > block_size ) {
+    return length - (length % block_size);
+  } else {
+    return 0;
+  }
+}
+
 void VGP::cbc_encrypt_file(const char * const input_filename, const char * const output_filename,
                            const uint8_t * const key, const uint8_t * const iv) const
 {
@@ -31,7 +40,27 @@ void VGP::cbc_encrypt_file(const char * const input_filename, const char * const
       exit( 1 );
     }
   }
-  const size_t input_file_size = get_file_size( input_file );           // see how big the file is
+  size_t bytes_to_encrypt = get_file_size( input_file );           // see how big the file is
+  auto buffer = make_unique<uint8_t[]>( File_Buffer_Size );
+  //Write the IV into the beginning of the output file.
+  fwrite( iv, 1, Block_Bytes, output_file );
+  cbc.manually_set_state( iv );
+  while( bytes_to_encrypt > File_Buffer_Size ) {
+    fread( buffer.get(), File_Buffer_Size, 1, input_file );
+    cbc.encrypt_no_padding( buffer.get(), buffer.get(), File_Buffer_Size );
+    fwrite( buffer.get(), File_Buffer_Size, 1, output_file );
+    bytes_to_encrypt -= File_Buffer_Size;
+  }
+  {//+
+    fread( buffer.get(), 1, bytes_to_encrypt, input_file );
+    size_t encrypted = cbc.encrypt( buffer.get(), buffer.get(), bytes_to_encrypt );
+    fwrite( buffer.get(), 1, encrypted, output_file );
+  }//-
+  //Cleanup
+  explicit_bzero( buffer.get(), File_Buffer_Size );
+  fclose( input_file );
+  fclose( output_file );
+#if 0
   uint8_t buffer[ Block_Bytes * 2 ];                 // Make the buffer 2 blocks wide, to accomodate for padding at the end.
   //Write the IV into the beginning of the file.
   fwrite( iv, 1, Block_Bytes, output_file );
@@ -54,6 +83,7 @@ void VGP::cbc_encrypt_file(const char * const input_filename, const char * const
   explicit_bzero( buffer, sizeof(buffer) );
   fclose( input_file );
   fclose( output_file );
+#endif
 }
 
 void VGP::cbc_decrypt_file(const char * const input_filename, const char * const output_filename, const uint8_t * const key) const
