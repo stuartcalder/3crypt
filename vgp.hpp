@@ -15,12 +15,12 @@ public:
   static constexpr const size_t Default_File_Buffer_Size = 1024 * 1024; // 1 MiB
   static constexpr const bool Debug = true;
 
-  void cbc_encrypt_file(const char * const input_filename, const char * const output_filename,
+  static void cbc_encrypt_file(const char * const input_filename, const char * const output_filename,
                         const uint8_t * const key, const uint8_t * const iv,
-                        const size_t file_buffer_size = Default_File_Buffer_Size) const;
-  void cbc_decrypt_file(const char * const input_filename, const char * const output_filename,
+                        const size_t file_buffer_size = Default_File_Buffer_Size);
+  static void cbc_decrypt_file(const char * const input_filename, const char * const output_filename,
                         const uint8_t * const key,
-                        const size_t file_buffer_size = Default_File_Buffer_Size) const;
+                        const size_t file_buffer_size = Default_File_Buffer_Size);
   static void generate_random_bytes(uint8_t * const buffer, size_t num_bytes);
 private:
 };
