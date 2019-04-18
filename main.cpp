@@ -1,5 +1,6 @@
 #include "vgp.hpp"
 
+#if 0
 int main()
 {
   VGP vgp;
@@ -15,3 +16,4 @@ int main()
     explicit_bzero( key, sizeof(key) );
   }//-
 }
+#endif
