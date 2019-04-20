@@ -67,7 +67,7 @@ void VGP::cbc_decrypt_file(const char * const input_filename, const char * const
       if( (key == nullptr) ) { // Diallow key from being nullptr. That wouldn't make sense.
         fprintf( stderr, "ERROR: VGP::encrypt_file -- Either the key or the initialization vector was a nullptr\n"
                          "The Key: %p\n", key );
-        exit( 1 );
+        exit( EXIT_FAILURE );
       }
     }//-
   }
@@ -82,21 +82,21 @@ void VGP::cbc_decrypt_file(const char * const input_filename, const char * const
       fprintf( stderr, "Failed to open input file or output file\n"
                        "Input file is: %p\n"
                        "Output file is: %p\n", input_file, output_file );
-      exit( 1 );
+      exit( EXIT_FAILURE );
     }
   }
   size_t bytes_to_decrypt = get_file_size( input_file );
   if( bytes_to_decrypt < (Block_Bytes * 2) ) {
     fprintf( stderr, "Error: The input file does not appear to be big enough to have been Threefish-512-CBC encrypted.\n" );
-    exit( 1 );
+    exit( EXIT_FAILURE );
   }
   if( (bytes_to_decrypt % Block_Bytes) != 0 ) {
     fprintf( stderr, "Error: The input files does not appear to be a multiple of Threefish-512-CBC encrypted blocks.\n" );
-    exit( 1 );
+    exit( EXIT_FAILURE );
   }
   if( (file_buffer_size % Block_Bytes) != 0 ) {
     fprintf( stderr, "Error: The file buffer size must be a multiple of 64-bytes.\n" );
-    exit( 1 );
+    exit( EXIT_FAILURE );
   }
   //Get the initialization vector
   {//+
@@ -121,4 +121,65 @@ void VGP::cbc_decrypt_file(const char * const input_filename, const char * const
   explicit_bzero( buffer.get(), file_buffer_size );
   fclose( input_file );
   fclose( output_file );
+}
+
+VGP::VGP(const int argc, const char * argv[])
+{
+  //Get a mapping of the c args
+  Arg_Mapping args{ argc, argv };
+  process_arg_mapping( args.get() );
+  //TODO
+}
+
+void VGP::process_arg_mapping(const Arg_Mapping::Arg_Map_t & a_map)
+{
+  for( int i = 1; i < a_map.size(); ++i ) { // start counting @ 1 to skip the first arg (the name of the binary)
+    /* Help Switch */
+    if( a_map[i].first == "-h" || a_map[i].first == "--help" ) {
+      print_help(); //TODO
+      exit( EXIT_SUCCESS );
+    }
+    /* Encrypt file switch */
+    else if( a_map[i].first == "-e" || a_map[i].first == "--encrypt" ) {
+      set_action( Action::Encrypt_File );
+      continue;
+    }
+    /* Decrypt file switch */
+    else if( a_map[i].first == "-d" || a_map[i] == "--decrypt" ) {
+      set_action( Action::Decrypt_File );
+      continue;
+    }
+    /* Input file specifier switch */
+    else if( a_map[i].first == "-i" || a_map[i] == "--input-file" ) {
+      set_floating_
+    }
+    //TODO
+    
+  }
+}
+
+auto VGP::get_action_c_str(const Action a) const
+  -> const char *
+{
+  switch( a ) {
+    default:
+      return "Invalid Action";
+    case( Action::None ):
+      return "None";
+    case( Action::Encrypt_File ):
+      return "Encrypt_File";
+    case( Action::Decrypt_File ):
+      return "Decrypt_File";
+  }
+}
+
+void VGP::set_action(const Action a)
+{
+  if( action != Action::None ) {
+    std::printf( "Error: Action %s already specified. May not specify another.\n\n",
+                 get_action_c_str( action ) );
+    print_help();
+    exit( EXIT_FAILURE );
+  }
+  action = a;
 }
