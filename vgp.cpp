@@ -72,11 +72,11 @@ void VGP::cbc_decrypt_file(const char * const input_filename, const char * const
     }//-
   }
 
-  //Open the input file and the output file
+  /////////////////Open the input file and the output file////////////////////////////
   cbc_t cbc{ Threefish_t{ reinterpret_cast<const uint64_t*>(key) } };
   FILE * const input_file = fopen( input_filename, "rb" ); // open the input file
   FILE * const output_file = fopen( output_filename, "wb" ); // open the output file
-  //Check if files successfully opened
+  //////////////////Check if files successfully opened///////////////////////////////
   if constexpr( Debug ) {
     if( (input_file == nullptr) || (output_file == nullptr) ) {
       fprintf( stderr, "Failed to open input file or output file\n"
@@ -85,6 +85,7 @@ void VGP::cbc_decrypt_file(const char * const input_filename, const char * const
       exit( EXIT_FAILURE );
     }
   }
+  ////////////////////Check if parameters make sense//////////////////////
   size_t bytes_to_decrypt = get_file_size( input_file );
   if( bytes_to_decrypt < (Block_Bytes * 2) ) {
     fprintf( stderr, "Error: The input file does not appear to be big enough to have been Threefish-512-CBC encrypted.\n" );
@@ -98,13 +99,13 @@ void VGP::cbc_decrypt_file(const char * const input_filename, const char * const
     fprintf( stderr, "Error: The file buffer size must be a multiple of 64-bytes.\n" );
     exit( EXIT_FAILURE );
   }
-  //Get the initialization vector
+  //////////////////////////////Get the initialization vector///////////////////////
   {//+
     uint8_t file_iv[ Block_Bytes ];
     bytes_to_decrypt -= fread( file_iv, 1, sizeof(file_iv), input_file );
     cbc.manually_set_state( file_iv );
   }//-
-  //Decrypt
+  ///////////////////////////////Decrypt/////////////////////////////////////
   auto buffer = make_unique<uint8_t[]>( file_buffer_size );
   while( bytes_to_decrypt > file_buffer_size ) {
     fread( buffer.get(), file_buffer_size, 1, input_file );
@@ -117,7 +118,7 @@ void VGP::cbc_decrypt_file(const char * const input_filename, const char * const
     size_t last = cbc.decrypt( buffer.get(), buffer.get(), bytes_to_decrypt );
     fwrite( buffer.get(), 1, last, output_file );
   }//-
-  //Cleanup
+  ///////////////////////////////////////Cleanup/////////////////////////////////////
   explicit_bzero( buffer.get(), file_buffer_size );
   fclose( input_file );
   fclose( output_file );
@@ -142,20 +143,22 @@ void VGP::process_arg_mapping(const Arg_Mapping::Arg_Map_t & a_map)
     /* Encrypt file switch */
     else if( a_map[i].first == "-e" || a_map[i].first == "--encrypt" ) {
       set_action( Action::Encrypt_File );
-      continue;
     }
     /* Decrypt file switch */
-    else if( a_map[i].first == "-d" || a_map[i] == "--decrypt" ) {
+    else if( a_map[i].first == "-d" || a_map[i].first == "--decrypt" ) {
       set_action( Action::Decrypt_File );
-      continue;
     }
-    /* Input file specifier switch */
-    else if( a_map[i].first == "-i" || a_map[i] == "--input-file" ) {
-      set_floating_
+    /* Disallow floating arguments */
+    else if( a_map[i].first.size() == 0 && a_map[i].second.size() != 0 ) {
+      std::fprintf( stderr, "Error: Floating arguments ( %s ) not allowed.\n",
+                    a_map[i].second.c_str() );
+      exit( EXIT_FAILURE );
     }
-    //TODO
-    
-  }
+    /* Assumed legal option-argument pair is stored */
+    else {
+      _option_argument_pairs.push_back( a_map[i] );
+    }
+  }///////////////////////////////////////////////
 }
 
 auto VGP::get_action_c_str(const Action a) const
@@ -163,7 +166,7 @@ auto VGP::get_action_c_str(const Action a) const
 {
   switch( a ) {
     default:
-      return "Invalid Action";
+      return "Invalid_Action";
     case( Action::None ):
       return "None";
     case( Action::Encrypt_File ):
@@ -175,11 +178,20 @@ auto VGP::get_action_c_str(const Action a) const
 
 void VGP::set_action(const Action a)
 {
-  if( action != Action::None ) {
-    std::printf( "Error: Action %s already specified. May not specify another.\n\n",
-                 get_action_c_str( action ) );
+  if( _action != Action::None ) {
+    std::fprintf( stderr, "Error: Action %s already specified. May not specify another.\n\n",
+                 get_action_c_str( _action ) );
     print_help();
     exit( EXIT_FAILURE );
   }
-  action = a;
+  _action = a;
+}
+
+void VGP::print_help()
+{
+  std::printf (
+    "Usage: vgp [SWITCH]...\n\n"
+    "-e, --encrypt\t\tSymmetric encryption mode; encrypt a file.\n"
+    "-d, --decrypt\t\tSymmetric decryption mode; decrypt a file.\n"
+  );
 }

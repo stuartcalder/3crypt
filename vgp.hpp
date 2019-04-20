@@ -24,7 +24,8 @@ public:
   VGP(const int argc, const char * argv[]);
 private:
 /* PRIVATE DATA */
-  Action action = Action::None;
+  Action                 _action = Action::None;
+  Arg_Mapping::Arg_Map_t _option_argument_pairs;
 /* PRIVATE FUNCTIONS */
   void generate_random_bytes(uint8_t * const buffer, size_t num_bytes) const;
   void cbc_encrypt_file(const char * const input_filename, const char * const output_filename,
@@ -36,4 +37,5 @@ private:
   void process_arg_mapping(const Arg_Mapping::Arg_Map_t & a_map);
   inline auto get_action_c_str(const Action a) const -> const char *;
   void set_action(const Action a);
+  void print_help();
 };
