@@ -122,11 +122,3 @@ void VGP::cbc_decrypt_file(const char * const input_filename, const char * const
   fclose( input_file );
   fclose( output_file );
 }
-
-
-
-
-
-
-
-

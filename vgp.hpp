@@ -1,5 +1,4 @@
-#ifndef VGP_HPP
-#define VGP_HPP
+#pragma once
 #include "include/crypto/threefish_precomputed_keyschedule.hpp"
 #include "include/crypto/cbc.hpp"
 #include "include/files/files.hpp"
@@ -29,5 +28,3 @@ private:
                         const uint8_t * const key,
                         const size_t file_buffer_size = Default_File_Buffer_Size);
 };
-
-#endif
