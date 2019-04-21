@@ -8,15 +8,11 @@ void VGP::cbc_encrypt_file(const char * const input_filename, const char * const
 {
   using namespace std;
   //Validate arguments somewhat
-  if constexpr( Debug ) {
-    {//+
-      if( (key == nullptr) || (iv == nullptr) ) { // Diallow key or iv from being nullptr. That wouldn't make sense.
-        fprintf( stderr, "ERROR: VGP::encrypt_file -- Either the key or the initialization vector was a nullptr\n"
-                         "The Key: %p\n"
-                         "The IV : %p\n", key, iv );
-        exit( 1 );
-      }
-    }//-
+  if( (key == nullptr) || (iv == nullptr) ) { // Diallow key or iv from being nullptr. That wouldn't make sense.
+    fprintf( stderr, "ERROR: VGP::encrypt_file -- Either the key or the initialization vector was a nullptr\n"
+                     "The Key: %p\n"
+                     "The IV : %p\n", key, iv );
+    exit( 1 );
   }
 
   //Open the input file, and the file to write to.
@@ -25,13 +21,11 @@ void VGP::cbc_encrypt_file(const char * const input_filename, const char * const
   FILE * const input_file = fopen ( input_filename , "rb" );   // open the input file
   FILE * const output_file = fopen( output_filename, "wb" ); // open the output file
   //Check if files successfully opened
-  if constexpr( Debug ) {
-    if( (input_file == nullptr) || (output_file == nullptr) ) {
-      fprintf( stderr, "Failed to open input file or output file\n"
-                       "Input file is: %p\n"
-                       "Output file is: %p\n", input_file, output_file );
-      exit( 1 );
-    }
+  if( (input_file == nullptr) || (output_file == nullptr) ) {
+    fprintf( stderr, "Failed to open input file or output file\n"
+                     "Input file is: %p\n"
+                     "Output file is: %p\n", input_file, output_file );
+    exit( 1 );
   }
   size_t bytes_to_encrypt = get_file_size( input_file );           // see how big the file is
   auto buffer = make_unique<uint8_t[]>( file_buffer_size );
@@ -62,28 +56,24 @@ void VGP::cbc_decrypt_file(const char * const input_filename, const char * const
 
 
   //Validate arguments somewhat
-  if constexpr( Debug ) {
-    {//+
-      if( (key == nullptr) ) { // Diallow key from being nullptr. That wouldn't make sense.
-        fprintf( stderr, "ERROR: VGP::encrypt_file -- Either the key or the initialization vector was a nullptr\n"
-                         "The Key: %p\n", key );
-        exit( EXIT_FAILURE );
-      }
-    }//-
-  }
+  {//+
+    if( (key == nullptr) ) { // Diallow key from being nullptr. That wouldn't make sense.
+      fprintf( stderr, "ERROR: VGP::encrypt_file -- Either the key or the initialization vector was a nullptr\n"
+                       "The Key: %p\n", key );
+      exit( EXIT_FAILURE );
+    }
+  }//-
 
   /////////////////Open the input file and the output file////////////////////////////
   cbc_t cbc{ Threefish_t{ reinterpret_cast<const uint64_t*>(key) } };
   FILE * const input_file = fopen( input_filename, "rb" ); // open the input file
   FILE * const output_file = fopen( output_filename, "wb" ); // open the output file
   //////////////////Check if files successfully opened///////////////////////////////
-  if constexpr( Debug ) {
-    if( (input_file == nullptr) || (output_file == nullptr) ) {
-      fprintf( stderr, "Failed to open input file or output file\n"
-                       "Input file is: %p\n"
-                       "Output file is: %p\n", input_file, output_file );
-      exit( EXIT_FAILURE );
-    }
+  if( (input_file == nullptr) || (output_file == nullptr) ) {
+    fprintf( stderr, "Failed to open input file or output file\n"
+                     "Input file is: %p\n"
+                     "Output file is: %p\n", input_file, output_file );
+    exit( EXIT_FAILURE );
   }
   ////////////////////Check if parameters make sense//////////////////////
   size_t bytes_to_decrypt = get_file_size( input_file );
@@ -129,7 +119,9 @@ VGP::VGP(const int argc, const char * argv[])
   //Get a mapping of the c args
   Arg_Mapping args{ argc, argv };
   process_arg_mapping( args.get() );
-  //TODO
+  switch( _mode ) {
+    //TODO
+  }
 }
 
 void VGP::process_arg_mapping(const Arg_Mapping::Arg_Map_t & a_map)
@@ -137,16 +129,16 @@ void VGP::process_arg_mapping(const Arg_Mapping::Arg_Map_t & a_map)
   for( int i = 1; i < a_map.size(); ++i ) { // start counting @ 1 to skip the first arg (the name of the binary)
     /* Help Switch */
     if( a_map[i].first == "-h" || a_map[i].first == "--help" ) {
-      print_help(); //TODO
+      print_help();
       exit( EXIT_SUCCESS );
     }
     /* Encrypt file switch */
     else if( a_map[i].first == "-e" || a_map[i].first == "--encrypt" ) {
-      set_action( Action::Encrypt_File );
+      set_mode( Mode::Encrypt_File );
     }
     /* Decrypt file switch */
     else if( a_map[i].first == "-d" || a_map[i].first == "--decrypt" ) {
-      set_action( Action::Decrypt_File );
+      set_mode( Mode::Decrypt_File );
     }
     /* Disallow floating arguments */
     else if( a_map[i].first.size() == 0 && a_map[i].second.size() != 0 ) {
@@ -161,37 +153,42 @@ void VGP::process_arg_mapping(const Arg_Mapping::Arg_Map_t & a_map)
   }///////////////////////////////////////////////
 }
 
-auto VGP::get_action_c_str(const Action a) const
+auto VGP::get_mode_c_str(const Mode m) const
   -> const char *
 {
-  switch( a ) {
+  switch( m ) {
     default:
-      return "Invalid_Action";
-    case( Action::None ):
+      return "Undefined_Mode";
+    case( Mode::None ):
       return "None";
-    case( Action::Encrypt_File ):
+    case( Mode::Encrypt_File ):
       return "Encrypt_File";
-    case( Action::Decrypt_File ):
+    case( Mode::Decrypt_File ):
       return "Decrypt_File";
   }
 }
 
-void VGP::set_action(const Action a)
+void VGP::set_mode(const Mode m)
 {
-  if( _action != Action::None ) {
-    std::fprintf( stderr, "Error: Action %s already specified. May not specify another.\n\n",
-                 get_action_c_str( _action ) );
+  if( _mode != Mode::None ) {
+    std::fprintf( stderr, "Error: Mode %s already specified. May not specify another.\n\n",
+                 get_mode_c_str( _mode ) );
     print_help();
     exit( EXIT_FAILURE );
   }
-  _action = a;
+  _mode = a;
 }
 
 void VGP::print_help()
 {
-  std::printf (
-    "Usage: vgp [SWITCH]...\n\n"
+  std::puts(
+    "Usage: vgp [Mode] [Switch...]\n"
+    "Arguments to switches MUST be in seperate words. (i.e. vgp -e -i file; not vgp -e -ifile)\n"
+    "Modes:\n"
     "-e, --encrypt\t\tSymmetric encryption mode; encrypt a file.\n"
     "-d, --decrypt\t\tSymmetric decryption mode; decrypt a file.\n"
+    "Switches:\n"
+    "-i, --input-file\t\tInput file; Must be specified for symmetric encryption and decryption modes.\n"
+    "-o, --output-file\t\tOutput file; For symmetric encryption and decryption modes. Optional."
   );
 }

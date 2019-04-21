@@ -14,7 +14,7 @@ public:
 /* PUBLIC CONSTANTS */
   using Threefish_t = Threefish_Precomputed_Keyschedule<512>;
   using cbc_t = CBC< Threefish_t, Threefish_t::Key_Bits >;
-  enum class Action {
+  enum class Mode {
     None, Encrypt_File, Decrypt_File
   };
   static constexpr const size_t Block_Bytes = (Threefish_t::Number_Words * 8);
@@ -24,7 +24,7 @@ public:
   VGP(const int argc, const char * argv[]);
 private:
 /* PRIVATE DATA */
-  Action                 _action = Action::None;
+  Mode                   _mode = Mode::None;
   Arg_Mapping::Arg_Map_t _option_argument_pairs;
 /* PRIVATE FUNCTIONS */
   void generate_random_bytes(uint8_t * const buffer, size_t num_bytes) const;
@@ -35,7 +35,7 @@ private:
                         const uint8_t * const key,
                         const size_t file_buffer_size = Default_File_Buffer_Size);
   void process_arg_mapping(const Arg_Mapping::Arg_Map_t & a_map);
-  inline auto get_action_c_str(const Action a) const -> const char *;
-  void set_action(const Action a);
+  inline auto get_mode_c_str(const Mode m) const -> const char *;
+  void set_mode(const Mode m);
   void print_help();
 };
