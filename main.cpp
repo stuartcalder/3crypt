@@ -7,12 +7,14 @@
 int main()
 {
   Skein<512> skein;
-  uint8_t in [ 512 / 8 ] = { 0 };
+  uint8_t in[] = { 0xff };
   uint8_t out[ 512 / 8 ] = { 0 };
   skein.hash( in, out, sizeof(in) );
 
   constexpr const auto & p8buf = print_integral_buffer<uint8_t>;
+  std::printf("IN:\n");
   p8buf( in,  sizeof(in) );
+  std::printf("OUT:\n");
   p8buf( out, sizeof(out) );
 }
 
