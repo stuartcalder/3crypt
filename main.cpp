@@ -1,4 +1,20 @@
+#if 0
 #include "vgp.hpp"
+#endif
+#include "include/crypto/skein.hpp"
+#include "include/general/print.hpp"
+
+int main()
+{
+  Skein<512> skein;
+  uint8_t in [ 512 / 8 ] = { 0 };
+  uint8_t out[ 512 / 8 ] = { 0 };
+  skein.hash( in, out, sizeof(in) );
+
+  constexpr const auto & p8buf = print_integral_buffer<uint8_t>;
+  p8buf( in,  sizeof(in) );
+  p8buf( out, sizeof(out) );
+}
 
 #if 0
 int main()

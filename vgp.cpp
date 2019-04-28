@@ -64,7 +64,7 @@ void VGP::set_mode(const Mode m)
     print_help();
     exit( EXIT_FAILURE );
   }
-  _mode = a;
+  _mode = m;
 }
 
 void VGP::print_help()
@@ -86,7 +86,7 @@ void VGP::symmetric_encrypt_file() const
   std::string input_filename, output_filename;
   //////////Get the input and output filenames///////////////////////
   for( const auto & pair : _option_argument_pairs ) {
-    check_file_name_sanity( pair.second );
+    check_file_name_sanity( pair.second, 1 );
     if( pair.first == "-i" || pair.first == "--input-file" ) {
       input_filename = pair.second;
     }

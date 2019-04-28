@@ -3,7 +3,7 @@
 #include "include/crypto/operations.hpp"
 #include "include/crypto/threefish_precomputed_keyschedule.hpp"
 #include "include/crypto/cbc.hpp"
-#include "include/crypt/file_encryption.hpp"
+#include "include/crypto/file_encryption.hpp"
 #include "include/files/files.hpp"
 #include <cstdlib>
 #include <memory>
