@@ -8,7 +8,17 @@ VGP::VGP(const int argc, const char * argv[])
   Arg_Mapping args{ argc, argv };
   process_arg_mapping( args.get() );
   switch( _mode ) {
-    //TODO
+    default:
+      std::fprintf( stderr,
+          "ERROR: No mode selected. (i.e. -e or -d)\n"
+      );
+      print_help();
+      std::exit( 1 );
+    case( Mode::Encrypt_File ):
+      symmetric_encrypt_file();
+      break;
+    case( Mode::Decrypt_File ):
+      break;
   }
 }
 
@@ -18,7 +28,7 @@ void VGP::process_arg_mapping(const Arg_Mapping::Arg_Map_t & a_map)
     /* Help Switch */
     if( a_map[i].first == "-h" || a_map[i].first == "--help" ) {
       print_help();
-      exit( EXIT_SUCCESS );
+      std::exit( EXIT_SUCCESS );
     }
     /* Encrypt file switch */
     else if( a_map[i].first == "-e" || a_map[i].first == "--encrypt" ) {
@@ -32,7 +42,7 @@ void VGP::process_arg_mapping(const Arg_Mapping::Arg_Map_t & a_map)
     else if( a_map[i].first.size() == 0 && a_map[i].second.size() != 0 ) {
       std::fprintf( stderr, "Error: Floating arguments ( %s ) not allowed.\n",
                     a_map[i].second.c_str() );
-      exit( EXIT_FAILURE );
+      std::exit( EXIT_FAILURE );
     }
     /* Assumed legal option-argument pair is stored */
     else {
@@ -62,7 +72,7 @@ void VGP::set_mode(const Mode m)
     std::fprintf( stderr, "Error: Mode %s already specified. May not specify another.\n\n",
                  get_mode_c_str( _mode ) );
     print_help();
-    exit( EXIT_FAILURE );
+    std::exit( EXIT_FAILURE );
   }
   _mode = m;
 }
@@ -73,11 +83,11 @@ void VGP::print_help()
     "Usage: vgp [Mode] [Switch...]\n"
     "Arguments to switches MUST be in seperate words. (i.e. vgp -e -i file; not vgp -e -ifile)\n"
     "Modes:\n"
-    "-e, --encrypt\t\tSymmetric encryption mode; encrypt a file.\n"
-    "-d, --decrypt\t\tSymmetric decryption mode; decrypt a file.\n"
+    "-e, --encrypt\tSymmetric encryption mode; encrypt a file.\n"
+    "-d, --decrypt\tSymmetric decryption mode; decrypt a file.\n"
     "Switches:\n"
-    "-i, --input-file\t\tInput file; Must be specified for symmetric encryption and decryption modes.\n"
-    "-o, --output-file\t\tOutput file; For symmetric encryption and decryption modes. Optional."
+    "-i, --input-file\tInput file; Must be specified for symmetric encryption and decryption modes.\n"
+    "-o, --output-file\tOutput file; For symmetric encryption and decryption modes. Optional for encryption; mandatory for decryption."
   );
 }
 
@@ -89,11 +99,12 @@ void VGP::symmetric_encrypt_file() const
     check_file_name_sanity( pair.second, 1 );
     if( pair.first == "-i" || pair.first == "--input-file" ) {
       input_filename = pair.second;
+      if( output_filename.size() == 0 ) {
+        output_filename = input_filename + ".vgp";
+      }
     }
-    else if( pair.first == "-o" || pair.second == "--output-file" ) {
+    else if( pair.first == "-o" || pair.first == "--output-file" ) {
       output_filename = pair.second;
     }
   }
-  //////////Get the input and output filenames///////////////////////
-  //TODO 
 }

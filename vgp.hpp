@@ -14,12 +14,13 @@ class VGP
 {
 public:
 /* PUBLIC CONSTANTS */
-  using Threefish_t = Threefish_Precomputed_Keyschedule<512>;
+  using Threefish_t = Threefish<512>;
   enum class Mode {
     None, Encrypt_File, Decrypt_File
   };
   static constexpr const size_t Block_Bytes = (Threefish_t::Number_Words * 8);
 /* CONSTRUCTOR(S) */
+  VGP() = delete;
   VGP(const int argc, const char * argv[]);
 private:
 /* PRIVATE DATA */
@@ -31,4 +32,5 @@ private:
   void set_mode(const Mode m);
   void print_help();
   void symmetric_encrypt_file() const;
+
 };
