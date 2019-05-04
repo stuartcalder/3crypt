@@ -1,8 +1,7 @@
 #pragma once
 #include "include/general/arg_mapping.hpp"
 #include "include/crypto/operations.hpp"
-#include "include/crypto/threefish_precomputed_keyschedule.hpp"
-#include "include/crypto/cbc.hpp"
+#include "include/crypto/threefish.hpp"
 #include "include/crypto/file_encryption.hpp"
 #include "include/files/files.hpp"
 #include <cstdlib>
@@ -14,11 +13,25 @@ class VGP
 {
 public:
 /* PUBLIC CONSTANTS */
-  using Threefish_t = Threefish<512>;
+  static constexpr const size_t Salt_Bits = 128;
+  static constexpr const size_t Salt_Bytes = Salt_Bits / 8;
+  static constexpr const size_t Block_Bits = 512;
+  static constexpr const size_t Block_Bytes = Block_Bits / 8;
+  static constexpr const size_t MAC_Bytes   = Block_Bytes;
+  using Threefish_t = Threefish< Block_Bits >;
+  using CBC_t       = CBC< Threefish_t, Block_Bits >;
+  using Skein_t     = Skein< Block_Bits >;
   enum class Mode {
     None, Encrypt_File, Decrypt_File
   };
-  static constexpr const size_t Block_Bytes = (Threefish_t::Number_Words * 8);
+/* INTERNAL STRUCTS */
+  struct Header {
+    uint64_t total_size;
+    uint8_t  sspkdf_salt[ Salt_Bytes ];
+    uint8_t  cbc_iv     [ Block_Bytes ];
+    uint32_t num_iter;
+    uint32_t num_concat;
+  };
 /* CONSTRUCTOR(S) */
   VGP() = delete;
   VGP(const int argc, const char * argv[]);
@@ -27,10 +40,11 @@ private:
   Mode                   _mode = Mode::None;
   Arg_Mapping::Arg_Map_t _option_argument_pairs;
 /* PRIVATE FUNCTIONS */
-  void process_arg_mapping(const Arg_Mapping::Arg_Map_t & a_map);
-  inline auto get_mode_c_str(const Mode m) const -> const char *;
-  void set_mode(const Mode m);
-  void print_help();
-  void symmetric_encrypt_file() const;
-
+  void _process_arg_mapping(const Arg_Mapping::Arg_Map_t & a_map);
+  auto _get_mode_c_str(const Mode m) const -> const char *;
+  void _set_mode(const Mode m);
+  void _print_help();
+  void _symmetric_encrypt_file() const;
+  size_t _calculate_post_encryption_size(const size_t pre_encr_size) const;
+  void _stretch_fd_to(const int fd, const size_t size) const;
 };
