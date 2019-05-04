@@ -2,6 +2,8 @@
 #include "include/general/arg_mapping.hpp"
 #include "include/crypto/operations.hpp"
 #include "include/crypto/threefish.hpp"
+#include "include/crypto/skein.hpp"
+#include "include/crypto/sspkdf.hpp"
 #include "include/crypto/file_encryption.hpp"
 #include "include/files/files.hpp"
 #include <cstdlib>
@@ -43,7 +45,7 @@ private:
   void _process_arg_mapping(const Arg_Mapping::Arg_Map_t & a_map);
   auto _get_mode_c_str(const Mode m) const -> const char *;
   void _set_mode(const Mode m);
-  void _print_help();
+  void _print_help() const;
   void _symmetric_encrypt_file() const;
   size_t _calculate_post_encryption_size(const size_t pre_encr_size) const;
   void _stretch_fd_to(const int fd, const size_t size) const;

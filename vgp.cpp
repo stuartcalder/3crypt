@@ -90,7 +90,7 @@ void VGP::_set_mode(const Mode m)
   _mode = m;
 }
 
-void VGP::_print_help()
+void VGP::_print_help() const
 {
   std::puts(
     "Usage: vgp [Mode] [Switch...]\n"
@@ -122,7 +122,7 @@ void VGP::_symmetric_encrypt_file() const
       output_filename = pair.second;
     }
     else {
-      fprintf( stderr, "Error: unrecognizable switch %s\n" pair.first.c_str() );
+      fprintf( stderr, "Error: unrecognizable switch %s\n", pair.first.c_str() );
       _print_help();
       exit( EXIT_FAILURE );
     }
@@ -137,7 +137,7 @@ void VGP::_symmetric_encrypt_file() const
     exit( EXIT_FAILURE );
   }
   //////////Open the input and output files//////////////////////////
-  const int input_fd  = open( input_filename.c_str(),  (O_RDWR | O_CREAT | O_TRUNC), static_cast<mode_t>(0600) ),
+  const int input_fd  = open( input_filename.c_str(),  (O_RDWR | O_CREAT), static_cast<mode_t>(0600) ),
             output_fd = open( output_filename.c_str(), (O_RDWR | O_CREAT | O_TRUNC), static_cast<mode_t>(0600) );
   if( input_fd == -1 ) {
     fprintf( stderr, "Error: Unable to open file '%s'\n", input_filename.c_str() );
@@ -152,14 +152,20 @@ void VGP::_symmetric_encrypt_file() const
   const size_t output_file_size = _calculate_post_encryption_size( input_file_size );
   // stretch output_file to the correct size
   _stretch_fd_to( output_fd, output_file_size );
-  uint8_t * const input_map  = mmap( 0, input_file_size, PROT_READ, MAP_SHARED, input_fd, 0 ),
-          * const output_map = mmap( 0, output_file_size, PROT_READ | PROT_WRITE, MAP_SHARED, output_fd, 0 );
+  if( input_file_size == 0 ) {
+    fprintf( stderr, "ERROR: INPUT FILE WAS 0 BYTES\n" );
+    exit( EXIT_FAILURE );
+  }
+  auto input_map  = reinterpret_cast<uint8_t * const>(mmap( 0, input_file_size , PROT_READ|PROT_WRITE, MAP_SHARED, input_fd , 0 ));
+  auto output_map = reinterpret_cast<uint8_t * const>(mmap( 0, output_file_size, PROT_READ|PROT_WRITE, MAP_SHARED, output_fd, 0 ));
   if( input_map == MAP_FAILED ) {
     fprintf( stderr, "Error: Failed to open input map\n" );
+    perror( "Failed to open input map" );
     exit( EXIT_FAILURE );
   }
   else if( output_map == MAP_FAILED ) {
     fprintf( stderr, "Error: Failed to open output map\n" );
+    perror( "Failed to open output map" );
     exit( EXIT_FAILURE );
   }
   // Generate a header
@@ -177,7 +183,7 @@ void VGP::_symmetric_encrypt_file() const
   const char password[] = "forehead_punch";
   uint8_t derived_key[ Block_Bytes ];
   SSPKDF( derived_key,
-          reinterpret_cast<uint8_t *>(password),
+          reinterpret_cast<const uint8_t *>(password),
           sizeof(password) - 1,
           header.sspkdf_salt,
           header.num_iter,
