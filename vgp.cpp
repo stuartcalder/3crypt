@@ -102,7 +102,7 @@ void VGP::_print_help() const
     "-d, --decrypt\tSymmetric decryption mode; decrypt a file.\n"
     "Switches:\n"
     "-i, --input-file\tInput file; Must be specified for symmetric encryption and decryption modes.\n"
-    "-o, --output-file\tOutput file; For symmetric encryption and decryption modes. Optional for encryption; mandatory for decryption."
+    "-o, --output-file\tOutput file; For symmetric encryption and decryption modes. Optional for encryption"
   );
 }
 
@@ -165,18 +165,19 @@ void VGP::_symmetric_encrypt_file() const
   auto input_map  = reinterpret_cast<uint8_t * const>(mmap( 0, input_file_size , PROT_READ           , MAP_SHARED, input_fd , 0 ));
   auto output_map = reinterpret_cast<uint8_t * const>(mmap( 0, output_file_size, PROT_READ|PROT_WRITE, MAP_SHARED, output_fd, 0 ));
   if( input_map == MAP_FAILED ) {
-    fprintf( stderr, "Error: Failed to open input map\n" );
     perror( "Failed to open input map" );
     exit( EXIT_FAILURE );
   }
-  else if( output_map == MAP_FAILED ) {
-    fprintf( stderr, "Error: Failed to open output map\n" );
+  if( output_map == MAP_FAILED ) {
     perror( "Failed to open output map" );
     exit( EXIT_FAILURE );
   }
   // Generate a header
   struct Header header;
+  memset( &(header.id), 0, sizeof(header.id) );
+  memcpy( &(header.id), "VGP-CBC-V1", sizeof("VGP-CBC-V1") - 1 );
   header.total_size = static_cast<uint64_t>(output_file_size);
+  generate_random_bytes( header.tweak      , sizeof(header.tweak) );
   generate_random_bytes( header.sspkdf_salt, sizeof(header.sspkdf_salt) );
   generate_random_bytes( header.cbc_iv     , sizeof(header.cbc_iv) );
   header.num_iter   = 1'000'000;
@@ -196,7 +197,7 @@ void VGP::_symmetric_encrypt_file() const
           header.num_concat );
   // Encrypt file
   {
-    CBC_t cbc{ Threefish_t{ derived_key } };
+    CBC_t cbc{ Threefish_t{ derived_key, header.tweak } };
     size_t num = cbc.encrypt( input_map, out, input_file_size, header.cbc_iv );
     out += num;
   }
@@ -233,6 +234,8 @@ void VGP::_symmetric_encrypt_file() const
     fprintf( stderr, "Error: Unable to close output file with file-descriptor %d\n", output_fd );
     exit( EXIT_FAILURE );
   }
+  // Data cleanup
+  explicit_bzero( derived_key, sizeof(derived_key) );
 }
 
 size_t VGP::_calculate_post_encryption_size(const size_t pre_encr_size) const
@@ -269,6 +272,11 @@ void VGP::_symmetric_decrypt_file() const
     check_file_name_sanity( pair.second, 1 );
     if( pair.first == "-i" || pair.first == "--input-file" ) {
       input_filename = pair.second;
+      if( output_filename.size() == 0 && input_filename.size() >= 4 ) {
+        if( input_filename.substr( input_filename.size() - 4 ) == ".vgp" ) {
+          output_filename = input_filename.substr( 0, input_filename.size() - 4 );
+        }
+      }
     }
     else if( pair.first == "-o" || pair.first == "--output-file" ) {
       output_filename = pair.second;
@@ -307,7 +315,7 @@ void VGP::_symmetric_decrypt_file() const
   const size_t input_file_size = get_file_size( input_fd );
   const size_t output_file_size = input_file_size;
   _stretch_fd_to( output_fd, output_file_size );
-  if( input_file_size < (sizeof(Header) + Block_Bytes + MAC_Bytes) ) {
+  if( input_file_size < (sizeof(struct Header) + Block_Bytes + MAC_Bytes) ) {
     fprintf( stderr, "Error: Input file doesn't seem to be large enough to be a vgp encrypted file\n" );
     exit( EXIT_FAILURE );
   }
@@ -326,6 +334,10 @@ void VGP::_symmetric_decrypt_file() const
   struct Header header;
   memcpy( &header, in, sizeof(header) );
   in += sizeof(header);
+  if( memcmp( &(header.id), "VGP-CBC-V1", sizeof("VGP-CBC-V1") - 1 ) != 0 ) {
+    fprintf( stderr, "Error: The input file doesn't appear to be a VGP-CBC-V1 encrypted file.\n" );
+    exit( EXIT_FAILURE );
+  }
   if( header.total_size != input_file_size ) {
     fprintf( stderr, "Error: Input file size (%zu) does not equal file size in the file header of the input file (%zu)\n",
              header.total_size, input_file_size );
@@ -359,8 +371,8 @@ void VGP::_symmetric_decrypt_file() const
   // Decrypt the file
   size_t plaintext_size;
   {
-    CBC_t cbc{ Threefish_t{ derived_key } };
-    plaintext_size = cbc.decrypt( in, output_map, input_file_size - MAC_Bytes, header.cbc_iv );
+    CBC_t cbc{ Threefish_t{ derived_key, header.tweak } };
+    plaintext_size = cbc.decrypt( in, output_map, input_file_size - sizeof(struct Header) - MAC_Bytes, header.cbc_iv );
     in += plaintext_size;
   }
   if( msync( output_map, output_file_size, MS_SYNC ) == -1 ) {
@@ -376,6 +388,8 @@ void VGP::_symmetric_decrypt_file() const
     exit( EXIT_FAILURE );
   }
   _stretch_fd_to( output_fd, plaintext_size );
+  printf( "Plaintext size here is %zu\n", plaintext_size );
+  printf( "A header is %zu bytes\n", sizeof(struct Header) );
   if( close( input_fd ) == -1 ) {
     fprintf( stderr, "Error: Unable to close input file with file-descriptor %d\n", input_fd );
     exit( EXIT_FAILURE );
