@@ -1,5 +1,5 @@
 CC = g++
-CXXFLAGS = -std=c++17 -O2 -march=native -pipe -fPIC -fno-exceptions
+CXXFLAGS = -std=c++17 -O3 -march=native -pipe -fPIC -fno-exceptions
 
 main:
 	$(CC) $(CXXFLAGS) -o main \
