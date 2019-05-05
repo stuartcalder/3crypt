@@ -94,6 +94,7 @@ void VGP::_set_mode(const Mode m)
 void VGP::_print_help() const
 {
   std::puts(
+    "\n"
     "Usage: vgp [Mode] [Switch...]\n"
     "Arguments to switches MUST be in seperate words. (i.e. vgp -e -i file; not vgp -e -ifile)\n"
     "Modes:\n"
@@ -177,7 +178,7 @@ void VGP::_symmetric_encrypt_file() const
   struct Header header;
   header.total_size = static_cast<uint64_t>(output_file_size);
   generate_random_bytes( header.sspkdf_salt, sizeof(header.sspkdf_salt) );
-  generate_random_bytes( header.cbc_iv, sizeof(header.cbc_iv) );
+  generate_random_bytes( header.cbc_iv     , sizeof(header.cbc_iv) );
   header.num_iter   = 1'000'000;
   header.num_concat = 1'000'000;
   // Copy header into new file
