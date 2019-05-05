@@ -49,4 +49,5 @@ private:
   void _symmetric_encrypt_file() const;
   size_t _calculate_post_encryption_size(const size_t pre_encr_size) const;
   void _stretch_fd_to(const int fd, const size_t size) const;
+  void _symmetric_decrypt_file() const;
 };
