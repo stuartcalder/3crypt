@@ -2,9 +2,9 @@
 #include "include/general/arg_mapping.hpp"
 #include "include/crypto/operations.hpp"
 #include "include/crypto/threefish.hpp"
+#include "include/crypto/cbc.hpp"
 #include "include/crypto/skein.hpp"
 #include "include/crypto/sspkdf.hpp"
-#include "include/crypto/file_encryption.hpp"
 #include "include/files/files.hpp"
 #include <cstdlib>
 #include <memory>
@@ -23,13 +23,27 @@ public:
   static constexpr const size_t Block_Bytes = Block_Bits / 8;
   static constexpr const size_t MAC_Bytes   = Block_Bytes;
   static constexpr const size_t ID_Bytes = 16;
+  static constexpr const size_t Max_Password_Length = 64;
   using Threefish_t = Threefish< Block_Bits >;
+  using Skein_t     = Skein    < Block_Bits >;
   using CBC_t       = CBC< Threefish_t, Block_Bits >;
-  using Skein_t     = Skein< Block_Bits >;
   enum class Mode {
     None, Encrypt_File, Decrypt_File
   };
 /* INTERNAL STRUCTS */
+  struct File_Data {
+    int  input_fd;
+    int output_fd;
+    uint8_t *input_map;
+    uint8_t *output_map;
+    size_t input_filesize;
+    size_t output_filesize;
+  };
+  /*
+   * It is significant that all the types in struct Header be explicitly
+   * defined in size, as Headers are copied in and out of memory-mapped
+   * files in-place 
+   */
   struct Header {
     uint8_t  id         [ ID_Bytes ];
     uint64_t total_size;
@@ -55,4 +69,12 @@ private:
   size_t _calculate_post_encryption_size(const size_t pre_encr_size) const;
   void _stretch_fd_to(const int fd, const size_t size) const;
   void _symmetric_decrypt_file() const;
+  void _get_password(uint8_t *password_buf, int &pw_size) const;
+  void _open_files(struct File_Data & f_data,
+                   const char * const input_filename,
+                   const char * const output_filename) const;
+  void _close_files(struct File_Data & f_data) const;
+  void _map_files(struct File_Data & f_data) const;
+  void _unmap_files(struct File_Data & f_data) const;
+  void _sync_map(struct File_Data & f_data) const;
 };

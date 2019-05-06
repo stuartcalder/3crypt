@@ -1,14 +1,14 @@
 #include "include/files/files.hpp"
 #include "vgp.hpp"
 
-#ifdef __gnu_linux__
-  #include <sys/types.h>
-  #include <sys/stat.h>
-  #include <fcntl.h>
-  #include <sys/mman.h>
-  #include <unistd.h>
-#else
-  #error "Only gnu/linux implemented"
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <sys/mman.h>
+#include <unistd.h>
+
+#ifndef __gnu_linux__
+  #error "Only gnu/linux implemented currently"
 #endif
 
 VGP::VGP(const int argc, const char * argv[])
@@ -134,106 +134,61 @@ void VGP::_symmetric_encrypt_file() const
     _print_help();
     exit( EXIT_FAILURE );
   }
-  if( ! file_exists( input_filename.c_str() ) ) {
-    fprintf( stderr, "Error: input file '%s' doesn't seem to exist.\n", input_filename.c_str() );
-    exit( EXIT_FAILURE );
-  }
-  if( file_exists( output_filename.c_str() ) ) {
-    fprintf( stderr, "Error: output file '%s' already seems to exist.\n", output_filename.c_str() );
-    exit( EXIT_FAILURE );
-  }
-  //////////Open the input and output files//////////////////////////
-  const int input_fd  = open( input_filename.c_str(),  (O_RDWR | O_CREAT), static_cast<mode_t>(0600) ),
-            output_fd = open( output_filename.c_str(), (O_RDWR | O_CREAT | O_TRUNC), static_cast<mode_t>(0600) );
-  if( input_fd == -1 ) {
-    fprintf( stderr, "Error: Unable to open file '%s'\n", input_filename.c_str() );
-    exit( EXIT_FAILURE );
-  }
-  if( output_fd == -1 ) {
-    fprintf( stderr, "Error: Unable to open file '%s'\n", output_filename.c_str() );
-    exit( EXIT_FAILURE );
-  }
-  //////////Map the input and output files///////////////////////////
-  const size_t input_file_size  = get_file_size( input_fd );
-  const size_t output_file_size = _calculate_post_encryption_size( input_file_size );
-  // stretch output_file to the correct size
-  _stretch_fd_to( output_fd, output_file_size );
-  if( input_file_size == 0 ) {
-    fprintf( stderr, "Error: Input file was 0 bytes\n" );
-    exit( EXIT_FAILURE );
-  }
-  auto input_map  = reinterpret_cast<uint8_t * const>(mmap( 0, input_file_size , PROT_READ           , MAP_SHARED, input_fd , 0 ));
-  auto output_map = reinterpret_cast<uint8_t * const>(mmap( 0, output_file_size, PROT_READ|PROT_WRITE, MAP_SHARED, output_fd, 0 ));
-  if( input_map == MAP_FAILED ) {
-    perror( "Failed to open input map" );
-    exit( EXIT_FAILURE );
-  }
-  if( output_map == MAP_FAILED ) {
-    perror( "Failed to open output map" );
-    exit( EXIT_FAILURE );
-  }
+  // Open and map the files
+  struct File_Data f_data;
+  _open_files( f_data, input_filename.c_str(), output_filename.c_str() );
+  f_data.input_filesize  = get_file_size( f_data.input_fd );
+  f_data.output_filesize = _calculate_post_encryption_size( f_data.input_filesize );
+  _stretch_fd_to( f_data.output_fd, f_data.output_filesize );
+  _map_files( f_data );
+  // Obtain the password
+  uint8_t password[ Max_Password_Length ];
+  int password_length;
+  _get_password( password, password_length );
   // Generate a header
   struct Header header;
-  memset( &(header.id), 0, sizeof(header.id) );
-  memcpy( &(header.id), "VGP-CBC-V1", sizeof("VGP-CBC-V1") - 1 );
-  header.total_size = static_cast<uint64_t>(output_file_size);
+  memset( header.id, 0, sizeof(header.id) );
+  memcpy( header.id, "VGP-CBC-V1", sizeof("VGP-CBC-V1") - 1 );
+  header.total_size = static_cast<uint64_t>(f_data.output_filesize);
   generate_random_bytes( header.tweak      , sizeof(header.tweak) );
   generate_random_bytes( header.sspkdf_salt, sizeof(header.sspkdf_salt) );
   generate_random_bytes( header.cbc_iv     , sizeof(header.cbc_iv) );
-  header.num_iter   = 1'000'000;
-  header.num_concat = 1'000'000;
+  header.num_iter   = 2'000'000;
+  header.num_concat = 2'000'000;
   // Copy header into new file
-  uint8_t * out = output_map;
+  uint8_t * out = f_data.output_map;
   memcpy( out, &header, sizeof(header) );
   out += sizeof(header);
   // Generate key
-  const char password[] = "forehead_punch";
   uint8_t derived_key[ Block_Bytes ];
   SSPKDF( derived_key,
           reinterpret_cast<const uint8_t *>(password),
-          sizeof(password) - 1,
+          password_length,
           header.sspkdf_salt,
           header.num_iter,
           header.num_concat );
   // Encrypt file
   {
     CBC_t cbc{ Threefish_t{ derived_key, header.tweak } };
-    size_t num = cbc.encrypt( input_map, out, input_file_size, header.cbc_iv );
+    size_t num = cbc.encrypt( f_data.input_map, out, f_data.input_filesize, header.cbc_iv );
     out += num;
   }
   // MAC the file
   {
     Skein_t skein;
     skein.MAC( out,
-               output_map,
+               f_data.output_map,
                derived_key,
-               output_file_size - MAC_Bytes,
+               f_data.output_filesize - MAC_Bytes,
                sizeof(derived_key),
                MAC_Bytes );
   }
-  // Sync output memory mapping
-  if( msync( output_map, output_file_size, MS_SYNC ) == -1 ) {
-    fprintf( stderr, "Error: Failed to sync mmap()\n" );
-    exit( EXIT_FAILURE );
-  }
-  // Close memory mappings
-  if( munmap( input_map, input_file_size ) == -1 ) {
-    fprintf( stderr, "Error: Failed to unmap input file\n" );
-    exit( EXIT_FAILURE );
-  }
-  if( munmap( output_map, output_file_size ) == -1 ) {
-    fprintf( stderr, "Error: Failed to unmap output file\n" );
-    exit( EXIT_FAILURE );
-  }
+  // Sync the mapping
+  _sync_map( f_data );
+  // Unmap files
+  _unmap_files( f_data );
   // Close open files
-  if( close( input_fd ) == -1 ) {
-    fprintf( stderr, "Error: Unable to close input file with file-descriptor %d\n", input_fd );
-    exit( EXIT_FAILURE );
-  }
-  if( close( output_fd ) == -1 ) {
-    fprintf( stderr, "Error: Unable to close output file with file-descriptor %d\n", output_fd );
-    exit( EXIT_FAILURE );
-  }
+  _close_files( f_data );
   // Data cleanup
   explicit_bzero( derived_key, sizeof(derived_key) );
 }
@@ -242,15 +197,12 @@ size_t VGP::_calculate_post_encryption_size(const size_t pre_encr_size) const
 {
   size_t s = pre_encr_size;
   // account for added padding (Block_Bytes)
-  if( s < Block_Bytes ) {
+  if( s < Block_Bytes )
     s = Block_Bytes;
-  }
-  else {
-    const auto remain = s % Block_Bytes;
-    s += ( Block_Bytes - remain );
-  }
+  else
+    s += ( Block_Bytes - (s % Block_Bytes));
   // account for header at the beginning of the file and the MAC at the end of the file
-  return s + sizeof(Header) + MAC_Bytes;
+  return s + sizeof(struct Header) + MAC_Bytes;
 }
 
 void VGP::_stretch_fd_to(const int fd, const size_t size) const
@@ -292,63 +244,49 @@ void VGP::_symmetric_decrypt_file() const
     _print_help();
     exit( EXIT_FAILURE );
   }
-  if( ! file_exists( input_filename.c_str() ) ) {
-    fprintf( stderr, "Error: input file '%s' doesn't seem to exist.\n", input_filename.c_str() );
-    exit( EXIT_FAILURE );
-  }
-  if( file_exists( output_filename.c_str() ) ) {
-    fprintf( stderr, "Error: output file '%s' already seems to exist.\n", output_filename.c_str() );
-    exit( EXIT_FAILURE );
-  }
-  //////////Open the input and output files//////////////////////////
-  const int input_fd  = open( input_filename.c_str() , O_RDWR | O_CREAT      , static_cast<mode_t>(0600) ),
-            output_fd = open( output_filename.c_str(), O_RDWR|O_CREAT|O_TRUNC, static_cast<mode_t>(0600) );
-  if( input_fd == -1 ) {
-    fprintf( stderr, "Error: Unable to open input file '%s'\n", input_filename.c_str() );
-    exit( EXIT_FAILURE );
-  }
-  if( output_fd == -1 ) {
-    fprintf( stderr, "Error: Unable to open output file '%s'\n", output_filename.c_str() );
-    exit( EXIT_FAILURE );
-  }
-  //////////Map the input and output files///////////////////////////
-  const size_t input_file_size = get_file_size( input_fd );
-  const size_t output_file_size = input_file_size;
-  _stretch_fd_to( output_fd, output_file_size );
-  if( input_file_size < (sizeof(struct Header) + Block_Bytes + MAC_Bytes) ) {
+  // Open the files
+  struct File_Data f_data;
+  _open_files( f_data, input_filename.c_str(), output_filename.c_str() );
+  // Obtain the password
+  uint8_t password[ Max_Password_Length ];
+  int password_length;
+  _get_password( password, password_length );
+  // Get the sizes of the files
+  f_data.input_filesize  = get_file_size( f_data.input_fd );
+  f_data.output_filesize = f_data.input_filesize;
+  if( f_data.input_filesize < (sizeof(struct Header) + Block_Bytes + MAC_Bytes) ) {
     fprintf( stderr, "Error: Input file doesn't seem to be large enough to be a vgp encrypted file\n" );
+    _close_files( f_data );
+    remove( output_filename.c_str() );
     exit( EXIT_FAILURE );
   }
-  auto input_map  = reinterpret_cast<uint8_t * const>(mmap( 0, input_file_size , PROT_READ           , MAP_SHARED, input_fd , 0 ));
-  auto output_map = reinterpret_cast<uint8_t * const>(mmap( 0, output_file_size, PROT_READ|PROT_WRITE, MAP_SHARED, output_fd, 0 ));
-  if( input_map == MAP_FAILED ) {
-    perror( "Failed to open input map" );
-    exit( EXIT_FAILURE );
-  }
-  if( output_map == MAP_FAILED ) {
-    perror( "Failed to open output map" );
-    exit( EXIT_FAILURE );
-  }
+  _stretch_fd_to( f_data.output_fd, f_data.output_filesize );
+  _map_files( f_data );
   //////////Read the header out of the input file////////////////////
-  const uint8_t * in = input_map;
+  const uint8_t * in = f_data.input_map;
   struct Header header;
   memcpy( &header, in, sizeof(header) );
   in += sizeof(header);
   if( memcmp( &(header.id), "VGP-CBC-V1", sizeof("VGP-CBC-V1") - 1 ) != 0 ) {
     fprintf( stderr, "Error: The input file doesn't appear to be a VGP-CBC-V1 encrypted file.\n" );
+    _unmap_files( f_data );
+    _close_files( f_data );
+    remove( output_filename.c_str() );
     exit( EXIT_FAILURE );
   }
-  if( header.total_size != input_file_size ) {
+  if( header.total_size != f_data.input_filesize ) {
     fprintf( stderr, "Error: Input file size (%zu) does not equal file size in the file header of the input file (%zu)\n",
-             header.total_size, input_file_size );
+             header.total_size, f_data.input_filesize );
+    _unmap_files( f_data );
+    _close_files( f_data );
+    remove( output_filename.c_str() );
     exit( EXIT_FAILURE );
   }
   // Generate key
-  const char password[] = "forehead_punch";
   uint8_t derived_key[ Block_Bytes ];
   SSPKDF( derived_key,
           reinterpret_cast<const uint8_t *>(password),
-          sizeof(password) - 1,
+          password_length,
           header.sspkdf_salt,
           header.num_iter,
           header.num_concat );
@@ -357,14 +295,17 @@ void VGP::_symmetric_decrypt_file() const
     Skein_t skein;
     uint8_t gen_mac[ MAC_Bytes ];
     skein.MAC( gen_mac,
-               input_map,
+               f_data.input_map,
                derived_key,
-               input_file_size - MAC_Bytes,
+               f_data.input_filesize - MAC_Bytes,
                sizeof(derived_key),
                sizeof(gen_mac) );
-    if( memcmp( gen_mac, (input_map + input_file_size - MAC_Bytes), MAC_Bytes ) != 0 ) {
+    if( memcmp( gen_mac, (f_data.input_map + f_data.input_filesize - MAC_Bytes), MAC_Bytes ) != 0 ) {
       fprintf( stderr, "Error: Authentication failed.\n"
                        "Possibilities: wrong password, the file is corrupted, or it has been somehow tampered with.\n" );
+      _unmap_files( f_data );
+      _close_files( f_data );
+      remove( output_filename.c_str() );
       exit( EXIT_FAILURE );
     }
   }
@@ -372,30 +313,129 @@ void VGP::_symmetric_decrypt_file() const
   size_t plaintext_size;
   {
     CBC_t cbc{ Threefish_t{ derived_key, header.tweak } };
-    plaintext_size = cbc.decrypt( in, output_map, input_file_size - sizeof(struct Header) - MAC_Bytes, header.cbc_iv );
+    plaintext_size = cbc.decrypt( in, f_data.output_map, f_data.input_filesize - (sizeof(struct Header) + MAC_Bytes), header.cbc_iv );
     in += plaintext_size;
   }
-  if( msync( output_map, output_file_size, MS_SYNC ) == -1 ) {
-    fprintf( stderr, "Error: Failed to sync mmap()\n" );
+  _sync_map( f_data );
+  _unmap_files( f_data );
+  _stretch_fd_to( f_data.output_fd, plaintext_size );
+  _close_files( f_data );
+  explicit_bzero( derived_key, sizeof(derived_key) );
+}
+
+void VGP::_get_password(uint8_t *password_buf, int &pw_size) const
+{
+  using namespace std;
+
+  char first [ Max_Password_Length + 1 ];
+  char second[ Max_Password_Length + 1 ];
+  bool done = false;
+
+  while( ! done ) {
+    memset( first,  0, sizeof(first)  );
+    memset( second, 0, sizeof(second) );
+    printf( "Please input a STRONG passphrase of no more than %zu characters\n", Max_Password_Length );
+    static_assert(
+        Max_Password_Length == 64,
+        "Max password length wasn't 64 as expected here; Fix the scanf functions below me"
+    );
+    scanf ( "%64s", first );
+    puts  ( "Please input the same passphrase again" );
+    scanf ( "%64s", second );
+    if( memcmp( first, second, sizeof(first) - 1 ) != 0 ) {
+      fprintf( stderr, "Error: passphrases do not match\n" );
+      continue;
+    }
+    else {
+      done = true;
+    }
+  }
+  pw_size = strlen( first );
+  memcpy( password_buf, first, pw_size );
+  explicit_bzero( first , sizeof(first)  );
+  explicit_bzero( second, sizeof(second) );
+}
+
+void VGP::_open_files(struct File_Data & f_data,
+                      const char * const input_filename,
+                      const char * const output_filename) const
+{
+  using namespace std;
+
+  if( ! file_exists( input_filename ) ) {
+    fprintf( stderr, "Error: input file '%s' doesn't seem to exist.\n", input_filename );
     exit( EXIT_FAILURE );
   }
-  if( munmap( input_map, input_file_size ) == -1 ) {
+  if( file_exists( output_filename ) ) {
+    fprintf( stderr, "Error: output file '%s' already seems to exist.\n", output_filename );
+    exit( EXIT_FAILURE );
+  }
+
+  f_data.input_fd  = open( input_filename, (O_RDWR | O_CREAT), static_cast<mode_t>(0600) );
+  if( f_data.input_fd == -1 ) {
+    fprintf( stderr, "Error: Unable to open input file '%s'\n", input_filename );
+    exit( EXIT_FAILURE );
+  }
+  f_data.output_fd = open( output_filename, (O_RDWR | O_CREAT | O_TRUNC), static_cast<mode_t>(0600) );
+  if( f_data.output_fd == -1 ) {
+    fprintf( stderr, "Error: Unable to open output file '%s'\n", output_filename );
+    exit( EXIT_FAILURE );
+  }
+
+}
+
+void VGP::_close_files(struct File_Data & f_data) const
+{
+  using namespace std;
+
+  if( close( f_data.input_fd ) == -1 ) {
+    perror( "Error: was not able to close input file" );
+    exit( EXIT_FAILURE );
+  }
+  if( close( f_data.output_fd ) == -1 ) {
+    perror( "Error: was not able to close output file" );
+    exit( EXIT_FAILURE );
+  }
+}
+
+void VGP::_map_files(struct File_Data & f_data) const
+{
+  using namespace std;
+
+  f_data.input_map = reinterpret_cast<uint8_t *>(mmap( 0, f_data.input_filesize, PROT_READ, MAP_SHARED, f_data.input_fd, 0 ));
+  if( f_data.input_map == MAP_FAILED ) {
+    perror( "Failed to open input map" );
+    exit( EXIT_FAILURE );
+  }
+  f_data.output_map = reinterpret_cast<uint8_t *>(mmap( 0, f_data.output_filesize, PROT_READ|PROT_WRITE, MAP_SHARED, f_data.output_fd, 0 ));
+  if( f_data.output_map == MAP_FAILED ) {
+    perror( "Failed to open output map" );
+    exit( EXIT_FAILURE );
+  }
+}
+
+void VGP::_unmap_files(struct File_Data & f_data) const
+{
+  using namespace std;
+
+  if( munmap( f_data.input_map, f_data.input_filesize ) == -1 ) {
     fprintf( stderr, "Error: Failed to unmap input file\n" );
     exit( EXIT_FAILURE );
   }
-  if( munmap( output_map, output_file_size ) == -1 ) {
+  if( munmap( f_data.output_map, f_data.output_filesize ) == -1 ) {
     fprintf( stderr, "Error: Failed to unmap output file\n" );
     exit( EXIT_FAILURE );
   }
-  _stretch_fd_to( output_fd, plaintext_size );
-  printf( "Plaintext size here is %zu\n", plaintext_size );
-  printf( "A header is %zu bytes\n", sizeof(struct Header) );
-  if( close( input_fd ) == -1 ) {
-    fprintf( stderr, "Error: Unable to close input file with file-descriptor %d\n", input_fd );
-    exit( EXIT_FAILURE );
-  }
-  if( close( output_fd ) == -1 ) {
-    fprintf( stderr, "Error: Unable to close output file with file-descriptor %d\n", output_fd );
+}
+
+void VGP::_sync_map(struct File_Data & f_data) const
+{
+  using namespace std;
+
+  if( msync( f_data.output_map, f_data.output_filesize, MS_SYNC ) == -1 ) {
+    fprintf( stderr, "Error: Failed to sync mmap()\n" );
+    _unmap_files( f_data );
+    _close_files( f_data );
     exit( EXIT_FAILURE );
   }
 }
