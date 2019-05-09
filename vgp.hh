@@ -1,11 +1,11 @@
 #pragma once
-#include "include/general/arg_mapping.hpp"
-#include "include/crypto/operations.hpp"
-#include "include/crypto/threefish.hpp"
-#include "include/crypto/cbc.hpp"
-#include "include/crypto/skein.hpp"
-#include "include/crypto/sspkdf.hpp"
-#include "include/files/files.hpp"
+#include "include/general/arg_mapping.hh"
+#include "include/crypto/operations.hh"
+#include "include/crypto/threefish.hh"
+#include "include/crypto/cbc.hh"
+#include "include/crypto/skein.hh"
+#include "include/crypto/sspkdf.hh"
+#include "include/files/files.hh"
 #include <cstdlib>
 #include <memory>
 #include <string>
@@ -32,11 +32,11 @@ public:
   };
 /* INTERNAL STRUCTS */
   struct File_Data {
-    int  input_fd;
-    int output_fd;
-    uint8_t *input_map;
-    uint8_t *output_map;
-    size_t input_filesize;
+    int           input_fd;
+    int          output_fd;
+    uint8_t     *input_map;
+    uint8_t    *output_map;
+    size_t  input_filesize;
     size_t output_filesize;
   };
   /*

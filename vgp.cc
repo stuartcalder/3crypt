@@ -1,5 +1,5 @@
-#include "include/files/files.hpp"
-#include "vgp.hpp"
+#include "include/files/files.hh"
+#include "vgp.hh"
 
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -15,7 +15,7 @@ VGP::VGP(const int argc, const char * argv[])
 {
   using namespace std;
 
-  //Get a mapping of the c args
+  /* Get a mapping of the c args */
   Arg_Mapping args{ argc, argv };
   _process_arg_mapping( args.get() );
   switch( _mode ) {
@@ -23,10 +23,10 @@ VGP::VGP(const int argc, const char * argv[])
       fprintf( stderr, "ERROR: No mode selected. (i.e. -e or -d)\n" );
       _print_help();
       exit( EXIT_FAILURE );
-    case( Mode::Encrypt_File ):
+    case(Mode::Encrypt_File):
       _symmetric_encrypt_file();
       break;
-    case( Mode::Decrypt_File ):
+    case(Mode::Decrypt_File):
       _symmetric_decrypt_file();
       break;
   }
@@ -38,20 +38,28 @@ void VGP::_process_arg_mapping(const Arg_Mapping::Arg_Map_t & a_map)
 
   for( int i = 1; i < a_map.size(); ++i ) { // start counting @ 1 to skip the first arg (the name of the binary)
     /* Help Switch */
-    if( a_map[i].first == "-h" || a_map[i].first == "--help" ) {
+    if( a_map[i].first == "-h" ||
+        a_map[i].first == "--help" )
+    {
       _print_help();
       exit( EXIT_SUCCESS );
     }
     /* Encrypt file switch */
-    else if( a_map[i].first == "-e" || a_map[i].first == "--encrypt" ) {
+    else if( a_map[i].first == "-e" ||
+             a_map[i].first == "--encrypt" )
+    {
       _set_mode( Mode::Encrypt_File );
     }
     /* Decrypt file switch */
-    else if( a_map[i].first == "-d" || a_map[i].first == "--decrypt" ) {
+    else if( a_map[i].first == "-d" ||
+             a_map[i].first == "--decrypt" )
+    {
       _set_mode( Mode::Decrypt_File );
     }
     /* Disallow floating arguments */
-    else if( a_map[i].first.size() == 0 && a_map[i].second.size() != 0 ) {
+    else if( a_map[i].first.size()  == 0 &&
+             a_map[i].second.size() != 0 )
+    {
       fprintf( stderr, "Error: Floating arguments ( %s ) not allowed.\n",
                     a_map[i].second.c_str() );
       exit( EXIT_FAILURE );
@@ -69,11 +77,11 @@ auto VGP::_get_mode_c_str(const Mode m) const
   switch( m ) {
     default:
       return "Undefined_Mode";
-    case( Mode::None ):
+    case(Mode::None):
       return "None";
-    case( Mode::Encrypt_File ):
+    case(Mode::Encrypt_File):
       return "Encrypt_File";
-    case( Mode::Decrypt_File ):
+    case(Mode::Decrypt_File):
       return "Decrypt_File";
   }
 }
@@ -111,16 +119,20 @@ void VGP::_symmetric_encrypt_file() const
   using namespace std;
 
   string input_filename, output_filename;
-  //////////Get the input and output filenames///////////////////////
+  /* Get the input and output filenames */
   for( const auto & pair : _option_argument_pairs ) {
     check_file_name_sanity( pair.second, 1 );
-    if( pair.first == "-i" || pair.first == "--input-file" ) {
+    if( pair.first == "-i" ||
+        pair.first == "--input-file" )
+    {
       input_filename = pair.second;
       if( output_filename.size() == 0 ) {
         output_filename = input_filename + ".vgp";
       }
     }
-    else if( pair.first == "-o" || pair.first == "--output-file" ) {
+    else if( pair.first == "-o" ||
+             pair.first == "--output-file" )
+    {
       output_filename = pair.second;
     }
     else {
@@ -128,38 +140,40 @@ void VGP::_symmetric_encrypt_file() const
       _print_help();
       exit( EXIT_FAILURE );
     }
-  }
-  if( (input_filename.size() == 0) || (output_filename.size() == 0) ) {
+  }/////////////////////////////////////////////////////////
+  if( (input_filename.size()  == 0) ||
+      (output_filename.size() == 0) )
+  {
     fprintf( stderr, "Error: Either the input filename or the output filename has a length of zero.\n" );
     _print_help();
     exit( EXIT_FAILURE );
   }
-  // Open and map the files
+  /* Open and map the files */
   struct File_Data f_data;
   _open_files( f_data, input_filename.c_str(), output_filename.c_str() );
   f_data.input_filesize  = get_file_size( f_data.input_fd );
   f_data.output_filesize = _calculate_post_encryption_size( f_data.input_filesize );
   _stretch_fd_to( f_data.output_fd, f_data.output_filesize );
   _map_files( f_data );
-  // Obtain the password
+  /* Obtain the password */
   uint8_t password[ Max_Password_Length ];
   int password_length;
   _get_password( password, password_length );
-  // Generate a header
+  /* Generate a header */
   struct Header header;
-  memset( header.id, 0, sizeof(header.id) );
+  memset( header.id,            0, sizeof(header.id) );
   memcpy( header.id, "VGP-CBC-V1", sizeof("VGP-CBC-V1") - 1 );
   header.total_size = static_cast<uint64_t>(f_data.output_filesize);
-  generate_random_bytes( header.tweak      , sizeof(header.tweak) );
+  generate_random_bytes( header.tweak      , sizeof(header.tweak)       );
   generate_random_bytes( header.sspkdf_salt, sizeof(header.sspkdf_salt) );
-  generate_random_bytes( header.cbc_iv     , sizeof(header.cbc_iv) );
+  generate_random_bytes( header.cbc_iv     , sizeof(header.cbc_iv)      );
   header.num_iter   = 2'000'000;
   header.num_concat = 2'000'000;
-  // Copy header into new file
+  /* Copy header into new file */
   uint8_t * out = f_data.output_map;
   memcpy( out, &header, sizeof(header) );
   out += sizeof(header);
-  // Generate key
+  /* Generate key */
   uint8_t derived_key[ Block_Bytes ];
   SSPKDF( derived_key,
           reinterpret_cast<const uint8_t *>(password),
@@ -167,14 +181,16 @@ void VGP::_symmetric_encrypt_file() const
           header.sspkdf_salt,
           header.num_iter,
           header.num_concat );
-  // Encrypt file
-  {
+  explicit_bzero( password, sizeof(password) );
+  { /* Encrypt the file */
     CBC_t cbc{ Threefish_t{ derived_key, header.tweak } };
-    size_t num = cbc.encrypt( f_data.input_map, out, f_data.input_filesize, header.cbc_iv );
+    size_t num = cbc.encrypt( f_data.input_map,
+                              out,
+                              f_data.input_filesize,
+                              header.cbc_iv );
     out += num;
-  }
-  // MAC the file
-  {
+  } 
+  { /* MAC the file */
     Skein_t skein;
     skein.MAC( out,
                f_data.output_map,
@@ -183,26 +199,20 @@ void VGP::_symmetric_encrypt_file() const
                sizeof(derived_key),
                MAC_Bytes );
   }
-  // Sync the mapping
-  _sync_map( f_data );
-  // Unmap files
-  _unmap_files( f_data );
-  // Close open files
-  _close_files( f_data );
-  // Data cleanup
+  _sync_map( f_data );    // Sync the mapping
+  _unmap_files( f_data ); // Unmap files
+  _close_files( f_data ); // Data cleanup
   explicit_bzero( derived_key, sizeof(derived_key) );
 }
 
 size_t VGP::_calculate_post_encryption_size(const size_t pre_encr_size) const
 {
   size_t s = pre_encr_size;
-  // account for added padding (Block_Bytes)
-  if( s < Block_Bytes )
+  if( s < Block_Bytes ) // account for added padding (Block_Bytes)
     s = Block_Bytes;
   else
     s += ( Block_Bytes - (s % Block_Bytes));
-  // account for header at the beginning of the file and the MAC at the end of the file
-  return s + sizeof(struct Header) + MAC_Bytes;
+  return s + sizeof(struct Header) + MAC_Bytes; // account for header at the beginning of the file and the MAC at the end of the file
 }
 
 void VGP::_stretch_fd_to(const int fd, const size_t size) const
@@ -222,15 +232,20 @@ void VGP::_symmetric_decrypt_file() const
   //////////Get the input and output filenames///////////////////////
   for( const auto & pair : _option_argument_pairs ) {
     check_file_name_sanity( pair.second, 1 );
-    if( pair.first == "-i" || pair.first == "--input-file" ) {
+    if( pair.first == "-i" ||
+        pair.first == "--input-file" )
+    {
       input_filename = pair.second;
-      if( output_filename.size() == 0 && input_filename.size() >= 4 ) {
-        if( input_filename.substr( input_filename.size() - 4 ) == ".vgp" ) {
-          output_filename = input_filename.substr( 0, input_filename.size() - 4 );
-        }
+      if( output_filename.size() == 0
+          && input_filename.size() >= 4
+          && input_filename.substr( input_filename.size() - 4 ) == ".vgp" )
+      {
+        output_filename = input_filename.substr( 0, input_filename.size() - 4 );
       }
     }
-    else if( pair.first == "-o" || pair.first == "--output-file" ) {
+    else if( pair.first == "-o" ||
+             pair.first == "--output-file" )
+    {
       output_filename = pair.second;
     }
     else {
@@ -239,7 +254,9 @@ void VGP::_symmetric_decrypt_file() const
       exit( EXIT_FAILURE );
     }
   }
-  if( (input_filename.size() == 0) || (output_filename.size() == 0) ) {
+  if( (input_filename.size()  == 0) ||
+      (output_filename.size() == 0) )
+  {
     fprintf( stderr, "Error: Either the input filename or the output filename has a length of zero.\n" );
     _print_help();
     exit( EXIT_FAILURE );
@@ -267,14 +284,14 @@ void VGP::_symmetric_decrypt_file() const
   struct Header header;
   memcpy( &header, in, sizeof(header) );
   in += sizeof(header);
-  if( memcmp( &(header.id), "VGP-CBC-V1", sizeof("VGP-CBC-V1") - 1 ) != 0 ) {
+  if( memcmp( header.id, "VGP-CBC-V1", sizeof("VGP-CBC-V1") - 1 ) != 0 ) {
     fprintf( stderr, "Error: The input file doesn't appear to be a VGP-CBC-V1 encrypted file.\n" );
     _unmap_files( f_data );
     _close_files( f_data );
     remove( output_filename.c_str() );
     exit( EXIT_FAILURE );
   }
-  if( header.total_size != f_data.input_filesize ) {
+  if( header.total_size != static_cast<uint64_t>(f_data.input_filesize) ) {
     fprintf( stderr, "Error: Input file size (%zu) does not equal file size in the file header of the input file (%zu)\n",
              header.total_size, f_data.input_filesize );
     _unmap_files( f_data );
@@ -290,6 +307,7 @@ void VGP::_symmetric_decrypt_file() const
           header.sspkdf_salt,
           header.num_iter,
           header.num_concat );
+  explicit_bzero( password, sizeof(password) );
   // Verify MAC
   {
     Skein_t skein;
@@ -314,7 +332,6 @@ void VGP::_symmetric_decrypt_file() const
   {
     CBC_t cbc{ Threefish_t{ derived_key, header.tweak } };
     plaintext_size = cbc.decrypt( in, f_data.output_map, f_data.input_filesize - (sizeof(struct Header) + MAC_Bytes), header.cbc_iv );
-    in += plaintext_size;
   }
   _sync_map( f_data );
   _unmap_files( f_data );
@@ -329,29 +346,40 @@ void VGP::_get_password(uint8_t *password_buf, int &pw_size) const
 
   char first [ Max_Password_Length + 1 ];
   char second[ Max_Password_Length + 1 ];
-  bool done = false;
 
-  while( ! done ) {
-    memset( first,  0, sizeof(first)  );
+  static constexpr const int Min_Password_Length = 8;
+  while( true ) {
+    memset( first , 0, sizeof(first)  );
     memset( second, 0, sizeof(second) );
-    printf( "Please input a STRONG passphrase of no more than %zu characters\n", Max_Password_Length );
-    static_assert(
-        Max_Password_Length == 64,
-        "Max password length wasn't 64 as expected here; Fix the scanf functions below me"
-    );
-    scanf ( "%64s", first );
-    puts  ( "Please input the same passphrase again" );
-    scanf ( "%64s", second );
+    printf( "Please input a STRONG passphrase of no more than %zu and no less than %d characters\n",
+            Max_Password_Length,
+            Min_Password_Length );
+    if( fgets( first, sizeof(first), stdin ) == nullptr ) {
+      fprintf( stderr, "Failed to get first password string\n" );
+      exit( EXIT_FAILURE );
+    }
+    puts( "Please input the same passphrase again" );
+    if( fgets( second, sizeof(second), stdin ) == nullptr ) {
+      fprintf( stderr, "Failed to get second password string\n" );
+      exit( EXIT_FAILURE );
+    }
     if( memcmp( first, second, sizeof(first) - 1 ) != 0 ) {
       fprintf( stderr, "Error: passphrases do not match\n" );
       continue;
     }
-    else {
-      done = true;
+    if( strlen(first) < Min_Password_Length - 1 ) {
+      fprintf( stderr, "Error: Password not long enough!\n" );
+      continue;
     }
+    break;
   }
-  pw_size = strlen( first );
-  memcpy( password_buf, first, pw_size );
+  int length = strlen( first );
+  if( first[length - 2] == '\n' ) {
+    first[length - 2] = 0;
+    --length;
+  }
+  pw_size = length;
+  memcpy( password_buf, first, length );
   explicit_bzero( first , sizeof(first)  );
   explicit_bzero( second, sizeof(second) );
 }
