@@ -1,5 +1,5 @@
 #include "include/files/files.hh"
-#include "vgp.hh"
+#include "3crypt.hh"
 
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -11,7 +11,7 @@
   #error "Only gnu/linux implemented currently"
 #endif
 
-VGP::VGP(const int argc, const char * argv[])
+Threecrypt::Threecrypt(const int argc, const char * argv[])
 {
   using namespace std;
 
@@ -32,7 +32,7 @@ VGP::VGP(const int argc, const char * argv[])
   }
 }
 
-void VGP::_process_arg_mapping(const Arg_Mapping::Arg_Map_t & a_map)
+void Threecrypt::_process_arg_mapping(const Arg_Mapping::Arg_Map_t & a_map)
 {
   using namespace std;
 
@@ -71,7 +71,7 @@ void VGP::_process_arg_mapping(const Arg_Mapping::Arg_Map_t & a_map)
   }///////////////////////////////////////////////
 }
 
-auto VGP::_get_mode_c_str(const Mode m) const
+auto Threecrypt::_get_mode_c_str(const Mode m) const
   -> const char *
 {
   switch( m ) {
@@ -86,7 +86,7 @@ auto VGP::_get_mode_c_str(const Mode m) const
   }
 }
 
-void VGP::_set_mode(const Mode m)
+void Threecrypt::_set_mode(const Mode m)
 {
   using namespace std;
 
@@ -99,12 +99,12 @@ void VGP::_set_mode(const Mode m)
   _mode = m;
 }
 
-void VGP::_print_help() const
+void Threecrypt::_print_help() const
 {
   std::puts(
     "\n"
-    "Usage: vgp [Mode] [Switch...]\n"
-    "Arguments to switches MUST be in seperate words. (i.e. vgp -e -i file; not vgp -e -ifile)\n"
+    "Usage: 3crypt [Mode] [Switch...]\n"
+    "Arguments to switches MUST be in seperate words. (i.e. 3crypt -e -i file; not 3crypt -e -ifile)\n"
     "Modes:\n"
     "-e, --encrypt\tSymmetric encryption mode; encrypt a file.\n"
     "-d, --decrypt\tSymmetric decryption mode; decrypt a file.\n"
@@ -114,7 +114,7 @@ void VGP::_print_help() const
   );
 }
 
-void VGP::_symmetric_encrypt_file() const
+void Threecrypt::_symmetric_encrypt_file() const
 {
   using namespace std;
 
@@ -127,7 +127,7 @@ void VGP::_symmetric_encrypt_file() const
     {
       input_filename = pair.second;
       if( output_filename.size() == 0 ) {
-        output_filename = input_filename + ".vgp";
+        output_filename = input_filename + ".3c";
       }
     }
     else if( pair.first == "-o" ||
@@ -162,7 +162,7 @@ void VGP::_symmetric_encrypt_file() const
   /* Generate a header */
   struct Header header;
   memset( header.id,            0, sizeof(header.id) );
-  memcpy( header.id, "VGP-CBC-V1", sizeof("VGP-CBC-V1") - 1 );
+  memcpy( header.id, Threecrypt_CBC_V1, sizeof(Threecrypt_CBC_V1) - 1 );
   header.total_size = static_cast<uint64_t>(f_data.output_filesize);
   generate_random_bytes( header.tweak      , sizeof(header.tweak)       );
   generate_random_bytes( header.sspkdf_salt, sizeof(header.sspkdf_salt) );
@@ -205,7 +205,7 @@ void VGP::_symmetric_encrypt_file() const
   explicit_bzero( derived_key, sizeof(derived_key) );
 }
 
-size_t VGP::_calculate_post_encryption_size(const size_t pre_encr_size) const
+size_t Threecrypt::_calculate_post_encryption_size(const size_t pre_encr_size) const
 {
   size_t s = pre_encr_size;
   if( s < Block_Bytes ) // account for added padding (Block_Bytes)
@@ -215,7 +215,7 @@ size_t VGP::_calculate_post_encryption_size(const size_t pre_encr_size) const
   return s + sizeof(struct Header) + MAC_Bytes; // account for header at the beginning of the file and the MAC at the end of the file
 }
 
-void VGP::_stretch_fd_to(const int fd, const size_t size) const
+void Threecrypt::_stretch_fd_to(const int fd, const size_t size) const
 {
   using namespace std;
   if( ftruncate( fd, size ) == -1 ) {
@@ -224,7 +224,7 @@ void VGP::_stretch_fd_to(const int fd, const size_t size) const
   }
 }
 
-void VGP::_symmetric_decrypt_file() const
+void Threecrypt::_symmetric_decrypt_file() const
 {
   using namespace std;
 
@@ -237,10 +237,10 @@ void VGP::_symmetric_decrypt_file() const
     {
       input_filename = pair.second;
       if( output_filename.size() == 0
-          && input_filename.size() >= 4
-          && input_filename.substr( input_filename.size() - 4 ) == ".vgp" )
+          && input_filename.size() >= 3 
+          && input_filename.substr( input_filename.size() - 3 ) == ".3c" )
       {
-        output_filename = input_filename.substr( 0, input_filename.size() - 4 );
+        output_filename = input_filename.substr( 0, input_filename.size() - 3 );
       }
     }
     else if( pair.first == "-o" ||
@@ -272,7 +272,8 @@ void VGP::_symmetric_decrypt_file() const
   f_data.input_filesize  = get_file_size( f_data.input_fd );
   f_data.output_filesize = f_data.input_filesize;
   if( f_data.input_filesize < (sizeof(struct Header) + Block_Bytes + MAC_Bytes) ) {
-    fprintf( stderr, "Error: Input file doesn't seem to be large enough to be a vgp encrypted file\n" );
+    fprintf( stderr, "Error: Input file doesn't seem to be large enough to be a %s encrypted file\n",
+             Threecrypt_CBC_V1 );
     _close_files( f_data );
     remove( output_filename.c_str() );
     exit( EXIT_FAILURE );
@@ -284,8 +285,8 @@ void VGP::_symmetric_decrypt_file() const
   struct Header header;
   memcpy( &header, in, sizeof(header) );
   in += sizeof(header);
-  if( memcmp( header.id, "VGP-CBC-V1", sizeof("VGP-CBC-V1") - 1 ) != 0 ) {
-    fprintf( stderr, "Error: The input file doesn't appear to be a VGP-CBC-V1 encrypted file.\n" );
+  if( memcmp( header.id, Threecrypt_CBC_V1, sizeof(Threecrypt_CBC_V1) - 1 ) != 0 ) {
+    fprintf( stderr, "Error: The input file doesn't appear to be a %s encrypted file.\n", Threecrypt_CBC_V1 );
     _unmap_files( f_data );
     _close_files( f_data );
     remove( output_filename.c_str() );
@@ -340,7 +341,7 @@ void VGP::_symmetric_decrypt_file() const
   explicit_bzero( derived_key, sizeof(derived_key) );
 }
 
-void VGP::_get_password(uint8_t *password_buf, int &pw_size) const
+void Threecrypt::_get_password(uint8_t *password_buf, int &pw_size) const
 {
   using namespace std;
 
@@ -384,7 +385,7 @@ void VGP::_get_password(uint8_t *password_buf, int &pw_size) const
   explicit_bzero( second, sizeof(second) );
 }
 
-void VGP::_open_files(struct File_Data & f_data,
+void Threecrypt::_open_files(struct File_Data & f_data,
                       const char * const input_filename,
                       const char * const output_filename) const
 {
@@ -412,7 +413,7 @@ void VGP::_open_files(struct File_Data & f_data,
 
 }
 
-void VGP::_close_files(struct File_Data & f_data) const
+void Threecrypt::_close_files(struct File_Data & f_data) const
 {
   using namespace std;
 
@@ -426,7 +427,7 @@ void VGP::_close_files(struct File_Data & f_data) const
   }
 }
 
-void VGP::_map_files(struct File_Data & f_data) const
+void Threecrypt::_map_files(struct File_Data & f_data) const
 {
   using namespace std;
 
@@ -442,7 +443,7 @@ void VGP::_map_files(struct File_Data & f_data) const
   }
 }
 
-void VGP::_unmap_files(struct File_Data & f_data) const
+void Threecrypt::_unmap_files(struct File_Data & f_data) const
 {
   using namespace std;
 
@@ -456,7 +457,7 @@ void VGP::_unmap_files(struct File_Data & f_data) const
   }
 }
 
-void VGP::_sync_map(struct File_Data & f_data) const
+void Threecrypt::_sync_map(struct File_Data & f_data) const
 {
   using namespace std;
 
