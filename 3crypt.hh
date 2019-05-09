@@ -11,7 +11,7 @@
 #include <string>
 #include <vector>
 
-class VGP
+class Threecrypt
 {
 public:
 /* PUBLIC CONSTANTS */
@@ -55,8 +55,8 @@ public:
     uint32_t num_concat;
   };
 /* CONSTRUCTOR(S) */
-  VGP() = delete;
-  VGP(const int argc, const char * argv[]);
+  Threecrypt() = delete;
+  Threecrypt(const int argc, const char * argv[]);
 private:
 /* PRIVATE DATA */
   Mode                   _mode = Mode::None;
