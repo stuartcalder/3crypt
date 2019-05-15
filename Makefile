@@ -15,7 +15,7 @@ debug:
 		include/crypto/operations.cc
 release:
 	$(CC) $(CXXFLAGS) $(OPTFLAGS)\
- 	  -o 3crypt\
+		-o 3crypt\
 		main.cc \
 		3crypt.cc \
 		include/files/files.cc \
