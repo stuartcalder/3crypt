@@ -23,7 +23,6 @@ public:
     static constexpr const size_t Block_Bits = 512;
     static constexpr const size_t Block_Bytes = Block_Bits / 8;
     static constexpr const size_t MAC_Bytes   = Block_Bytes;
-    static constexpr const size_t ID_Bytes = 32;
     static constexpr const size_t Max_Password_Length = 64;
     static constexpr const auto & Threecrypt_CBC_V1 = "3CRYPT_CBC_V1";
     using Threefish_t = Threefish< Block_Bits >;
@@ -46,6 +45,7 @@ public:
     * defined in size, as Headers are copied in and out of memory-mapped
     * files in-place 
     */
+    template< size_t ID_Bytes >
     struct Header {
         uint8_t  id         [ ID_Bytes ];
         uint64_t total_size;
@@ -55,6 +55,7 @@ public:
         uint32_t num_iter;
         uint32_t num_concat;
     };
+    using CBC_V1_Header_t = Header< sizeof(Threecrypt_CBC_V1) - 1 >;
     /* CONSTRUCTOR(S) */
     Threecrypt() = delete;
     Threecrypt(const int argc, const char * argv[]);

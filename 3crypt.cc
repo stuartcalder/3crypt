@@ -52,13 +52,13 @@ void Threecrypt::_process_arg_mapping(const Arg_Mapping::Arg_Map_t & a_map)
         }
         /* Decrypt file switch */
         else if ( a_map[i].first == "-d" ||
-                 a_map[i].first == "--decrypt" )
+                  a_map[i].first == "--decrypt" )
         {
             _set_mode( Mode::Decrypt_File );
         }
         /* Disallow floating arguments */
         else if ( a_map[i].first.size()  == 0 &&
-                 a_map[i].second.size() != 0 )
+                  a_map[i].second.size() != 0 )
         {
             fprintf( stderr, "Error: Floating arguments ( %s ) not allowed.\n",
                         a_map[i].second.c_str() );
@@ -165,7 +165,7 @@ void Threecrypt::_symmetric_encrypt_file() const
         password_length = strlen( password );
     }
     /* Generate a header */
-    struct Header header;
+    CBC_V1_Header_t header;
     memset( header.id,                 0, sizeof(header.id) );
     memcpy( header.id, Threecrypt_CBC_V1, sizeof(Threecrypt_CBC_V1) - 1 );
     header.total_size = static_cast<uint64_t>( f_data.output_filesize );
@@ -219,7 +219,7 @@ size_t Threecrypt::_calculate_post_encryption_size(const size_t pre_encr_size) c
         s = Block_Bytes;
     else
         s += ( Block_Bytes - (s % Block_Bytes));
-    return s + sizeof(struct Header) + MAC_Bytes; // account for header at the beginning of the file and the MAC at the end of the file
+    return s + sizeof(CBC_V1_Header_t) + MAC_Bytes; // account for header at the beginning of the file and the MAC at the end of the file
 }
 
 void Threecrypt::_stretch_fd_to(const int fd, const size_t size) const
@@ -273,18 +273,10 @@ void Threecrypt::_symmetric_decrypt_file() const
     /* Open the files */
     struct File_Data f_data;
     _open_files( f_data, input_filename.c_str(), output_filename.c_str() );
-    /* Obtain the password */
-    char password[ Max_Password_Length ];
-    int password_length;
-    {
-        Terminal term{ false, false, true };
-        term.get_password( password, Max_Password_Length );
-        password_length = strlen( password );
-    }
     /* Get the sizes of the files */
     f_data.input_filesize  = get_file_size( f_data.input_fd );
     f_data.output_filesize = f_data.input_filesize;
-    if ( f_data.input_filesize < (sizeof(struct Header) + Block_Bytes + MAC_Bytes) ) {
+    if ( f_data.input_filesize < (sizeof(CBC_V1_Header_t) + Block_Bytes + MAC_Bytes) ) {
         fprintf( stderr, "Error: Input file doesn't seem to be large enough to be a %s encrypted file\n",
                  Threecrypt_CBC_V1 );
         _close_files( f_data );
@@ -295,7 +287,7 @@ void Threecrypt::_symmetric_decrypt_file() const
     _map_files( f_data );
     /* Read the header out of the input file */
     const uint8_t * in = f_data.input_map;
-    struct Header header;
+    CBC_V1_Header_t header;
     memcpy( &header, in, sizeof(header) );
     in += sizeof(header);
     if ( memcmp( header.id, Threecrypt_CBC_V1, sizeof(Threecrypt_CBC_V1) - 1 ) != 0 ) {
@@ -312,6 +304,14 @@ void Threecrypt::_symmetric_decrypt_file() const
         _close_files( f_data );
         remove( output_filename.c_str() );
         exit( EXIT_FAILURE );
+    }
+    /* Obtain the password */
+    char password[ Max_Password_Length ];
+    int password_length;
+    {
+        Terminal term{ false, false, true };
+        term.get_password( password, Max_Password_Length );
+        password_length = strlen( password );
     }
     // Generate key
     uint8_t derived_key[ Block_Bytes ];
@@ -345,7 +345,7 @@ void Threecrypt::_symmetric_decrypt_file() const
     size_t plaintext_size;
     {
         CBC_t cbc{ Threefish_t{ derived_key, header.tweak } };
-        plaintext_size = cbc.decrypt( in, f_data.output_map, f_data.input_filesize - (sizeof(struct Header) + MAC_Bytes), header.cbc_iv );
+        plaintext_size = cbc.decrypt( in, f_data.output_map, f_data.input_filesize - (sizeof(CBC_V1_Header_t) + MAC_Bytes), header.cbc_iv );
     }
     _sync_map( f_data );
     _unmap_files( f_data );
