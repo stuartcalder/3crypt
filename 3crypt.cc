@@ -157,9 +157,13 @@ void Threecrypt::_symmetric_encrypt_file() const
     _stretch_fd_to( f_data.output_fd, f_data.output_filesize );
     _map_files( f_data );
     /* Obtain the password */
-    uint8_t password[ Max_Password_Length ];
+    char password[ Max_Password_Length ];
     int password_length;
-    _get_password( password, password_length );
+    {
+        Terminal term{ false, false, true };
+        term.get_password( password, Max_Password_Length );
+        password_length = strlen( password );
+    }
     /* Generate a header */
     struct Header header;
     memset( header.id,                 0, sizeof(header.id) );
@@ -270,9 +274,13 @@ void Threecrypt::_symmetric_decrypt_file() const
     struct File_Data f_data;
     _open_files( f_data, input_filename.c_str(), output_filename.c_str() );
     /* Obtain the password */
-    uint8_t password[ Max_Password_Length ];
+    char password[ Max_Password_Length ];
     int password_length;
-    _get_password( password, password_length );
+    {
+        Terminal term{ false, false, true };
+        term.get_password( password, Max_Password_Length );
+        password_length = strlen( password );
+    }
     /* Get the sizes of the files */
     f_data.input_filesize  = get_file_size( f_data.input_fd );
     f_data.output_filesize = f_data.input_filesize;
@@ -344,48 +352,6 @@ void Threecrypt::_symmetric_decrypt_file() const
     _stretch_fd_to( f_data.output_fd, plaintext_size );
     _close_files( f_data );
     explicit_bzero( derived_key, sizeof(derived_key) );
-}
-
-void Threecrypt::_get_password(uint8_t *password_buf, int &pw_size) const
-{
-    using namespace std;
-
-    char first [ Max_Password_Length + 1 ];
-    char second[ Max_Password_Length + 1 ];
-
-    static constexpr const int Min_Password_Length = 8;
-    while( true ) {
-        memset( first , 0, sizeof(first)  );
-        memset( second, 0, sizeof(second) );
-        printf( "Please input a STRONG passphrase of no more than %zu and no less than %d characters\n",
-                Max_Password_Length,
-                Min_Password_Length );
-        if ( fgets( first, sizeof(first), stdin ) == nullptr ) {
-            fprintf( stderr, "Failed to get first password string\n" );
-            exit( EXIT_FAILURE );
-        }
-        puts( "Please input the same passphrase again" );
-        if ( fgets( second, sizeof(second), stdin ) == nullptr ) {
-            fprintf( stderr, "Failed to get second password string\n" );
-            exit( EXIT_FAILURE );
-        }
-        if ( memcmp( first, second, sizeof(first) - 1 ) != 0 ) {
-            fprintf( stderr, "Error: passphrases do not match\n" );
-            continue;
-        }
-        if ( strlen(first) < Min_Password_Length - 1 ) {
-            fprintf( stderr, "Error: Password not long enough!\n" );
-            continue;
-        }
-        break;
-    }
-    int length = strlen( first );
-    if ( first[length - 1] == '\n' )
-        --length;
-    pw_size = length;
-    memcpy( password_buf, first, length );
-    explicit_bzero( first , sizeof(first)  );
-    explicit_bzero( second, sizeof(second) );
 }
 
 void Threecrypt::_open_files(struct File_Data & f_data,

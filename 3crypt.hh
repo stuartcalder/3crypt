@@ -6,6 +6,7 @@
 #include "include/crypto/skein.hh"
 #include "include/crypto/sspkdf.hh"
 #include "include/files/files.hh"
+#include "include/interface/terminal.hh"
 #include <cstdlib>
 #include <memory>
 #include <string>
@@ -70,7 +71,6 @@ private:
     size_t _calculate_post_encryption_size(const size_t pre_encr_size) const;
     void   _stretch_fd_to(const int fd, const size_t size) const;
     void   _symmetric_decrypt_file() const;
-    void   _get_password(uint8_t *password_buf, int &pw_size) const;
     void   _open_files(struct File_Data & f_data,
                        const char * const input_filename,
                        const char * const output_filename) const;
