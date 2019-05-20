@@ -1,12 +1,12 @@
 #pragma once
-#include "include/general/arg_mapping.hh"
-#include "include/crypto/operations.hh"
-#include "include/crypto/threefish.hh"
-#include "include/crypto/cbc.hh"
-#include "include/crypto/skein.hh"
-#include "include/crypto/sspkdf.hh"
-#include "include/files/files.hh"
-#include "include/interface/terminal.hh"
+#include <ssc/general/arg_mapping.hh>
+#include <ssc/crypto/operations.hh>
+#include <ssc/crypto/threefish.hh>
+#include <ssc/crypto/cbc.hh>
+#include <ssc/crypto/skein.hh>
+#include <ssc/crypto/sspkdf.hh>
+#include <ssc/files/files.hh>
+#include <ssc/interface/terminal.hh>
 #include <cstdlib>
 #include <memory>
 #include <string>
@@ -16,14 +16,14 @@ class Threecrypt
 {
 public:
     /* PUBLIC CONSTANTS */
-    static constexpr const size_t Salt_Bits = 128;
-    static constexpr const size_t Salt_Bytes = Salt_Bits / 8;
-    static constexpr const size_t Tweak_Bits = 128;
-    static constexpr const size_t Tweak_Bytes = Tweak_Bits / 8;
-    static constexpr const size_t Block_Bits = 512;
-    static constexpr const size_t Block_Bytes = Block_Bits / 8;
-    static constexpr const size_t MAC_Bytes   = Block_Bytes;
-    static constexpr const size_t Max_Password_Length = 64;
+    static constexpr const auto   Salt_Bits = 128;              // 128-bit salt for SSPKDF
+    static constexpr const auto   Salt_Bytes = Salt_Bits / 8;
+    static constexpr const auto   Tweak_Bits = 128;             // 128-bit tweak for Threefish block cipher
+    static constexpr const auto   Tweak_Bytes = Tweak_Bits / 8;
+    static constexpr const auto   Block_Bits = 512;             // Use Threefish-512
+    static constexpr const auto   Block_Bytes = Block_Bits / 8;
+    static constexpr const auto   MAC_Bytes   = Block_Bytes;    // The MAC will be 512-bits, same width as the block
+    static constexpr const auto   Max_Password_Length = 64;
     static constexpr const auto & Threecrypt_CBC_V1 = "3CRYPT_CBC_V1";
     using Threefish_t = Threefish< Block_Bits >;
     using Skein_t     = Skein    < Block_Bits >;
@@ -41,10 +41,10 @@ public:
         size_t output_filesize;
     };
     /*
-    * It is significant that all the types in struct Header be explicitly
-    * defined in size, as Headers are copied in and out of memory-mapped
-    * files in-place 
-    */
+     * It is significant that all the types in Header<T> be explicitly
+     * defined in size, as Headers are copied in and out of memory-mapped
+     * files in-place 
+     */
     template< size_t ID_Bytes >
     struct Header {
         uint8_t  id         [ ID_Bytes ];

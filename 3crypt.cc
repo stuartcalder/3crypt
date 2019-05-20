@@ -1,4 +1,4 @@
-#include "include/files/files.hh"
+#include <ssc/files/files.hh>
 #include "3crypt.hh"
 
 #include <sys/types.h>
@@ -10,6 +10,7 @@
 #ifndef __gnu_linux__
     #error "Only gnu/linux implemented currently"
 #endif
+
 
 Threecrypt::Threecrypt(const int argc, const char * argv[])
 {
@@ -167,26 +168,29 @@ void Threecrypt::_symmetric_encrypt_file() const
     /* Generate a header */
     CBC_V1_Header_t header;
     memset( header.id,                 0, sizeof(header.id) );
-    memcpy( header.id, Threecrypt_CBC_V1, sizeof(Threecrypt_CBC_V1) - 1 );
+    memcpy( header.id, Threecrypt_CBC_V1, sizeof(header.id) );
     header.total_size = static_cast<uint64_t>( f_data.output_filesize );
     generate_random_bytes( header.tweak      , sizeof(header.tweak)       );
     generate_random_bytes( header.sspkdf_salt, sizeof(header.sspkdf_salt) );
     generate_random_bytes( header.cbc_iv     , sizeof(header.cbc_iv)      );
-    header.num_iter   = 2'000'000;
-    header.num_concat = 2'000'000;
+    header.num_iter    =  1'250'000;
+    header.num_concat  =  1'000'000;
     /* Copy header into new file */
     uint8_t * out = f_data.output_map;
     memcpy( out, &header, sizeof(header) );
     out += sizeof(header);
     /* Generate key */
     uint8_t derived_key[ Block_Bytes ];
-    SSPKDF( derived_key,
-      reinterpret_cast<const uint8_t *>( password ),
-      password_length,
-      header.sspkdf_salt,
-      header.num_iter,
-      header.num_concat );
+    SSPKDF(
+        derived_key,
+        reinterpret_cast<const uint8_t *>( password ),
+        password_length,
+        header.sspkdf_salt,
+        header.num_iter,
+        header.num_concat
+    );
     explicit_bzero( password, sizeof(password) );
+    zero_sensitive( password, sizeof(password) );
 
     { /* Encrypt the file */
         CBC_t cbc{ Threefish_t{ derived_key, header.tweak } };
