@@ -189,7 +189,6 @@ void Threecrypt::_symmetric_encrypt_file() const
         header.num_iter,
         header.num_concat
     );
-    explicit_bzero( password, sizeof(password) );
     zero_sensitive( password, sizeof(password) );
 
     { /* Encrypt the file */
