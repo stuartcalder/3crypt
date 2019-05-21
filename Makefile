@@ -2,7 +2,7 @@ CC = g++
 CXXFLAGS = -std=c++17 -pipe -fPIC -fno-exceptions
 DEBUGFLAGS = -Og
 OPTFLAGS   = -O3
-LINKFLAGS  = -lncurses -lssc
+LINKFLAGS  = -lssc -lncurses
 prefix     = /usr/
 
 debug:
