@@ -24,7 +24,7 @@ public:
     static constexpr const auto   Block_Bytes = Block_Bits / 8;
     static constexpr const auto   MAC_Bytes   = Block_Bytes;    // The MAC will be 512-bits, same width as the block
     static constexpr const auto   Max_Password_Length = 64;
-    static constexpr const auto & Threecrypt_CBC_V1 = "3CRYPT_CBC_V1";
+    static constexpr const auto   &Threecrypt_CBC_V1 = "3CRYPT_CBC_V1";
     using Threefish_t = Threefish< Block_Bits >;
     using Skein_t     = Skein    < Block_Bits >;
     using CBC_t       = CBC< Threefish_t, Block_Bits >;
