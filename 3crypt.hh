@@ -46,7 +46,7 @@ public:
      * files in-place 
      */
     template< size_t ID_Bytes >
-    struct Header {
+    struct SSPKDF_Header {
         uint8_t  id         [ ID_Bytes ];
         uint64_t total_size;
         uint8_t  tweak      [ Tweak_Bytes ];
@@ -55,7 +55,7 @@ public:
         uint32_t num_iter;
         uint32_t num_concat;
     };
-    using CBC_V1_Header_t = Header< sizeof(Threecrypt_CBC_V1) - 1 >;
+    using CBC_V1_Header_t = SSPKDF_Header< sizeof(Threecrypt_CBC_V1) - 1 >;
     /* CONSTRUCTOR(S) */
     Threecrypt() = delete;
     Threecrypt(const int argc, const char * argv[]);
