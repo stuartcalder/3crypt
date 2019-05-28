@@ -324,12 +324,11 @@ void Threecrypt::_CBC_V1_decrypt_file() const
         remove( output_filename.c_str() );
         exit( EXIT_FAILURE );
     }
-    /* Obtain the password */
-    char password[ Max_Password_Length ];
+    char password[ Max_Password_Length ] = { 0 };
     int password_length;
     {
         Terminal term{ false, false, true };
-        term.get_password( password, Max_Password_Length );
+        term.get_pw( password, Max_Password_Length, 1 );
         password_length = strlen( password );
     }
     // Generate key
