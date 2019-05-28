@@ -68,10 +68,10 @@ private:
     auto   _get_mode_c_str(const Mode m) const -> const char *;
     void   _set_mode(const Mode m);
     void   _print_help() const;
-    void   _symmetric_encrypt_file() const;
-    size_t _calculate_post_encryption_size(const size_t pre_encr_size) const;
+    void   _CBC_V1_encrypt_file() const;
+    size_t _calculate_CBC_V1_size(const size_t pre_encr_size) const;
     void   _stretch_fd_to(const int fd, const size_t size) const;
-    void   _symmetric_decrypt_file() const;
+    void   _CBC_V1_decrypt_file() const;
     void   _open_files(struct File_Data & f_data,
                        const char * const input_filename,
                        const char * const output_filename) const;

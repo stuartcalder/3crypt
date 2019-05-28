@@ -27,10 +27,10 @@ Threecrypt::Threecrypt(const int argc, const char * argv[])
         _print_help();
         exit( EXIT_FAILURE );
     case(Mode::Encrypt_File):
-        _symmetric_encrypt_file();
+        _CBC_V1_encrypt_file();
         break;
     case(Mode::Decrypt_File):
-        _symmetric_decrypt_file();
+        _CBC_V1_decrypt_file();
         break;
     }
 }
@@ -114,7 +114,7 @@ void Threecrypt::_print_help() const
                "-o, --output-file Output file; For symmetric encryption and decryption modes. Optional for encryption" );
 }
 
-void Threecrypt::_symmetric_encrypt_file() const
+void Threecrypt::_CBC_V1_encrypt_file() const
 {
     using namespace std;
     
@@ -156,16 +156,30 @@ void Threecrypt::_symmetric_encrypt_file() const
                  input_filename.c_str(),
                  output_filename.c_str() );
     f_data.input_filesize  = get_file_size( f_data.input_fd );
-    f_data.output_filesize = _calculate_post_encryption_size( f_data.input_filesize );
+    f_data.output_filesize = _calculate_CBC_V1_size( f_data.input_filesize );
     _stretch_fd_to( f_data.output_fd, f_data.output_filesize );
     _map_files( f_data );
     /* Obtain the password */
-    char password[ Max_Password_Length ];
+    char password[ Max_Password_Length ] = { 0 };
     int password_length;
     {
         Terminal term{ false, false, true };
-        term.get_password( password, Max_Password_Length );
-        password_length = strlen( password );
+        bool repeat = true;
+        while ( repeat ) {
+            char pwcheck[ Max_Password_Length ] = { 0 };
+            //        term.get_password( password, Max_Password_Length );
+            term.get_pw( password, Max_Password_Length, 1 );
+            term.get_pw( pwcheck , Max_Password_Length, 1 );
+            password_length = strlen( password );
+            static_assert( sizeof(password) == sizeof(pwcheck) );
+            if ( memcmp( password, pwcheck, sizeof(password) ) == 0 ) {
+                repeat = false;
+            }
+            else {
+                term.notify( "Passwords do not match.\n" );
+            }
+            password_length = strlen( password );
+        }
     }
     /* Generate a header */
     CBC_V1_Header_t header;
@@ -175,7 +189,7 @@ void Threecrypt::_symmetric_encrypt_file() const
     generate_random_bytes( header.tweak      , sizeof(header.tweak)       );
     generate_random_bytes( header.sspkdf_salt, sizeof(header.sspkdf_salt) );
     generate_random_bytes( header.cbc_iv     , sizeof(header.cbc_iv)      );
-    header.num_iter    =  1'250'000;
+    header.num_iter    =  1'000'000;
     header.num_concat  =  1'000'000;
     /* Copy header into new file */
     uint8_t * out = f_data.output_map;
@@ -217,7 +231,7 @@ void Threecrypt::_symmetric_encrypt_file() const
     explicit_bzero( derived_key, sizeof(derived_key) );
 }
 
-size_t Threecrypt::_calculate_post_encryption_size(const size_t pre_encr_size) const
+size_t Threecrypt::_calculate_CBC_V1_size(const size_t pre_encr_size) const
 {
     size_t s = pre_encr_size;
     if ( s < Block_Bytes ) // account for added padding (Block_Bytes)
@@ -236,7 +250,7 @@ void Threecrypt::_stretch_fd_to(const int fd, const size_t size) const
     }
 }
 
-void Threecrypt::_symmetric_decrypt_file() const
+void Threecrypt::_CBC_V1_decrypt_file() const
 {
     using namespace std;
     
