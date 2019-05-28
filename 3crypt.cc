@@ -179,6 +179,7 @@ void Threecrypt::_CBC_V1_encrypt_file() const
                 term.notify( "Passwords do not match.\n" );
             }
             password_length = strlen( password );
+            zero_sensitive( pwcheck, sizeof(pwcheck) );
         }
     }
     /* Generate a header */
@@ -228,7 +229,7 @@ void Threecrypt::_CBC_V1_encrypt_file() const
     _sync_map( f_data );    // Sync the mapping
     _unmap_files( f_data ); // Unmap files
     _close_files( f_data ); // Data cleanup
-    explicit_bzero( derived_key, sizeof(derived_key) );
+    zero_sensitive( derived_key, sizeof(derived_key) );
 }
 
 size_t Threecrypt::_calculate_CBC_V1_size(const size_t pre_encr_size) const
@@ -339,7 +340,7 @@ void Threecrypt::_CBC_V1_decrypt_file() const
             header.sspkdf_salt,
             header.num_iter,
             header.num_concat );
-    explicit_bzero( password, sizeof(password) );
+    zero_sensitive( password, sizeof(password) );
     // Verify MAC
     {
         Skein_t skein;
@@ -369,7 +370,7 @@ void Threecrypt::_CBC_V1_decrypt_file() const
     _unmap_files( f_data );
     _stretch_fd_to( f_data.output_fd, plaintext_size );
     _close_files( f_data );
-    explicit_bzero( derived_key, sizeof(derived_key) );
+    zero_sensitive( derived_key, sizeof(derived_key) );
 }
 
 void Threecrypt::_open_files(struct File_Data & f_data,
@@ -448,7 +449,7 @@ void Threecrypt::_sync_map(struct File_Data & f_data) const
 {
     using namespace std;
     
-    if ( msync( f_data.output_map, f_data.output_filesize, MS_SYNC ) == -1 ){
+    if ( msync( f_data.output_map, f_data.output_filesize, MS_SYNC ) == -1 ) {
         fprintf( stderr, "Error: Failed to sync mmap()\n" );
         _unmap_files( f_data );
         _close_files( f_data );
