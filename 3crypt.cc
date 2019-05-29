@@ -73,7 +73,7 @@ void Threecrypt::_process_arg_mapping(const Arg_Mapping::Arg_Map_t & a_map)
     }///////////////////////////////////////////////
 }
 
-auto Threecrypt::_get_mode_c_str(const Mode m) const
+auto Threecrypt::_get_mode_c_str(const Mode m)
     -> const char *
 {
     switch ( m ) {
@@ -101,7 +101,7 @@ void Threecrypt::_set_mode(const Mode m)
     __mode = m;
 }
 
-void Threecrypt::_print_help() const
+void Threecrypt::_print_help()
 {
     std::puts( "\n"
                "Usage: 3crypt [Mode] [Switch...]\n"
@@ -232,7 +232,7 @@ void Threecrypt::_CBC_V1_encrypt_file() const
     zero_sensitive( derived_key, sizeof(derived_key) );
 }
 
-size_t Threecrypt::_calculate_CBC_V1_size(const size_t pre_encr_size) const
+size_t Threecrypt::_calculate_CBC_V1_size(const size_t pre_encr_size)
 {
     size_t s = pre_encr_size;
     if ( s < Block_Bytes ) // account for added padding (Block_Bytes)
@@ -242,7 +242,7 @@ size_t Threecrypt::_calculate_CBC_V1_size(const size_t pre_encr_size) const
     return s + sizeof(CBC_V1_Header_t) + MAC_Bytes; // account for header at the beginning of the file and the MAC at the end of the file
 }
 
-void Threecrypt::_stretch_fd_to(const int fd, const size_t size) const
+void Threecrypt::_stretch_fd_to(const int fd, const size_t size)
 {
     using namespace std;
     if ( ftruncate( fd, size ) == -1 ) {
@@ -375,7 +375,7 @@ void Threecrypt::_CBC_V1_decrypt_file() const
 
 void Threecrypt::_open_files(struct File_Data & f_data,
                              const char * const input_filename,
-                             const char * const output_filename) const
+                             const char * const output_filename)
 {
     using namespace std;
     
@@ -401,7 +401,7 @@ void Threecrypt::_open_files(struct File_Data & f_data,
     
 }
 
-void Threecrypt::_close_files(struct File_Data & f_data) const
+void Threecrypt::_close_files(struct File_Data & f_data)
 {
     using namespace std;
     
@@ -415,7 +415,7 @@ void Threecrypt::_close_files(struct File_Data & f_data) const
     }
 }
 
-void Threecrypt::_map_files(struct File_Data & f_data) const
+void Threecrypt::_map_files(struct File_Data & f_data)
 {
     using namespace std;
     
@@ -431,7 +431,7 @@ void Threecrypt::_map_files(struct File_Data & f_data) const
     }
 }
 
-void Threecrypt::_unmap_files(struct File_Data & f_data) const
+void Threecrypt::_unmap_files(struct File_Data & f_data)
 {
     using namespace std;
     
@@ -445,7 +445,7 @@ void Threecrypt::_unmap_files(struct File_Data & f_data) const
     }
 }
 
-void Threecrypt::_sync_map(struct File_Data & f_data) const
+void Threecrypt::_sync_map(struct File_Data & f_data)
 {
     using namespace std;
     

@@ -64,19 +64,19 @@ private:
     Mode                   __mode = Mode::None;
     Arg_Mapping::Arg_Map_t __option_argument_pairs;
 /* PRIVATE FUNCTIONS */
-    void   _process_arg_mapping(const Arg_Mapping::Arg_Map_t & a_map);
-    auto   _get_mode_c_str(const Mode m) const -> const char *;
-    void   _set_mode(const Mode m);
-    void   _print_help() const;
-    void   _CBC_V1_encrypt_file() const;
-    size_t _calculate_CBC_V1_size(const size_t pre_encr_size) const;
-    void   _stretch_fd_to(const int fd, const size_t size) const;
-    void   _CBC_V1_decrypt_file() const;
-    void   _open_files(struct File_Data & f_data,
-                       const char * const input_filename,
-                       const char * const output_filename) const;
-    void   _close_files(struct File_Data & f_data) const;
-    void   _map_files(struct File_Data & f_data) const;
-    void   _unmap_files(struct File_Data & f_data) const;
-    void   _sync_map(struct File_Data & f_data) const;
+    void          _process_arg_mapping(const Arg_Mapping::Arg_Map_t & a_map);
+    static auto   _get_mode_c_str(const Mode m) -> const char *;
+    void          _set_mode(const Mode m);
+    static void   _print_help();
+    void          _CBC_V1_encrypt_file() const;
+    static size_t _calculate_CBC_V1_size(const size_t pre_encr_size);
+    static void   _stretch_fd_to(const int fd, const size_t size);
+    void          _CBC_V1_decrypt_file() const;
+    static void   _open_files(struct File_Data & f_data,
+                              const char * const input_filename,
+                              const char * const output_filename);
+    static void   _close_files(struct File_Data & f_data);
+    static void   _map_files(struct File_Data & f_data);
+    static void   _unmap_files(struct File_Data & f_data);
+    static void   _sync_map(struct File_Data & f_data);
 };
