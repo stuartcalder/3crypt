@@ -21,15 +21,19 @@ Threecrypt::Threecrypt(const int argc, const char * argv[])
     /* Get a mapping of the c args */
     Arg_Mapping args{ argc, argv };
     _process_arg_mapping( args.get() );
+    /* Decide what to do based on what mode was specified as an argument */
     switch( __mode ) {
     default:
+        /* Disallow there being no mode */
         fprintf( stderr, "ERROR: No mode selected. (i.e. -e or -d)\n" );
         _print_help();
         exit( EXIT_FAILURE );
     case(Mode::Encrypt_File):
+        /* CBC_V1 encrypt a file, given the encryption mode was specified as an argument. */
         _CBC_V1_encrypt_file();
         break;
     case(Mode::Decrypt_File):
+        /* CBC_V1 decrypt a file, given the decryption mode was specified as an argument. */
         _CBC_V1_decrypt_file();
         break;
     }
@@ -63,13 +67,14 @@ void Threecrypt::_process_arg_mapping(const Arg_Mapping::Arg_Map_t & a_map)
         else if ( a_map[i].first.size()  == 0 &&
                   a_map[i].second.size() != 0 )
             {
-                fprintf( stderr, "Error: Floating arguments ( %s ) not allowed.\n",
-                         a_map[i].second.c_str() );
+                fprintf( stderr, "Error: Floating arguments ( %s ) not allowed.\n", a_map[i].second.c_str() );
                 exit( EXIT_FAILURE );
             }
         /* Assumed legal option-argument pair is stored */
         else
-            __option_argument_pairs.push_back( a_map[i] );
+            {
+                __option_argument_pairs.push_back( a_map[i] );
+            }
     }///////////////////////////////////////////////
 }
 
@@ -160,24 +165,23 @@ void Threecrypt::_CBC_V1_encrypt_file() const
     _stretch_fd_to( f_data.output_fd, f_data.output_filesize );
     _map_files( f_data );
     /* Obtain the password */
-    char password[ Max_Password_Length ] = { 0 };
+    char password[ Max_Password_Length ];
     int password_length;
     {
         Terminal term{ false, false, true };
+        char pwcheck[ Max_Password_Length ];
         bool repeat = true;
         while ( repeat ) {
-            char pwcheck[ Max_Password_Length ] = { 0 };
-            //        term.get_password( password, Max_Password_Length );
+            memset( password, 0, sizeof(password) );
+            memset( pwcheck , 0, sizeof(pwcheck)  );
             term.get_pw( password, Max_Password_Length, 1 );
             term.get_pw( pwcheck , Max_Password_Length, 1 );
             password_length = strlen( password );
             static_assert( sizeof(password) == sizeof(pwcheck) );
-            if ( memcmp( password, pwcheck, sizeof(password) ) == 0 ) {
+            if ( memcmp( password, pwcheck, sizeof(password) ) == 0 )
                 repeat = false;
-            }
-            else {
+            else
                 term.notify( "Passwords do not match.\n" );
-            }
             password_length = strlen( password );
             zero_sensitive( pwcheck, sizeof(pwcheck) );
         }
