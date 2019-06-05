@@ -182,7 +182,6 @@ void Threecrypt::_CBC_V1_encrypt_file() const
                 repeat = false;
             else
                 term.notify( "Passwords do not match.\n" );
-            password_length = strlen( password );
             zero_sensitive( pwcheck, sizeof(pwcheck) );
         }
     }
