@@ -19,7 +19,7 @@ Threecrypt::Threecrypt(const int argc, const char * argv[])
     using namespace std;
 
     /* Get a mapping of the c args */
-    Arg_Mapping args{ argc, argv };
+    ssc::Arg_Mapping args{ argc, argv };
     _process_arg_mapping( args.get() );
     /* Decide what to do based on what mode was specified as an argument */
     switch( __mode ) {
@@ -39,7 +39,7 @@ Threecrypt::Threecrypt(const int argc, const char * argv[])
     }
 }
 
-void Threecrypt::_process_arg_mapping(const Arg_Mapping::Arg_Map_t & a_map)
+void Threecrypt::_process_arg_mapping(const Arg_Map_t & a_map)
 {
     using namespace std;
 
@@ -126,7 +126,7 @@ void Threecrypt::_CBC_V1_encrypt_file() const
     string input_filename, output_filename;
     /* Get the input and output filenames */
     for ( const auto & pair : __option_argument_pairs ) {
-        check_file_name_sanity( pair.second, 1 );
+        ssc::check_file_name_sanity( pair.second, 1 );
         if      ( pair.first == "-i" ||
                   pair.first == "--input-file" )
             {
@@ -160,7 +160,7 @@ void Threecrypt::_CBC_V1_encrypt_file() const
     _open_files( f_data,
                  input_filename.c_str(),
                  output_filename.c_str() );
-    f_data.input_filesize  = get_file_size( f_data.input_fd );
+    f_data.input_filesize  = ssc::get_file_size( f_data.input_fd );
     f_data.output_filesize = _calculate_CBC_V1_size( f_data.input_filesize );
     _stretch_fd_to( f_data.output_fd, f_data.output_filesize );
     _map_files( f_data );
@@ -168,7 +168,7 @@ void Threecrypt::_CBC_V1_encrypt_file() const
     char password[ Max_Password_Length ];
     int password_length;
     {
-        Terminal term{ false, false, true };
+        ssc::Terminal term{ false, false, true };
         char pwcheck[ Max_Password_Length ];
         bool repeat = true;
         while ( repeat ) {
@@ -182,17 +182,17 @@ void Threecrypt::_CBC_V1_encrypt_file() const
                 repeat = false;
             else
                 term.notify( "Passwords do not match.\n" );
-            zero_sensitive( pwcheck, sizeof(pwcheck) );
         }
+        ssc::zero_sensitive( pwcheck, sizeof(pwcheck) );
     }
     /* Generate a header */
     CBC_V1_Header_t header;
     memset( header.id,                 0, sizeof(header.id) );
     memcpy( header.id, Threecrypt_CBC_V1, sizeof(header.id) );
     header.total_size = static_cast<uint64_t>( f_data.output_filesize );
-    generate_random_bytes( header.tweak      , sizeof(header.tweak)       );
-    generate_random_bytes( header.sspkdf_salt, sizeof(header.sspkdf_salt) );
-    generate_random_bytes( header.cbc_iv     , sizeof(header.cbc_iv)      );
+    ssc::generate_random_bytes( header.tweak      , sizeof(header.tweak)       );
+    ssc::generate_random_bytes( header.sspkdf_salt, sizeof(header.sspkdf_salt) );
+    ssc::generate_random_bytes( header.cbc_iv     , sizeof(header.cbc_iv)      );
     header.num_iter    =  1'000'000;
     header.num_concat  =  1'000'000;
     /* Copy header into new file */
@@ -201,15 +201,13 @@ void Threecrypt::_CBC_V1_encrypt_file() const
     out += sizeof(header);
     /* Generate key */
     uint8_t derived_key[ Block_Bytes ];
-    SSPKDF(
-           derived_key,
-           reinterpret_cast<const uint8_t *>( password ),
-           password_length,
-           header.sspkdf_salt,
-           header.num_iter,
-           header.num_concat
-           );
-    zero_sensitive( password, sizeof(password) );
+    ssc::SSPKDF( derived_key,
+                 reinterpret_cast<const uint8_t *>(password),
+                 password_length,
+                 header.sspkdf_salt,
+                 header.num_iter,
+                 header.num_concat );
+    ssc::zero_sensitive( password, sizeof(password) );
     
     { /* Encrypt the file */
         CBC_t cbc{ Threefish_t{ derived_key, header.tweak } };
@@ -232,7 +230,7 @@ void Threecrypt::_CBC_V1_encrypt_file() const
     _sync_map( f_data );    // Sync the mapping
     _unmap_files( f_data ); // Unmap files
     _close_files( f_data ); // Data cleanup
-    zero_sensitive( derived_key, sizeof(derived_key) );
+    ssc::zero_sensitive( derived_key, sizeof(derived_key) );
 }
 
 size_t Threecrypt::_calculate_CBC_V1_size(const size_t pre_encr_size)
@@ -261,28 +259,29 @@ void Threecrypt::_CBC_V1_decrypt_file() const
     string input_filename, output_filename;
     /* Get the input and output filenames */
     for ( const auto & pair : __option_argument_pairs ) {
-        check_file_name_sanity( pair.second, 1 );
+        ssc::check_file_name_sanity( pair.second, 1 );
         if ( pair.first == "-i" ||
              pair.first == "--input-file" )
             {
                 input_filename = pair.second;
                 if ( output_filename.size() == 0
                      && input_filename.size() >= 3 
-                 && input_filename.substr( input_filename.size() - 3 ) == ".3c" )
+                     && input_filename.substr( input_filename.size() - 3 ) == ".3c" )
                     {
                         output_filename = input_filename.substr( 0, input_filename.size() - 3 );
                     }
-        }
+            }
         else if ( pair.first == "-o" ||
                   pair.first == "--output-file" )
             {
                 output_filename = pair.second;
             }
-        else {
-            fprintf( stderr, "Error: unrecognizable switch %s\n", pair.first.c_str() );
-            _print_help();
-            exit( EXIT_FAILURE );
-        }
+        else
+            {
+                fprintf( stderr, "Error: unrecognizable switch %s\n", pair.first.c_str() );
+                _print_help();
+                exit( EXIT_FAILURE );
+            }
     }
     
     /* Check file sizes */
@@ -297,7 +296,7 @@ void Threecrypt::_CBC_V1_decrypt_file() const
     struct File_Data f_data;
     _open_files( f_data, input_filename.c_str(), output_filename.c_str() );
     /* Get the sizes of the files */
-    f_data.input_filesize  = get_file_size( f_data.input_fd );
+    f_data.input_filesize  = ssc::get_file_size( f_data.input_fd );
     f_data.output_filesize = f_data.input_filesize;
     if ( f_data.input_filesize < (sizeof(CBC_V1_Header_t) + Block_Bytes + MAC_Bytes) ) {
         fprintf( stderr, "Error: Input file doesn't seem to be large enough to be a %s encrypted file\n",
@@ -331,19 +330,19 @@ void Threecrypt::_CBC_V1_decrypt_file() const
     char password[ Max_Password_Length ] = { 0 };
     int password_length;
     {
-        Terminal term{ false, false, true };
+        ssc::Terminal term{ false, false, true };
         term.get_pw( password, Max_Password_Length, 1 );
         password_length = strlen( password );
     }
     // Generate key
     uint8_t derived_key[ Block_Bytes ];
-    SSPKDF( derived_key,
-            reinterpret_cast<const uint8_t *>(password),
-            password_length,
-            header.sspkdf_salt,
-            header.num_iter,
-            header.num_concat );
-    zero_sensitive( password, sizeof(password) );
+    ssc::SSPKDF( derived_key,
+                 reinterpret_cast<const uint8_t *>(password),
+                 password_length,
+                 header.sspkdf_salt,
+                 header.num_iter,
+                 header.num_concat );
+    ssc::zero_sensitive( password, sizeof(password) );
     // Verify MAC
     {
         Skein_t skein;
@@ -360,6 +359,7 @@ void Threecrypt::_CBC_V1_decrypt_file() const
             _unmap_files( f_data );
             _close_files( f_data );
             remove( output_filename.c_str() );
+            ssc::zero_sensitive( derived_key, sizeof(derived_key) );
             exit( EXIT_FAILURE );
         }
     }
@@ -373,7 +373,7 @@ void Threecrypt::_CBC_V1_decrypt_file() const
     _unmap_files( f_data );
     _stretch_fd_to( f_data.output_fd, plaintext_size );
     _close_files( f_data );
-    zero_sensitive( derived_key, sizeof(derived_key) );
+    ssc::zero_sensitive( derived_key, sizeof(derived_key) );
 }
 
 void Threecrypt::_open_files(struct File_Data & f_data,
@@ -382,11 +382,11 @@ void Threecrypt::_open_files(struct File_Data & f_data,
 {
     using namespace std;
     
-    if ( ! file_exists( input_filename ) ) {
+    if ( ! ssc::file_exists( input_filename ) ) {
         fprintf( stderr, "Error: input file '%s' doesn't seem to exist.\n", input_filename );
         exit( EXIT_FAILURE );
     }
-    if ( file_exists( output_filename ) ) {
+    if ( ssc::file_exists( output_filename ) ) {
         fprintf( stderr, "Error: output file '%s' already seems to exist.\n", output_filename );
         exit( EXIT_FAILURE );
     }

@@ -25,9 +25,10 @@ public:
     static constexpr const auto   MAC_Bytes   = Block_Bytes;    // The MAC will be 512-bits, same width as the block
     static constexpr const auto   Max_Password_Length = 64;
     static constexpr const auto   &Threecrypt_CBC_V1 = "3CRYPT_CBC_V1";
-    using Threefish_t = Threefish< Block_Bits >;
-    using Skein_t     = Skein    < Block_Bits >;
-    using CBC_t       = CBC< Threefish_t, Block_Bits >;
+    using Threefish_t = ssc::Threefish< Block_Bits >;
+    using Skein_t     = ssc::Skein    < Block_Bits >;
+    using CBC_t       = ssc::CBC< Threefish_t, Block_Bits >;
+    using Arg_Map_t   = typename ssc::Arg_Mapping::Arg_Map_t;
     enum class Mode {
         None, Encrypt_File, Decrypt_File
     };
@@ -62,9 +63,9 @@ public:
 private:
     /* PRIVATE DATA */
     Mode                   __mode = Mode::None;
-    Arg_Mapping::Arg_Map_t __option_argument_pairs;
+    Arg_Map_t              __option_argument_pairs;
 /* PRIVATE FUNCTIONS */
-    void          _process_arg_mapping(const Arg_Mapping::Arg_Map_t & a_map);
+    void          _process_arg_mapping(const Arg_Map_t & a_map);
     static auto   _get_mode_c_str(const Mode m) -> const char *;
     void          _set_mode(const Mode m);
     static void   _print_help();
