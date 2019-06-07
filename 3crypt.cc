@@ -96,7 +96,11 @@ auto Threecrypt::_get_mode_c_str(const Mode m)
 void Threecrypt::_set_mode(const Mode m)
 {
     using namespace std;
-    
+
+    /*
+      Set __mode equal to m, if and only if m is equal to Mode::None
+      if it isn't equal, we have an error.
+     */
     if ( __mode != Mode::None ) {
         fprintf( stderr, "Error: Mode %s already specified. May not specify another.\n\n",
                  _get_mode_c_str( __mode ) );
@@ -139,11 +143,12 @@ void Threecrypt::_CBC_V1_encrypt_file() const
             {
                 output_filename = pair.second;
             }
-        else {
-            fprintf( stderr, "Error: unrecognizable switch %s\n", pair.first.c_str() );
-            _print_help();
-            exit( EXIT_FAILURE );
-        }
+        else
+            {
+                fprintf( stderr, "Error: unrecognizable switch %s\n", pair.first.c_str() );
+                _print_help();
+                exit( EXIT_FAILURE );
+            }
     }
     
     /* Check filename sizes */
@@ -160,22 +165,42 @@ void Threecrypt::_CBC_V1_encrypt_file() const
     _open_files( f_data,
                  input_filename.c_str(),
                  output_filename.c_str() );
+    /* Get the size of the input file, in bytes */
     f_data.input_filesize  = ssc::get_file_size( f_data.input_fd );
+    /* Calculate the size of the output file in bytes, given that we want to do CBC_V1 encryption */
     f_data.output_filesize = _calculate_CBC_V1_size( f_data.input_filesize );
+    /* Stretch the newly created output file to the desired number of bytes */
     _stretch_fd_to( f_data.output_fd, f_data.output_filesize );
+    /* Memory-map the input and output files */
     _map_files( f_data );
     /* Obtain the password */
     char password[ Max_Password_Length ];
+    /* Store the length of the password */
     int password_length;
     {
+        /*
+          A term object that doesn't buffer characters,
+          echo characters, and DOES allow special characters
+         */
         ssc::Terminal term{ false, false, true };
+        /*
+          pwcheck: a buffer the same size as password
+          will be used to store a second input of the password to reduce the likelihood
+          of accidentally encrypting with an unintended password
+         */
         char pwcheck[ Max_Password_Length ];
         bool repeat = true;
         while ( repeat ) {
+            /*
+              Zero both buffers, so anything put in either will
+              be a null-terminated C string.
+             */
             memset( password, 0, sizeof(password) );
             memset( pwcheck , 0, sizeof(pwcheck)  );
+            /* Get the password twice */
             term.get_pw( password, Max_Password_Length, 1 );
             term.get_pw( pwcheck , Max_Password_Length, 1 );
+            /* Get the number of characters in the password */
             password_length = strlen( password );
             static_assert( sizeof(password) == sizeof(pwcheck) );
             if ( memcmp( password, pwcheck, sizeof(password) ) == 0 )
@@ -185,14 +210,22 @@ void Threecrypt::_CBC_V1_encrypt_file() const
         }
         ssc::zero_sensitive( pwcheck, sizeof(pwcheck) );
     }
-    /* Generate a header */
+    /* Generate a CBC_V1 header */
     CBC_V1_Header_t header;
+    /* Copy "3CRYPT_CBC_V1" into the header.id field to identify how this file was encrypted */
     memset( header.id,                 0, sizeof(header.id) );
     memcpy( header.id, Threecrypt_CBC_V1, sizeof(header.id) );
+    /* Store the total size of the output file in the header */
     header.total_size = static_cast<uint64_t>( f_data.output_filesize );
+    /*
+      Generate a random tweak to be used with ssc::Threefish,
+      Generate a random salt for ssc::SSPKDF,
+      Generate a random iv to use with ssc::Threefish in ssc::CBC mode
+     */
     ssc::generate_random_bytes( header.tweak      , sizeof(header.tweak)       );
     ssc::generate_random_bytes( header.sspkdf_salt, sizeof(header.sspkdf_salt) );
     ssc::generate_random_bytes( header.cbc_iv     , sizeof(header.cbc_iv)      );
+    /* Default values for the number of iterations and concatenations to use in ssc::SSPKDF */
     header.num_iter    =  1'000'000;
     header.num_concat  =  1'000'000;
     /* Copy header into new file */
@@ -332,8 +365,8 @@ void Threecrypt::_CBC_V1_decrypt_file() const
     {
         ssc::Terminal term{ false, false, true };
         term.get_pw( password, Max_Password_Length, 1 );
-        password_length = strlen( password );
     }
+    password_length = strlen( password );
     // Generate key
     uint8_t derived_key[ Block_Bytes ];
     ssc::SSPKDF( derived_key,
@@ -382,6 +415,8 @@ void Threecrypt::_open_files(struct File_Data & f_data,
 {
     using namespace std;
     
+    // Check to see if the input file and/or output file exist.
+    // Require that an input file exist, and require that an output file NOT exist.
     if ( ! ssc::file_exists( input_filename ) ) {
         fprintf( stderr, "Error: input file '%s' doesn't seem to exist.\n", input_filename );
         exit( EXIT_FAILURE );

@@ -1,5 +1,6 @@
 #pragma once
 #include <ssc/general/arg_mapping.hh>
+#include <ssc/general/static_string.hh>
 #include <ssc/crypto/operations.hh>
 #include <ssc/crypto/threefish.hh>
 #include <ssc/crypto/cbc.hh>
@@ -34,15 +35,19 @@ public:
     };
     /* INTERNAL STRUCTS */
     struct File_Data {
+#if defined(__gnu_linux__)
         int           input_fd;
         int          output_fd;
+#else
+#error "Not yet implemented"
+#endif
         uint8_t     *input_map;
         uint8_t    *output_map;
         size_t  input_filesize;
         size_t output_filesize;
     };
     /*
-     * It is significant that all the types in Header<T> be explicitly
+     * It is significant that all the types in SSPKDF_Header be explicitly
      * defined in size, as Headers are copied in and out of memory-mapped
      * files in-place 
      */
@@ -56,7 +61,7 @@ public:
         uint32_t num_iter;
         uint32_t num_concat;
     };
-    using CBC_V1_Header_t = SSPKDF_Header< sizeof(Threecrypt_CBC_V1) - 1 >;
+    using CBC_V1_Header_t = SSPKDF_Header< ssc::static_strlen( Threecrypt_CBC_V1 ) >;
     /* CONSTRUCTOR(S) */
     Threecrypt() = delete;
     Threecrypt(const int argc, const char * argv[]);
