@@ -67,9 +67,9 @@ public:
     Threecrypt(const int argc, const char * argv[]);
 private:
     /* PRIVATE DATA */
-    Mode                   __mode = Mode::None;
-    Arg_Map_t              __option_argument_pairs;
-/* PRIVATE FUNCTIONS */
+    Mode      __mode = Mode::None;
+    Arg_Map_t __option_argument_pairs;
+    /* PRIVATE FUNCTIONS */
     void          _process_arg_mapping(const Arg_Map_t & a_map);
     static auto   _get_mode_c_str(const Mode m) -> const char *;
     void          _set_mode(const Mode m);

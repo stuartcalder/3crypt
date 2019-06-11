@@ -1,18 +1,15 @@
 #include <ssc/files/files.hh>
 #include "3crypt.hh"
 
-#ifdef __gnu_linux__
+#if defined(__gnu_linux__)
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <sys/mman.h>
 #include <unistd.h>
+#else
+#error "Not implemented"
 #endif
-
-#ifndef __gnu_linux__
-#error "Only gnu/linux implemented currently"
-#endif
-
 
 Threecrypt::Threecrypt(const int argc, const char * argv[])
 {
@@ -213,7 +210,6 @@ void Threecrypt::_CBC_V1_encrypt_file() const
     /* Generate a CBC_V1 header */
     CBC_V1_Header_t header;
     /* Copy "3CRYPT_CBC_V1" into the header.id field to identify how this file was encrypted */
-    memset( header.id,                 0, sizeof(header.id) );
     memcpy( header.id, Threecrypt_CBC_V1, sizeof(header.id) );
     /* Store the total size of the output file in the header */
     header.total_size = static_cast<uint64_t>( f_data.output_filesize );
@@ -297,9 +293,9 @@ void Threecrypt::_CBC_V1_decrypt_file() const
              pair.first == "--input-file" )
             {
                 input_filename = pair.second;
-                if ( output_filename.size() == 0
-                     && input_filename.size() >= 3 
-                     && input_filename.substr( input_filename.size() - 3 ) == ".3c" )
+                if ( output_filename.size() == 0 &&
+                     input_filename.size()  >= 3 &&
+                     input_filename.substr( input_filename.size() - 3 ) == ".3c" )
                     {
                         output_filename = input_filename.substr( 0, input_filename.size() - 3 );
                     }
@@ -332,8 +328,7 @@ void Threecrypt::_CBC_V1_decrypt_file() const
     f_data.input_filesize  = ssc::get_file_size( f_data.input_fd );
     f_data.output_filesize = f_data.input_filesize;
     if ( f_data.input_filesize < (sizeof(CBC_V1_Header_t) + Block_Bytes + MAC_Bytes) ) {
-        fprintf( stderr, "Error: Input file doesn't seem to be large enough to be a %s encrypted file\n",
-                 Threecrypt_CBC_V1 );
+        fprintf( stderr, "Error: Input file doesn't seem to be large enough to be a %s encrypted file\n", Threecrypt_CBC_V1 );
         _close_files( f_data );
         remove( output_filename.c_str() );
         exit( EXIT_FAILURE );
@@ -345,7 +340,8 @@ void Threecrypt::_CBC_V1_decrypt_file() const
     CBC_V1_Header_t header;
     memcpy( &header, in, sizeof(header) );
     in += sizeof(header);
-    if ( memcmp( header.id, Threecrypt_CBC_V1, sizeof(Threecrypt_CBC_V1) - 1 ) != 0 ) {
+    static_assert( sizeof(header.id) == ssc::static_strlen( Threecrypt_CBC_V1 ) );
+    if ( memcmp( header.id, Threecrypt_CBC_V1, sizeof(header.id) ) != 0 ) {
         fprintf( stderr, "Error: The input file doesn't appear to be a %s encrypted file.\n", Threecrypt_CBC_V1 );
         _unmap_files( f_data );
         _close_files( f_data );
@@ -425,7 +421,8 @@ void Threecrypt::_open_files(struct File_Data & f_data,
         fprintf( stderr, "Error: output file '%s' already seems to exist.\n", output_filename );
         exit( EXIT_FAILURE );
     }
-    
+
+#if defined(__gnu_linux__)
     f_data.input_fd  = open( input_filename, (O_RDWR | O_CREAT), static_cast<mode_t>(0600) );
     if ( f_data.input_fd == -1 ) {
         fprintf( stderr, "Error: Unable to open input file '%s'\n", input_filename );
@@ -436,13 +433,17 @@ void Threecrypt::_open_files(struct File_Data & f_data,
         fprintf( stderr, "Error: Unable to open output file '%s'\n", output_filename );
         exit( EXIT_FAILURE );
     }
+#else
+#error "Not implemented yet"
+#endif
     
 }
 
 void Threecrypt::_close_files(struct File_Data & f_data)
 {
     using namespace std;
-    
+
+#if defined(__gnu_linux__)
     if ( close( f_data.input_fd ) == -1 ) {
         perror( "Error: was not able to close input file" );
         exit( EXIT_FAILURE );
@@ -451,12 +452,16 @@ void Threecrypt::_close_files(struct File_Data & f_data)
         perror( "Error: was not able to close output file" );
         exit( EXIT_FAILURE );
     }
+#else
+#error "Not implemented yet"
+#endif
 }
 
 void Threecrypt::_map_files(struct File_Data & f_data)
 {
     using namespace std;
-    
+
+#if defined(__gnu_linux__)
     f_data.input_map = reinterpret_cast<uint8_t *>(mmap( 0, f_data.input_filesize, PROT_READ, MAP_SHARED, f_data.input_fd, 0 ));
     if ( f_data.input_map == MAP_FAILED ) {
         perror( "Failed to open input map" );
@@ -467,12 +472,16 @@ void Threecrypt::_map_files(struct File_Data & f_data)
         perror( "Failed to open output map" );
         exit( EXIT_FAILURE );
     }
+#else
+#error "Not implemented yet"
+#endif
 }
 
 void Threecrypt::_unmap_files(struct File_Data & f_data)
 {
     using namespace std;
-    
+
+#if defined(__gnu_linux__)
     if ( munmap( f_data.input_map, f_data.input_filesize ) == -1 ) {
         fprintf( stderr, "Error: Failed to unmap input file\n" );
         exit( EXIT_FAILURE );
@@ -481,16 +490,23 @@ void Threecrypt::_unmap_files(struct File_Data & f_data)
         fprintf( stderr, "Error: Failed to unmap output file\n" );
         exit( EXIT_FAILURE );
     }
+#else
+#error "Not implemented yet"
+#endif
 }
 
 void Threecrypt::_sync_map(struct File_Data & f_data)
 {
     using namespace std;
-    
+
+#if defined(__gnu_linux__)
     if ( msync( f_data.output_map, f_data.output_filesize, MS_SYNC ) == -1 ) {
         fprintf( stderr, "Error: Failed to sync mmap()\n" );
         _unmap_files( f_data );
         _close_files( f_data );
         exit( EXIT_FAILURE );
     }
+#else
+#error "Not implemented yet"
+#endif
 }
