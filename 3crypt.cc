@@ -123,6 +123,8 @@ void Threecrypt::_print_help()
 void Threecrypt::_CBC_V1_encrypt_file() const
 {
     using namespace std;
+    using ssc::u64_t;
+    using ssc::u8_t;
     
     string input_filename, output_filename;
     /* Get the input and output filenames */
@@ -212,7 +214,7 @@ void Threecrypt::_CBC_V1_encrypt_file() const
     /* Copy "3CRYPT_CBC_V1" into the header.id field to identify how this file was encrypted */
     memcpy( header.id, Threecrypt_CBC_V1, sizeof(header.id) );
     /* Store the total size of the output file in the header */
-    header.total_size = static_cast<uint64_t>( f_data.output_filesize );
+    header.total_size = static_cast<u64_t>(f_data.output_filesize);
     /*
       Generate a random tweak to be used with ssc::Threefish,
       Generate a random salt for ssc::SSPKDF,
@@ -225,13 +227,13 @@ void Threecrypt::_CBC_V1_encrypt_file() const
     header.num_iter    =  1'000'000;
     header.num_concat  =  1'000'000;
     /* Copy header into new file */
-    uint8_t * out = f_data.output_map;
+    u8_t * out = f_data.output_map;
     memcpy( out, &header, sizeof(header) );
     out += sizeof(header);
     /* Generate key */
-    uint8_t derived_key[ Block_Bytes ];
+    u8_t derived_key[ Block_Bytes ];
     ssc::SSPKDF( derived_key,
-                 reinterpret_cast<const uint8_t *>(password),
+                 reinterpret_cast<const u8_t*>(password),
                  password_length,
                  header.sspkdf_salt,
                  header.num_iter,
@@ -262,9 +264,9 @@ void Threecrypt::_CBC_V1_encrypt_file() const
     ssc::zero_sensitive( derived_key, sizeof(derived_key) );
 }
 
-size_t Threecrypt::_calculate_CBC_V1_size(const size_t pre_encr_size)
+std::size_t Threecrypt::_calculate_CBC_V1_size(const std::size_t pre_encr_size)
 {
-    size_t s = pre_encr_size;
+    std::size_t s = pre_encr_size;
     if ( s < Block_Bytes ) // account for added padding (Block_Bytes)
         s = Block_Bytes;
     else
@@ -272,7 +274,7 @@ size_t Threecrypt::_calculate_CBC_V1_size(const size_t pre_encr_size)
     return s + sizeof(CBC_V1_Header_t) + MAC_Bytes; // account for header at the beginning of the file and the MAC at the end of the file
 }
 
-void Threecrypt::_stretch_fd_to(const int fd, const size_t size)
+void Threecrypt::_stretch_fd_to(const int fd, const std::size_t size)
 {
     using namespace std;
     if ( ftruncate( fd, size ) == -1 ) {
@@ -284,6 +286,8 @@ void Threecrypt::_stretch_fd_to(const int fd, const size_t size)
 void Threecrypt::_CBC_V1_decrypt_file() const
 {
     using namespace std;
+    using ssc::u64_t;
+    using ssc::u8_t;
     
     string input_filename, output_filename;
     /* Get the input and output filenames */
@@ -336,7 +340,7 @@ void Threecrypt::_CBC_V1_decrypt_file() const
     _stretch_fd_to( f_data.output_fd, f_data.output_filesize );
     _map_files( f_data );
     /* Read the header out of the input file */
-    const uint8_t * in = f_data.input_map;
+    const u8_t * in = f_data.input_map;
     CBC_V1_Header_t header;
     memcpy( &header, in, sizeof(header) );
     in += sizeof(header);
@@ -348,7 +352,7 @@ void Threecrypt::_CBC_V1_decrypt_file() const
         remove( output_filename.c_str() );
         exit( EXIT_FAILURE );
     }
-    if ( header.total_size != static_cast<uint64_t>(f_data.input_filesize) ) {
+    if ( header.total_size != static_cast<u64_t>(f_data.input_filesize) ) {
         fprintf( stderr, "Error: Input file size (%zu) does not equal file size in the file header of the input file (%zu)\n",
                  header.total_size, f_data.input_filesize );
         _unmap_files( f_data );
@@ -364,9 +368,9 @@ void Threecrypt::_CBC_V1_decrypt_file() const
     }
     password_length = strlen( password );
     // Generate key
-    uint8_t derived_key[ Block_Bytes ];
+    u8_t derived_key[ Block_Bytes ];
     ssc::SSPKDF( derived_key,
-                 reinterpret_cast<const uint8_t *>(password),
+                 reinterpret_cast<const u8_t *>(password),
                  password_length,
                  header.sspkdf_salt,
                  header.num_iter,

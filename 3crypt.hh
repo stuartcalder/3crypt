@@ -8,6 +8,7 @@
 #include <ssc/crypto/sspkdf.hh>
 #include <ssc/files/files.hh>
 #include <ssc/interface/terminal.hh>
+#include <ssc/general/integers.hh>
 #include <cstdlib>
 #include <memory>
 #include <string>
@@ -26,9 +27,12 @@ public:
     static constexpr const auto   MAC_Bytes   = Block_Bytes;    // The MAC will be 512-bits, same width as the block
     static constexpr const auto   Max_Password_Length = 64;
     static constexpr const auto   &Threecrypt_CBC_V1 = "3CRYPT_CBC_V1";
-    using Threefish_t = ssc::Threefish< Block_Bits >;
-    using Skein_t     = ssc::Skein    < Block_Bits >;
-    using CBC_t       = ssc::CBC< Threefish_t, Block_Bits >;
+    using u64_t = ssc::u64_t;
+    using u32_t = ssc::u32_t;
+    using u8_t  = ssc::u8_t;
+    using Threefish_t = ssc::Threefish<Block_Bits>;
+    using Skein_t     = ssc::Skein    <Block_Bits>;
+    using CBC_t       = ssc::CBC<Threefish_t, Block_Bits>;
     using Arg_Map_t   = typename ssc::Arg_Mapping::Arg_Map_t;
     enum class Mode {
         None, Encrypt_File, Decrypt_File
@@ -41,27 +45,27 @@ public:
 #else
 #error "Not yet implemented"
 #endif
-        uint8_t     *input_map;
-        uint8_t    *output_map;
-        size_t  input_filesize;
-        size_t output_filesize;
+        u8_t             *input_map;
+        u8_t            *output_map;
+        std::size_t  input_filesize;
+        std::size_t output_filesize;
     };
     /*
      * It is significant that all the types in SSPKDF_Header be explicitly
      * defined in size, as Headers are copied in and out of memory-mapped
      * files in-place 
      */
-    template< size_t ID_Bytes >
+    template <std::size_t ID_Bytes>
     struct SSPKDF_Header {
-        uint8_t  id         [ ID_Bytes ];
-        uint64_t total_size;
-        uint8_t  tweak      [ Tweak_Bytes ];
-        uint8_t  sspkdf_salt[ Salt_Bytes  ];
-        uint8_t  cbc_iv     [ Block_Bytes ];
-        uint32_t num_iter;
-        uint32_t num_concat;
+        u8_t  id         [ID_Bytes];
+        u64_t total_size;
+        u8_t  tweak      [Tweak_Bytes];
+        u8_t  sspkdf_salt[Salt_Bytes];
+        u8_t  cbc_iv     [Block_Bytes];
+        u32_t num_iter;
+        u32_t num_concat;
     };
-    using CBC_V1_Header_t = SSPKDF_Header< ssc::static_strlen( Threecrypt_CBC_V1 ) >;
+    using CBC_V1_Header_t = SSPKDF_Header< ssc::static_strlen(Threecrypt_CBC_V1) >;
     /* CONSTRUCTOR(S) */
     Threecrypt() = delete;
     Threecrypt(const int argc, const char * argv[]);
@@ -75,14 +79,14 @@ private:
     void          _set_mode(const Mode m);
     static void   _print_help();
     void          _CBC_V1_encrypt_file() const;
-    static size_t _calculate_CBC_V1_size(const size_t pre_encr_size);
-    static void   _stretch_fd_to(const int fd, const size_t size);
+    static std::size_t _calculate_CBC_V1_size(const std::size_t pre_encr_size);
+    static void   _stretch_fd_to(const int fd, const std::size_t size);
     void          _CBC_V1_decrypt_file() const;
-    static void   _open_files(struct File_Data & f_data,
+    static void   _open_files(File_Data & f_data,
                               const char * const input_filename,
                               const char * const output_filename);
-    static void   _close_files(struct File_Data & f_data);
-    static void   _map_files(struct File_Data & f_data);
-    static void   _unmap_files(struct File_Data & f_data);
-    static void   _sync_map(struct File_Data & f_data);
+    static void   _close_files(File_Data & f_data);
+    static void   _map_files(File_Data & f_data);
+    static void   _unmap_files(File_Data & f_data);
+    static void   _sync_map(File_Data & f_data);
 };
