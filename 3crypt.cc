@@ -233,7 +233,7 @@ void Threecrypt::_CBC_V1_encrypt_file() const
     /* Generate key */
     u8_t derived_key[ Block_Bytes ];
     ssc::SSPKDF( derived_key,
-                 reinterpret_cast<const u8_t*>(password),
+                 reinterpret_cast<const char*>(password),
                  password_length,
                  header.sspkdf_salt,
                  header.num_iter,
@@ -370,7 +370,7 @@ void Threecrypt::_CBC_V1_decrypt_file() const
     // Generate key
     u8_t derived_key[ Block_Bytes ];
     ssc::SSPKDF( derived_key,
-                 reinterpret_cast<const u8_t *>(password),
+                 reinterpret_cast<const char*>(password),
                  password_length,
                  header.sspkdf_salt,
                  header.num_iter,
