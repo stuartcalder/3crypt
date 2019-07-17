@@ -18,9 +18,6 @@ namespace threecrypt::cbc_v1
         using namespace std;
 
         std::string input_filename, output_filename;
-        if constexpr(Enable_Stdout) {
-            puts( "Processing arguments..." );
-        }
         for ( auto const & pair : opt_arg_pairs ) {
             ssc::check_file_name_sanity( pair.second, 1 );
             if ( pair.first == "-i" ||
@@ -49,33 +46,23 @@ namespace threecrypt::cbc_v1
             print_help();
             exit( EXIT_FAILURE );
         }
-        if constexpr(Enable_Stdout) {
-            puts( "...done\n"
-                  "Opening Files..." );
-        }
 
         File_Data f_data;
         open_files( f_data, input_filename.c_str(), output_filename.c_str() );
+        // Determine input file size.
 #if defined(__gnu_linux__)
         f_data.input_filesize = ssc::get_file_size( f_data.input_fd );
 #else // All other platforms
         f_data.input_filesize = ssc::get_file_size( input_filename.c_str() );
 #endif
         f_data.output_filesize = calculate_CBC_V1_size( f_data.input_filesize );
+        // Extend or shrink the output file to be `f_data.output_filesize` bytes.
 #if defined(__gnu_linux__)
         set_file_size( f_data.output_fd, f_data.output_filesize );
 #else // All other platforms
         set_file_size( output_filename.c_str(), f_data.output_filesize );
 #endif
-        if constexpr(Enable_Stdout) {
-            puts( "...done\n"
-                  "Memory-Mapping Files..." );
-        }
         map_files( f_data );
-        if constexpr(Enable_Stdout) {
-            puts( "...done\n"
-                  "Obtaining Passphrase..." );
-        }
         char password [Max_Password_Length];
         int password_length;
         {
@@ -99,44 +86,23 @@ namespace threecrypt::cbc_v1
         CBC_V1_Header_t header;
         memcpy( header.id, CBC_V1_ID, sizeof(header.id) );
         header.total_size = static_cast<decltype(header.total_size)>(f_data.output_filesize);
-        if constexpr(Enable_Stdout) {
-            puts( "...done\n"
-                  "Generating Pseudo-Random Bytes for File Header..." );
-        }
         ssc::generate_random_bytes( header.tweak      , sizeof(header.tweak)       );
         ssc::generate_random_bytes( header.sspkdf_salt, sizeof(header.sspkdf_salt) );
         ssc::generate_random_bytes( header.cbc_iv     , sizeof(header.cbc_iv)      );
         header.num_iter   = 1'000'000;
         header.num_concat = 1'000'000;
         u8_t * out = f_data.output_map;
-        if constexpr(Enable_Stdout) {
-            puts( "...done\n"
-                  "Copying Header to File..." );
-        }
         memcpy( out, &header, sizeof(header) );
         out += sizeof(header);
         u8_t derived_key [Block_Bytes];
-        if constexpr(Enable_Stdout) {
-            puts( "...done\n"
-                  "Deriving Encryption Key using SSPKDF..." );
-        }
         ssc::SSPKDF( derived_key,
-                     reinterpret_cast<char const *>(password),
+                     password,
                      password_length,
                      header.sspkdf_salt,
                      header.num_iter,
                      header.num_concat );
-        if constexpr(Enable_Stdout) {
-            puts( "...done\n"
-                  "Securely Zeroing Password Buffer..." );
-        }
         ssc::zero_sensitive( password, sizeof(password) );
         {
-            if constexpr(Enable_Stdout) {
-                printf( "...done\n"
-                        "Encrypting '%s' into the file '%s' with Threefish-512 in CBC Mode...\n",
-                        input_filename.c_str(), output_filename.c_str() );
-            }
             CBC_t cbc{ Threefish_t{ derived_key, header.tweak } };
             out += cbc.encrypt( f_data.input_map,
                                 out,
@@ -144,10 +110,6 @@ namespace threecrypt::cbc_v1
                                 header.cbc_iv );
         }
         {
-            if constexpr(Enable_Stdout) {
-                puts( "...done\n"
-                      "Generating Message Authentication Code..." );
-            }
             Skein_t skein;
             skein.MAC( out,
                        f_data.output_map,
@@ -156,38 +118,15 @@ namespace threecrypt::cbc_v1
                        sizeof(derived_key),
                        MAC_Bytes );
         }
-        if constexpr(Enable_Stdout) {
-            puts( "...done\n"
-                  "Synchronizing Memory-Mapped Files..." );
-        }
         sync_map( f_data );
-        if constexpr(Enable_Stdout) {
-            puts( "...done\n"
-                  "Unmapping Memory-Mapped Files..." );
-        }
         unmap_files( f_data );
-        if constexpr(Enable_Stdout) {
-            puts( "...done\n"
-                  "Closing Files..." );
-        }
         close_files( f_data );
-        if constexpr(Enable_Stdout) {
-            puts( "...done\n"
-                  "Securely Zeroing Derived Key..." );
-        }
         ssc::zero_sensitive( derived_key, sizeof(derived_key) );
-        if constexpr(Enable_Stdout) {
-            puts( "...done\n"
-                  "Successfully Encrypted using CBC_V1." );
-        }
     }
     void CBC_V1_decrypt(Arg_Map_t const &opt_arg_pairs)
     {
         using namespace std;
         string input_filename, output_filename;
-        if constexpr(Enable_Stdout) {
-            puts( "Processing arguments..." );
-        }
         for ( auto const & pair : opt_arg_pairs ) {
             ssc::check_file_name_sanity( pair.second, 1 );
             if ( pair.first == "-i" ||
@@ -221,13 +160,10 @@ namespace threecrypt::cbc_v1
             print_help();
             exit( EXIT_FAILURE );
         }
-        if constexpr(Enable_Stdout) {
-            puts( "...done\n"
-                  "Opening Files..." );
-        }
 
         File_Data f_data;
         open_files( f_data, input_filename.c_str(), output_filename.c_str() );
+        // Get the size of the input file in bytes.
 #if defined(__gnu_linux__)
         f_data.input_filesize = ssc::get_file_size( f_data.input_fd );
 #else // All other platforms
@@ -241,25 +177,18 @@ namespace threecrypt::cbc_v1
             remove( output_filename.c_str() );
             exit( EXIT_FAILURE );
         }
+        // Set the size of the output file to `f_data.output_filesize` bytes.
 #if defined(__gnu_linux__)
         set_file_size( f_data.output_fd, f_data.output_filesize );
 #else // All other platforms
         set_file_size( output_filename.c_str(), f_data.output_filesize );
 #endif
-        if constexpr(Enable_Stdout) {
-            puts( "...done\n"
-                  "Memory-Mapping Files..." );
-        }
         map_files( f_data );
         u8_t const * in = f_data.input_map;
         CBC_V1_Header_t header;
         memcpy( &header, in, sizeof(header) );
         in += sizeof(header);
         static_assert(sizeof(header.id) == ssc::static_strlen(CBC_V1_ID));
-        if constexpr(Enable_Stdout) {
-            puts( "...done\n"
-                  "Processing File Header..." );
-        }
         if ( memcmp( header.id, CBC_V1_ID, sizeof(header.id) ) != 0 ) {
             fprintf( stderr, "Error: The input file doesn't appear to be a %s encrypted file.\n", CBC_V1_ID );
             unmap_files( f_data );
@@ -275,10 +204,6 @@ namespace threecrypt::cbc_v1
             remove( output_filename.c_str() );
             exit( EXIT_FAILURE );
         }
-        if constexpr(Enable_Stdout) {
-            puts( "...done\n"
-                  "Obtaining Passphrase..." );
-        }
         char password [Max_Password_Length] = { 0 };
         int password_length;
         {
@@ -287,38 +212,22 @@ namespace threecrypt::cbc_v1
         }
         password_length = strlen( password );
         u8_t derived_key [Block_Bytes];
-        if constexpr(Enable_Stdout) {
-            puts( "...done\n"
-                  "Deriving Encryption Key using SSPKDF..." );
-        }
         ssc::SSPKDF( derived_key,
-                     reinterpret_cast<char const *>(password),
+                     password,
                      password_length,
                      header.sspkdf_salt,
                      header.num_iter,
                      header.num_concat );
-        if constexpr(Enable_Stdout) {
-            puts( "...done\n"
-                  "Securely Zeroing Password Buffer..." );
-        }
         ssc::zero_sensitive( password, sizeof(password) );
         {
             Skein_t skein;
             u8_t gen_mac [MAC_Bytes];
-            if constexpr(Enable_Stdout) {
-                puts( "...done\n"
-                      "Generating Message Authentication Code..." );
-            }
             skein.MAC( gen_mac,
                        f_data.input_map,
                        derived_key,
                        f_data.input_filesize - MAC_Bytes,
                        sizeof(derived_key),
                        sizeof(gen_mac) );
-            if constexpr(Enable_Stdout) {
-                printf( "...done\n"
-                        "Comparing Message Authentication Code with the Header of '%s'...\n", input_filename.c_str() );
-            }
             if ( memcmp( gen_mac, (f_data.input_map + f_data.input_filesize - MAC_Bytes), MAC_Bytes ) != 0 ) {
                 fprintf( stderr, "Error: Authentication failed.\n"
                                  "Possibilities: Wrong password, the file is corrupted, or it has been somehow tampered with.\n" );
@@ -331,45 +240,22 @@ namespace threecrypt::cbc_v1
         }
         size_t plaintext_size;
         {
-            if constexpr(Enable_Stdout) {
-                printf( "...done\n"
-                        "Decrypting '%s' into the file '%s' with Threefish-512 in CBC Mode...",
-                        input_filename.c_str(), output_filename.c_str() );
-            }
             CBC_t cbc{ Threefish_t{ derived_key, header.tweak } };
+            static constexpr auto const File_Metadata_Size = sizeof(CBC_V1_Header_t) + MAC_Bytes;
             plaintext_size = cbc.decrypt( in,
                                           f_data.output_map,
-                                          f_data.input_filesize - (sizeof(CBC_V1_Header_t) + MAC_Bytes),
+                                          f_data.input_filesize - File_Metadata_Size,
                                           header.cbc_iv );
         }
-        if constexpr(Enable_Stdout) {
-            puts( "...done\n"
-                  "Synchronizing Memory-Mapped Files..." );
-        }
         sync_map( f_data );
-        if constexpr(Enable_Stdout) {
-            puts( "...done\n"
-                  "Unammping Memory-Mapped Files..." );
-        }
         unmap_files( f_data );
-        if constexpr(Enable_Stdout) {
-            puts( "...done\n"
-                  "Closing files..." );
-        }
+        // Shrink the output file to the size of the plaintext.
 #if defined(__gnu_linux__)
         set_file_size( f_data.output_fd, plaintext_size );
 #else // All other platforms
         set_file_size( output_filename.c_str(), plaintext_size );
 #endif
         close_files( f_data );
-        if constexpr(Enable_Stdout) {
-            puts( "...done\n"
-                  "Securely Zeroing Derived Key..." );
-        }
         ssc::zero_sensitive( derived_key, sizeof(derived_key) );
-        if constexpr(Enable_Stdout) {
-            puts( "...done\n"
-                  "Successfully Decrypted using CBC_V1." );
-        }
     }
 } /* ! namespace threecrypt::cbc_v1 */

@@ -14,19 +14,14 @@ namespace threecrypt
                    "-o, --output-file Output file; For symmetric encryption and decryption modes. Optional for encryption." );
     }
 #if ! defined(__gnu_linux__)
-#error "open_files currently only implemented for Gnu/Linux"
+    #error "open_files currently only implemented for Gnu/Linux"
 #endif
     void open_files(File_Data & f_data, char const *input_filename, char const *output_filename)
     {
         using namespace std;
-        if ( ! ssc::file_exists( input_filename ) ) {
-            fprintf( stderr, "Error: input file '%s' doesn't seem to exist.\n", input_filename );
-            exit( EXIT_FAILURE );
-        }
-        if ( ssc::file_exists( output_filename ) ) {
-            fprintf( stderr, "Error: output file '%s' already seems to exist.\n", output_filename );
-            exit( EXIT_FAILURE );
-        }
+        ssc::enforce_file_existence( input_filename , true  );
+        ssc::enforce_file_existence( output_filename, false );
+
         f_data.input_fd = open( input_filename, (O_RDWR | O_CREAT), static_cast<mode_t>(0600) );
         if ( f_data.input_fd == -1 ) {
             fprintf( stderr, "Error: Unable to open input file '%s'\n", input_filename );
@@ -39,9 +34,9 @@ namespace threecrypt
         }
     }
 #if ! defined(__gnu_linux__)
-#error "close_files currently only implemented for Gnu/Linux"
+    #error "close_files currently only implemented for Gnu/Linux"
 #endif
-    void close_files(File_Data & f_data)
+    void close_files(File_Data const & f_data)
     {
         using namespace std;
         if ( close( f_data.input_fd ) == -1 ) {
@@ -54,7 +49,7 @@ namespace threecrypt
         }
     }
 #if ! defined(__gnu_linux__)
-#error "map_files currently only implemented for Gnu/Linux"
+    #error "map_files currently only implemented for Gnu/Linux"
 #endif
     void map_files(File_Data & f_data)
     {
@@ -71,9 +66,9 @@ namespace threecrypt
         }
     }
 #if ! defined(__gnu_linux__)
-#error "unmap_files currently only implemented for Gnu/Linux"
+    #error "unmap_files currently only implemented for Gnu/Linux"
 #endif
-    void unmap_files(File_Data & f_data)
+    void unmap_files(File_Data const & f_data)
     {
         using namespace std;
         if ( munmap( f_data.input_map, f_data.input_filesize ) == -1 ) {
@@ -86,9 +81,9 @@ namespace threecrypt
         }
     }
 #if ! defined(__gnu_linux__)
-#error "sync_map currently only implemented for Gnu/Linux"
+    #error "sync_map currently only implemented for Gnu/Linux"
 #endif
-    void sync_map(File_Data & f_data)
+    void sync_map(File_Data const & f_data)
     {
         using namespace std;
         if ( msync( f_data.output_map, f_data.output_filesize, MS_SYNC ) == -1 ) {
@@ -109,7 +104,7 @@ namespace threecrypt
     }
 #endif
 #if ! defined(__gnu_linux__)
-#error "set_file_size currently only implemented for Gnu/Linux"
+    #error "set_file_size currently only implemented for Gnu/Linux"
 #endif
     void set_file_size(char const *filename, size_t const new_size)
     {
