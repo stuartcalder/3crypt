@@ -1,21 +1,21 @@
 #pragma once
-#include <ssc/general/arg_mapping.hh>
-#include <ssc/general/static_string.hh>
-#include <ssc/crypto/operations.hh>
-#include <ssc/crypto/threefish.hh>
-#include <ssc/crypto/cbc.hh>
-#include <ssc/crypto/skein.hh>
-#include <ssc/crypto/sspkdf.hh>
-#include <ssc/files/files.hh>
-#include <ssc/interface/terminal.hh>
-#include <ssc/general/integers.hh>
-
+#include <ssc/general/arg_mapping.hh>   // include <ssc/general/arg_mapping.hh> for processing command-line arguments
+#include <ssc/general/static_string.hh> // include <ssc/general/static_string.hh> for constexpr C-string functionalities
+#include <ssc/crypto/operations.hh>     // include <ssc/crypto/opterations.hh> for genericized cryptographic operations
+#include <ssc/crypto/threefish.hh>      // include <ssc/crypto/threefish.hh> to use the Threefish tweakable block cipher
+#include <ssc/crypto/cbc.hh>            // include <ssc/crypto/cbc.hh> to use Cipher Block Chaining mode with Threefish
+#include <ssc/crypto/skein.hh>          // include <ssc/crypto/skein.hh> to use the Skein hash function for its Message Authentication Code functionality
+#include <ssc/crypto/sspkdf.hh>         // include <ssc/crypto/sspkdf.hh> to use the SSPKDF key-derivation function
+#include <ssc/files/files.hh>           // include <ssc/files/files.hh> for some genericized file-related functions
+#include <ssc/interface/terminal.hh>    // include <ssc/interface/terminal.hh> for a terminal interface
+#include <ssc/general/integers.hh>      // include <ssc/general/integers.hh> for integer type aliases
+/* Platform-Specific Includes */
 #if defined(__gnu_linux__)
-    #include <sys/types.h>
-    #include <sys/stat.h>
-    #include <fcntl.h>
-    #include <sys/mman.h>
-    #include <unistd.h>
+    #include <sys/types.h> // include <sys/types.h> for some types that we need
+    #include <sys/stat.h>  // include <sys/stat.h> so we can use the stat() family of functions
+    #include <fcntl.h>     // include <fcntl.h> for the file control options
+    #include <sys/mman.h>  // include <sys/mman.h> for the memory-mapping related functions and defines
+    #include <unistd.h>    // include <unistd.h> for ftruncate() and truncate() etc etc
 #else
     #error "Currently, only Gnu/Linux is implemented."
 #endif
