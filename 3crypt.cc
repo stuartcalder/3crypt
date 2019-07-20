@@ -2,17 +2,6 @@
 
 namespace threecrypt
 {
-    void print_help()
-    {
-        std::puts( "Usage: 3crypt [Mode] [Switch...]\n"
-                   "Arguments to switches MUST be in seperate words. (i.e. 3crypt -e -i file; not 3crypt -e -ifile)\n"
-                   "Modes:\n"
-                   "-e, --encrypt  Symmetric encryption mode; encrypt a file using a passphrase.\n"
-                   "-d, --decrypt  Symmetric decryption mode; decrypt a file using a passphrase.\n"
-                   "Switches:\n"
-                   "-i, --input-file  Input file ; Must be specified for symmetric encryption and decryption modes.\n"
-                   "-o, --output-file Output file; For symmetric encryption and decryption modes. Optional for encryption." );
-    }
 #if ! defined(__gnu_linux__)
     #error "open_files currently only implemented for Gnu/Linux"
 #endif

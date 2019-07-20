@@ -1,4 +1,8 @@
 #pragma once
+
+#ifndef THREECRYPT_HH
+#define THREECRYPT_HH
+/* SSC Library Includes */
 #include <ssc/general/arg_mapping.hh>   // include <ssc/general/arg_mapping.hh> for processing command-line arguments
 #include <ssc/general/static_string.hh> // include <ssc/general/static_string.hh> for constexpr C-string functionalities
 #include <ssc/crypto/operations.hh>     // include <ssc/crypto/opterations.hh> for genericized cryptographic operations
@@ -19,7 +23,7 @@
 #else
     #error "Currently, only Gnu/Linux is implemented."
 #endif
-
+/* Standard Library Includes */
 #include <cstdlib>
 #include <memory>
 #include <string>
@@ -36,8 +40,17 @@ namespace threecrypt
     static constexpr auto const Block_Bytes = Block_Bits / 8;
     static constexpr auto const MAC_Bytes   = Block_Bytes;     /* Use the same number of bytes of Message Authentication Code
                                                                   as is in the block. */
-    static constexpr auto const Max_Password_Length = 80;      // Arbitrarily set 80 as the longest legal password.
-    using Threefish_t = ssc::Threefish<Block_Bits>;     // Abstractly define the desired cryptographic constructs.
+    static constexpr auto const   Max_Password_Length = 80;      // Arbitrarily set 80 as the longest legal password.
+    static constexpr auto const & Help_String = "Usage: 3crypt [Mode] [Switch...]\n"
+                                                "Arguments to switches MUST be in seperate words. (i.e. 3crypt -e -i file; not 3crypt -e -ifile)\n"
+                                                "Modes:\n"
+                                                "-e, --encrypt  Symmetric encryption mode; encrypt a file using a passphrase.\n"
+                                                "-d, --decrypt  Symmetric decryption mode; decrypt a file using a passphrase.\n"
+                                                "Switches:\n"
+                                                "-i, --input-file  Input file ; Must be specified for symmetric encryption and decryption modes.\n"
+                                                "-o, --output-file Output file; For symmetric encryption and decryption modes. Optional for encryption.";
+    static constexpr auto const & Help_Suggestion = "( Use 3crypt --help for more information )";
+    using Threefish_t = ssc::Threefish<Block_Bits>;              // Abstractly define the desired cryptographic primitives.
     using Skein_t     = ssc::Skein    <Block_Bits>;
     using CBC_t       = ssc::CBC<Threefish_t, Block_Bits>;
     using Arg_Map_t   = typename ssc::Arg_Mapping::Arg_Map_t;
@@ -68,10 +81,12 @@ namespace threecrypt
         u8_t  cbc_iv      [Block_Bytes];
         u32_t num_iter;
         u32_t num_concat;
+        static constexpr auto const Total_Size = sizeof(id) + sizeof(total_size) + sizeof(tweak) + \
+                                                 sizeof(sspkdf_salt) + sizeof(cbc_iv) + sizeof(num_iter) + \
+                                                 sizeof(num_concat);
     };
 
-    void      print_help    ();
-    void      open_files    (File_Data       & f_data, char const * __restrict__ input_filename, char const * __restrict__ output_filename);
+    void      open_files    (File_Data       & f_data, char const * __restrict input_filename, char const * __restrict output_filename);
     void      close_files   (File_Data const & f_data);
     void      map_files     (File_Data       & f_data);
     void      unmap_files   (File_Data const & f_data);
@@ -81,3 +96,4 @@ namespace threecrypt
 #endif
     void      set_file_size(char const * filename, size_t const new_size);
 } /* ! namespace threecrypt */
+#endif /* ! defined 3CRYPT_HH */

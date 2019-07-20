@@ -10,6 +10,8 @@ prefix     = /usr
 		main.cc \
 		3crypt.cc \
 		cbc_v1.cc \
+		cbc_v2.cc \
+		determine_decrypt_method.cc \
 		$(LINKFLAGS)
 install: 3crypt
 	install -s -m 0755 3crypt $(prefix)/bin
