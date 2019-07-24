@@ -92,7 +92,7 @@ static Arg_Map_t process_encrypt_arguments(Arg_Map_t && opt_arg_pairs,
         }
         else
         {
-            extraneous_args.push_back( pair );
+            extraneous_args.push_back( std::move( pair ) );
         }
     }
     if ( input_filename.empty() ) {
@@ -137,7 +137,7 @@ static Arg_Map_t process_decrypt_arguments(Arg_Map_t && opt_arg_pairs,
         }
         else
         {
-            extraneous_args.push_back( pair );
+            extraneous_args.push_back( std::move( pair ) );
         }
     }
     if ( input_filename.empty() ) {

@@ -11,6 +11,7 @@ namespace threecrypt
         ssc::enforce_file_existence( input_filename , true  );
         ssc::enforce_file_existence( output_filename, false );
 
+#if 0
         f_data.input_fd = open( input_filename, (O_RDWR | O_CREAT), static_cast<mode_t>(0600) );
         if ( f_data.input_fd == -1 ) {
             fprintf( stderr, "Error: Unable to open input file '%s'\n", input_filename );
@@ -18,6 +19,15 @@ namespace threecrypt
         }
         f_data.output_fd = open( output_filename, (O_RDWR | O_CREAT | O_TRUNC), static_cast<mode_t>(0600) );
         if ( f_data.output_fd == -1 ) {
+            fprintf( stderr, "Error: Unable to open output file '%s'\n", output_filename );
+            exit( EXIT_FAILURE );
+        }
+#endif
+        if ( (f_data.input_fd = open( input_filename, (O_RDWR|O_CREAT), static_cast<mode_t>(0600) )) == -1 ) {
+            fprintf( stderr, "Error: Unable to open input file '%s'\n", input_filename );
+            exit( EXIT_FAILURE );
+        }
+        if ( (f_data.output_fd = open( output_filename, (O_RDWR|O_CREAT|O_TRUNC), static_cast<mode_t>(0600) )) == -1 ) {
             fprintf( stderr, "Error: Unable to open output file '%s'\n", output_filename );
             exit( EXIT_FAILURE );
         }
