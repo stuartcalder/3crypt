@@ -97,10 +97,12 @@ static Arg_Map_t process_encrypt_arguments(Arg_Map_t && opt_arg_pairs,
     }
     if ( input_filename.empty() ) {
         fputs( "Error: The input filename has a length of zero.", stderr );
+        fputs( Help_Suggestion, stderr );
         exit( EXIT_FAILURE );
     }
     if ( output_filename.empty() ) {
         fputs( "Error: The output filename has a length of zero.", stderr );
+        fputs( Help_Suggestion, stderr );
         exit( EXIT_FAILURE );
     }
     return extraneous_args;
@@ -142,10 +144,12 @@ static Arg_Map_t process_decrypt_arguments(Arg_Map_t && opt_arg_pairs,
     }
     if ( input_filename.empty() ) {
         fputs( "Error: The input filename has a length of zero.", stderr );
+        fputs( Help_Suggestion, stderr );
         exit( EXIT_FAILURE );
     }
     if ( output_filename.empty() ) {
         fputs( "Error: The output filename has a length of zero.", stderr );
+        fputs( Help_Suggestion, stderr );
         exit( EXIT_FAILURE );
     }
     return extraneous_args;
@@ -163,6 +167,7 @@ int main(int const argc, char const * argv[])
         default:
         case (Mode_e::None):
             std::fprintf( stderr, "Error: No mode selected, or invalid mode: ( %d ) \n", static_cast<int>(mode) );
+            fputs( Help_Suggestion, stderr );
             std::exit( EXIT_FAILURE );
         case (Mode_e::Symmetric_Encrypt):
             {
@@ -175,6 +180,8 @@ int main(int const argc, char const * argv[])
                                       pair.first.c_str(), pair.second.c_str() );
                     }
                     std::fputc( '\n', stderr );
+                    fputs( Help_Suggestion, stderr );
+                    std::exit( EXIT_FAILURE );
                 }
             }
             threecrypt::cbc_v2::CBC_V2_encrypt( input_filename.c_str(), output_filename.c_str() );
@@ -190,16 +197,20 @@ int main(int const argc, char const * argv[])
                                       pair.first.c_str(), pair.second.c_str() );
                     }
                     std::fputc( '\n', stderr );
+                    fputs( Help_Suggestion, stderr );
+                    std::exit( EXIT_FAILURE );
                 }
             }
             auto const method = threecrypt::determine_decrypt_method( input_filename.c_str() );
             switch ( method ) {
                 default:
                     std::fprintf( stderr, "Error: Invalid decrypt method ( %d ).\n", static_cast<int>(method) );
+                    std::fputs( Help_Suggestion, stderr );
                     std::exit( EXIT_FAILURE );
                 case ( Decryption_Method_e::None ):
                     std::fprintf( stderr, "Error: the input file `%s` does not appear to be a valid 3crypt encrypted file.\n",
                                   input_filename.c_str() );
+                    std::fputs( Help_Suggestion, stderr );
                     std::exit( EXIT_FAILURE );
 #ifdef CBC_V1_HH
                 case ( Decryption_Method_e::CBC_V1 ):
