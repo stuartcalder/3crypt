@@ -59,18 +59,23 @@ namespace threecrypt
           ssc::i8_t, ssc::i16_t, ssc::i32_t, ssc::i64_t;
 
     struct File_Data {
-        // The variables of File_Data below this comment are platform-specific.
-#if defined(__gnu_linux__)
-        int      input_fd;
-        int     output_fd;
+        // Platform specific File_Data variables
+#if   defined(__gnu_linux__)
+        int  input_fd;
+        int output_fd;
+#elif defined(_WIN64)
+        HANDLE  input_handle;
+        HANDLE output_handle;
+        HANDLE  input_filemapping;
+        HANDLE output_filemapping;
 #else
-    #error "struct File_Data currently only defined for Gnu/Linux"
+    #error "struct File_Data only defined for Gnu/Linux and MS Windows"
 #endif
-        // The variables of File_Data below this comment are guaranteed to exist on all platforms.
-        u8_t  *  input_map;
-        u8_t  * output_map;
-        size_t   input_filesize;
-        size_t  output_filesize;
+        // Platform agnostic File_Data variables
+        u8_t *  input_map;
+        u8_t * output_map;
+        u64_t  input_filesize;
+        u64_t output_filesize;
     };
     template <size_t ID_Bytes>
     struct SSPKDF_Header {
