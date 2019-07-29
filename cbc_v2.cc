@@ -22,27 +22,31 @@ namespace threecrypt::cbc_v2
         // Open files
         open_files( f_data, input_filename, output_filename );
         // Determine input file size
-#ifdef __gnu_linux__
+#if   defined(__gnu_linux__)
         f_data.input_filesize = ssc::get_file_size( f_data.input_fd );
+#elif defined(_WIN64)
+        f_data.input_filesize = ssc::get_file_size( f_data.input_handle );
 #else
         f_data.input_filesize = ssc::get_file_size( input_filename );
 #endif
         // Determine output file size
         f_data.output_filesize = calculate_CBC_V2_size( f_data.input_filesize );
         // Extend or shrink the output file to be `f_data.output_filesize` bytes
-#ifdef __gnu_linux__
+#if   defined(__gnu_linux__)
         set_file_size( f_data.output_fd, f_data.output_filesize );
+#elif defined(_WIN64)
+        set_file_size( f_data.output_handle, f_data.output_filesize );
 #else
         set_file_size( output_filename, f_data.output_filesize );
 #endif
         // Memory-Map the files
         map_files( f_data );
         // Get the password
-        char password [Max_Password_Length];
+        char password [Max_Password_Length + 1];
         int password_length;
         {
             ssc::Terminal term;
-            char pwcheck [Max_Password_Length];
+            char pwcheck [Max_Password_Length + 1];
             bool repeat = true;
             do {
                 static_assert(sizeof(password) == sizeof(pwcheck));
@@ -73,17 +77,23 @@ namespace threecrypt::cbc_v2
         {
             memcpy( out, header.id, sizeof(header.id) );
             out += sizeof(header.id);
-            *(reinterpret_cast<decltype(header.total_size) *>(out)) = header.total_size;
+
+            memcpy( out, &header.total_size, sizeof(header.total_size) );
             out += sizeof(header.total_size);
+
             memcpy( out, header.tweak, sizeof(header.tweak) );
             out += sizeof(header.tweak);
+
             memcpy( out, header.sspkdf_salt, sizeof(header.sspkdf_salt) );
             out += sizeof(header.sspkdf_salt);
+
             memcpy( out, header.cbc_iv, sizeof(header.cbc_iv) );
             out += sizeof(header.cbc_iv);
-            *(reinterpret_cast<decltype(header.num_iter) *>(out)) = header.num_iter;
+
+            memcpy( out, &header.num_iter, sizeof(header.num_iter) );
             out += sizeof(header.num_iter);
-            *(reinterpret_cast<decltype(header.num_concat) *>(out)) = header.num_concat;
+
+            memcpy( out, &header.num_concat, sizeof(header.num_concat) );
             out += sizeof(header.num_concat);
         }
 
@@ -118,8 +128,10 @@ namespace threecrypt::cbc_v2
         // Open the files
         open_files( f_data, input_filename, output_filename );
         // Get the size fo the input file
-#ifdef __gnu_linux__
+#if   defined(__gnu_linux__)
         f_data.input_filesize = ssc::get_file_size( f_data.input_fd );
+#elif defined(_WIN64)
+        f_data.input_filesize = ssc::get_file_size( f_data.input_handle );
 #else
         f_data.input_filesize = ssc::get_file_size( input_filename );
 #endif
@@ -127,15 +139,18 @@ namespace threecrypt::cbc_v2
         f_data.output_filesize = f_data.input_filesize;
         // Check to see if the input file is too small to have possibly been 3crypt encrypted, using any supported means
         static constexpr auto const Minimum_Possible_File_Size = CBC_V2_Header_t::Total_Size + Block_Bytes + MAC_Bytes;
-        if ( f_data.input_filesize < Minimum_Possible_File_Size ) {
+        if ( f_data.input_filesize < Minimum_Possible_File_Size )
+        {
             fprintf( stderr, "Error: Input file doesn't appear to be large enough to be a %s encrypted file\n", CBC_V2_ID );
             close_files( f_data );
             remove( output_filename );
             exit( EXIT_FAILURE );
         }
         // Set the output file to be `f_data.output_filesize` bytes
-#ifdef __gnu_linux__
+#if   defined(__gnu_linux__)
         set_file_size( f_data.output_fd, f_data.output_filesize );
+#elif defined(_WIN64)
+        set_file_size( f_data.output_handle, f_data.output_filesize );
 #else
         set_file_size( output_filename, f_data.output_filesize );
 #endif
@@ -147,24 +162,31 @@ namespace threecrypt::cbc_v2
         /* Copy all the fields of CBC_V2_Header_t from the memory-mapped file
            into the header struct */
         {
-            memcpy( header.id         , in, sizeof(header.id)          );
+            memcpy( header.id, in, sizeof(header.id) );
             in += sizeof(header.id);
-            memcpy( &header.total_size , in, sizeof(header.total_size)  );
+
+            memcpy( &header.total_size, in, sizeof(header.total_size) );
             in += sizeof(header.total_size);
-            memcpy( header.tweak      , in, sizeof(header.tweak)       );
+
+            memcpy( header.tweak, in, sizeof(header.tweak) );
             in += sizeof(header.tweak);
+
             memcpy( header.sspkdf_salt, in, sizeof(header.sspkdf_salt) );
             in += sizeof(header.sspkdf_salt);
-            memcpy( header.cbc_iv     , in, sizeof(header.cbc_iv)      );
+
+            memcpy( header.cbc_iv, in, sizeof(header.cbc_iv) );
             in += sizeof(header.cbc_iv);
-            memcpy( &header.num_iter   , in, sizeof(header.num_iter)    );
+
+            memcpy( &header.num_iter, in, sizeof(header.num_iter) );
             in += sizeof(header.num_iter);
-            memcpy( &header.num_concat , in, sizeof(header.num_concat)  );
+
+            memcpy( &header.num_concat, in, sizeof(header.num_concat) );
             in += sizeof(header.num_concat);
         }
         // Check for the magic "3CRYPT_CBC_V2" at the beginning of the file header
         static_assert(sizeof(header.id) == sizeof(CBC_V2_ID));
-        if ( memcmp( header.id, CBC_V2_ID, sizeof(CBC_V2_ID) ) != 0 ) {
+        if ( memcmp( header.id, CBC_V2_ID, sizeof(CBC_V2_ID) ) != 0 )
+        {
             fprintf( stderr, "Error: The input file doesn't appear to be a %s encrypted file.\n", CBC_V2_ID );
             unmap_files( f_data );
             close_files( f_data );
@@ -172,7 +194,8 @@ namespace threecrypt::cbc_v2
             exit( EXIT_FAILURE );
         }
         // Check that the input file is the same size as specified by the file header
-        if ( header.total_size != static_cast<decltype(header.total_size)>(f_data.input_filesize) ) {
+        if ( header.total_size != static_cast<decltype(header.total_size)>(f_data.input_filesize) )
+        {
             fprintf( stderr, "Error: Input file size (%zu) does not equal file size in the file header of the input file (%zu)\n",
                      header.total_size, f_data.input_filesize );
             unmap_files( f_data );
@@ -181,7 +204,7 @@ namespace threecrypt::cbc_v2
             exit( EXIT_FAILURE );
         }
         // Get the password
-        char password [Max_Password_Length] = { 0 };
+        char password [Max_Password_Length + 1] = { 0 };
         {
             ssc::Terminal term;
             term.get_pw( password, Max_Password_Length, 1 );
@@ -229,8 +252,10 @@ namespace threecrypt::cbc_v2
         // Unmap the memory-mapped input and output files
         unmap_files( f_data );
         // Truncate the output file to the number of plaintext bytes
-#ifdef __gnu_linux__
+#if   defined(__gnu_linux__)
         set_file_size( f_data.output_fd, plaintext_size );
+#elif defined(_WIN64)
+        set_file_size( f_data.output_handle, plaintext_size );
 #else
         set_file_size( output_filename, plaintext_size );
 #endif

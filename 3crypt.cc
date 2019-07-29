@@ -217,7 +217,7 @@ namespace threecrypt
     #error "threecrypt::sync_map currently only implemented for Gnu/Linux and MS Windows"
 #endif
     }/* ! sync_map(File_Data const &) */
-#ifdef __gnu_linux__
+#if   defined(__gnu_linux__)
     void set_file_size(int const file_d, size_t const new_size)
     {
         using namespace std;
@@ -227,13 +227,15 @@ namespace threecrypt
             exit( EXIT_FAILURE );
         }
     }
-#endif
-#ifdef _WIN64
-    void set_file_size(HANDLE handle, LARGE_INTEGER const new_size)
+#elif defined(_WIN64)
+    void set_file_size(HANDLE handle, size_t const new_size)
     {
         using namespace std;
+
+        LARGE_INTEGER l_i;
+        l_i.QuadWord = static_cast<decltype(l_i.QuadWord)>(new_size);
         // Move the file pointer to the desired offset from the beginning of the file
-        if ( SetFilePointerEx( handle, new_size, NULL, FILE_BEGIN ) == 0 )
+        if ( SetFilePointerEx( handle, l_i, NULL, FILE_BEGIN ) == 0 )
         {
             fputs( "Failed to SetFilePointerEx()\n", stderr );
             exit( EXIT_FAILURE );

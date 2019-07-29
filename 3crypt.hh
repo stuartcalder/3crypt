@@ -78,7 +78,7 @@ namespace threecrypt
         u8_t * output_map;
         u64_t  input_filesize;
         u64_t output_filesize;
-    };
+    }; /* ! struct File_Data */
     template <size_t ID_Bytes>
     struct SSPKDF_Header
     {
@@ -102,7 +102,7 @@ namespace threecrypt
 #if   defined(__gnu_linux__)
     void      set_file_size(int const file_d, size_t const new_size);
 #elif defined(_WIN64)
-    void      set_file_size(HANDLE handle, LARGE_INTEGER const new_size);
+    void      set_file_size(HANDLE handle, size_t const new_size);
 #endif
     void      set_file_size(char const * filename, size_t const new_size);
 } /* ! namespace threecrypt */
