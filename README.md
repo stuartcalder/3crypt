@@ -14,7 +14,7 @@ and the Skein hash function.
 ```
     3crypt -d -i $filename
     or
-    3crypt --decrypt --input-filename $filename
+    3crypt --decrypt --input-file $filename
 ```
 ## Building 3crypt
 1. git clone [3crypt](https://github.com/stuartcalder/3crypt)
