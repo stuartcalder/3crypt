@@ -1,5 +1,3 @@
-#pragma once
-
 #ifndef CBC_V2_HH
 #define CBC_V2_HH
 

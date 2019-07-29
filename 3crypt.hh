@@ -1,5 +1,3 @@
-#pragma once
-
 #ifndef THREECRYPT_HH
 #define THREECRYPT_HH
 /* SSC Library Includes */
@@ -20,8 +18,11 @@
     #include <fcntl.h>     // include <fcntl.h> for the file control options
     #include <sys/mman.h>  // include <sys/mman.h> for the memory-mapping related functions and defines
     #include <unistd.h>    // include <unistd.h> for ftruncate() and truncate() etc etc
+#elif defined(_WIN64)
+    #include <windows.h>
+    #include <memoryapi.h>
 #else
-    #error "Currently, only Gnu/Linux is implemented."
+    #error "Currently, only Gnu/Linux and MS Windows are implemented."
 #endif
 /* Standard Library Includes */
 #include <cstdlib>
@@ -58,7 +59,8 @@ namespace threecrypt
     using ssc::u8_t, ssc::u16_t, ssc::u32_t, ssc::u64_t,
           ssc::i8_t, ssc::i16_t, ssc::i32_t, ssc::i64_t;
 
-    struct File_Data {
+    struct File_Data
+    {
         // Platform specific File_Data variables
 #if   defined(__gnu_linux__)
         int  input_fd;
@@ -78,7 +80,8 @@ namespace threecrypt
         u64_t output_filesize;
     };
     template <size_t ID_Bytes>
-    struct SSPKDF_Header {
+    struct SSPKDF_Header
+    {
         char  id          [ID_Bytes];
         u64_t total_size;
         u8_t  tweak       [Tweak_Bytes];
@@ -96,8 +99,10 @@ namespace threecrypt
     void      map_files     (File_Data       & f_data);
     void      unmap_files   (File_Data const & f_data);
     void      sync_map      (File_Data const & f_data);
-#if defined(__gnu_linux__)
+#if   defined(__gnu_linux__)
     void      set_file_size(int const file_d, size_t const new_size);
+#elif defined(_WIN64)
+    void      set_file_size(HANDLE handle, LARGE_INTEGER const new_size);
 #endif
     void      set_file_size(char const * filename, size_t const new_size);
 } /* ! namespace threecrypt */

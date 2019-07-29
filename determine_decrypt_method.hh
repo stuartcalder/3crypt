@@ -1,4 +1,3 @@
-#pragma once
 #ifndef DETERMINE_DECRYPT_METHOD_HH
 #define DETERMINE_DECRYPT_METHOD_HH
 

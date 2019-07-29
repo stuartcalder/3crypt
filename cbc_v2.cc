@@ -87,20 +87,27 @@ namespace threecrypt::cbc_v2
             out += sizeof(header.num_concat);
         }
 
+        // Generate a 512-bit symmetric key using the password we got earlier as input
         u8_t derived_key [Block_Bytes];
         ssc::SSPKDF( derived_key, password, password_length, header.sspkdf_salt, header.num_iter, header.num_concat );
+        // Securely zero over the password buffer after we've used it to generate the symmetric key
         ssc::zero_sensitive( password, sizeof(password) );
-        {
+        {// Encrypt the input file, writing the ciphertext into the memory-mapped output file
             CBC_t cbc{ Threefish_t{ derived_key, header.tweak } };
             out += cbc.encrypt( f_data.input_map, out, f_data.input_filesize, header.cbc_iv );
         }
-        {
+        {/* Create a 512-bit Message Authentication Code of the ciphertext, using the derived key and the ciphertext with Skein's native MAC
+            then append the MAC to the end of the ciphertext */
             Skein_t skein;
             skein.MAC( out, f_data.output_map, derived_key, f_data.output_filesize - MAC_Bytes, sizeof(derived_key), MAC_Bytes );
         }
+        // Synchronize everything written to the output file
         sync_map( f_data );
+        // Unmap the input and output files
         unmap_files( f_data );
+        // Close the input and output files
         close_files( f_data );
+        // Securely zero over the derived key
         ssc::zero_sensitive( derived_key, sizeof(derived_key) );
     }
     void CBC_V2_decrypt(char const * input_filename,
@@ -108,13 +115,17 @@ namespace threecrypt::cbc_v2
     {
         using namespace std;
         File_Data f_data;
+        // Open the files
         open_files( f_data, input_filename, output_filename );
+        // Get the size fo the input file
 #ifdef __gnu_linux__
         f_data.input_filesize = ssc::get_file_size( f_data.input_fd );
 #else
         f_data.input_filesize = ssc::get_file_size( input_filename );
 #endif
+        // For now, assume the size of the output file will be the same size as the input file
         f_data.output_filesize = f_data.input_filesize;
+        // Check to see if the input file is too small to have possibly been 3crypt encrypted, using any supported means
         static constexpr auto const Minimum_Possible_File_Size = CBC_V2_Header_t::Total_Size + Block_Bytes + MAC_Bytes;
         if ( f_data.input_filesize < Minimum_Possible_File_Size ) {
             fprintf( stderr, "Error: Input file doesn't appear to be large enough to be a %s encrypted file\n", CBC_V2_ID );
@@ -122,12 +133,15 @@ namespace threecrypt::cbc_v2
             remove( output_filename );
             exit( EXIT_FAILURE );
         }
+        // Set the output file to be `f_data.output_filesize` bytes
 #ifdef __gnu_linux__
         set_file_size( f_data.output_fd, f_data.output_filesize );
 #else
         set_file_size( output_filename, f_data.output_filesize );
 #endif
+        // Memory-map the input and output files
         map_files( f_data );
+        // `in` pointer used for reading from the input files, and incremented as it's used to read
         u8_t const * in = f_data.input_map;
         CBC_V2_Header_t header;
         /* Copy all the fields of CBC_V2_Header_t from the memory-mapped file
@@ -148,6 +162,7 @@ namespace threecrypt::cbc_v2
             memcpy( &header.num_concat , in, sizeof(header.num_concat)  );
             in += sizeof(header.num_concat);
         }
+        // Check for the magic "3CRYPT_CBC_V2" at the beginning of the file header
         static_assert(sizeof(header.id) == sizeof(CBC_V2_ID));
         if ( memcmp( header.id, CBC_V2_ID, sizeof(CBC_V2_ID) ) != 0 ) {
             fprintf( stderr, "Error: The input file doesn't appear to be a %s encrypted file.\n", CBC_V2_ID );
@@ -156,6 +171,7 @@ namespace threecrypt::cbc_v2
             remove( output_filename );
             exit( EXIT_FAILURE );
         }
+        // Check that the input file is the same size as specified by the file header
         if ( header.total_size != static_cast<decltype(header.total_size)>(f_data.input_filesize) ) {
             fprintf( stderr, "Error: Input file size (%zu) does not equal file size in the file header of the input file (%zu)\n",
                      header.total_size, f_data.input_filesize );
@@ -164,21 +180,20 @@ namespace threecrypt::cbc_v2
             remove( output_filename );
             exit( EXIT_FAILURE );
         }
+        // Get the password
         char password [Max_Password_Length] = { 0 };
         {
             ssc::Terminal term;
             term.get_pw( password, Max_Password_Length, 1 );
         }
         int password_length = strlen( password );
+        // Generate a 512-bit symmetric key from the given password
         u8_t derived_key [Block_Bytes];
-        ssc::SSPKDF( derived_key,
-                     password,
-                     password_length,
-                     header.sspkdf_salt,
-                     header.num_iter,
-                     header.num_concat );
+        ssc::SSPKDF( derived_key, password, password_length, header.sspkdf_salt, header.num_iter, header.num_concat );
+        // Securely zero over the password now that we have the derived key
         ssc::zero_sensitive( password, sizeof(password) );
         {
+            // Generate a MAC using the ciphertext and the derived key, and compare it to the MAC at the end of the input file
             u8_t gen_mac [MAC_Bytes];
             {
                 Skein_t skein;
@@ -191,7 +206,7 @@ namespace threecrypt::cbc_v2
             }
             if ( memcmp( gen_mac, (f_data.input_map + f_data.input_filesize - MAC_Bytes), MAC_Bytes ) != 0 ) {
                 fputs( "Error: Authentication failed.\n"
-                       "Possibilities: Wrong password, the file is corrupted, or it has been somehow tampered with.", stderr );
+                       "Possibilities: Wrong password, the file is corrupted, or it has been somehow tampered with.\n", stderr );
                 unmap_files( f_data );
                 close_files( f_data );
                 remove( output_filename );
@@ -201,6 +216,7 @@ namespace threecrypt::cbc_v2
         }
         size_t plaintext_size;
         {
+            // Decrypt the input file's ciphertext into the output file, recording the number of bytes of plaintext in `plaintext_size`
             CBC_t cbc{ Threefish_t{ derived_key, header.tweak } };
             static constexpr auto const File_Metadata_Size = CBC_V2_Header_t::Total_Size + MAC_Bytes;
             plaintext_size = cbc.decrypt( in,
@@ -208,14 +224,19 @@ namespace threecrypt::cbc_v2
                                           f_data.input_filesize - File_Metadata_Size,
                                           header.cbc_iv );
         }
+        // Synchronize the output file
         sync_map( f_data );
+        // Unmap the memory-mapped input and output files
         unmap_files( f_data );
+        // Truncate the output file to the number of plaintext bytes
 #ifdef __gnu_linux__
         set_file_size( f_data.output_fd, plaintext_size );
 #else
         set_file_size( output_filename, plaintext_size );
 #endif
+        // Close the input and output files
         close_files( f_data );
+        // Securely zero over the derived key now that we're done with it
         ssc::zero_sensitive( derived_key, sizeof(derived_key) );
     }
 } /* ! namespace threecrypt::cbc_v1 */
