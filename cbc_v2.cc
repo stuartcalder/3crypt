@@ -227,13 +227,14 @@ namespace threecrypt::cbc_v2
                            sizeof(derived_key),
                            sizeof(gen_mac) );
             }
-            if ( memcmp( gen_mac, (f_data.input_map + f_data.input_filesize - MAC_Bytes), MAC_Bytes ) != 0 ) {
+            if ( memcmp( gen_mac, (f_data.input_map + f_data.input_filesize - MAC_Bytes), MAC_Bytes ) != 0 )
+            {
+                ssc::zero_sensitive( derived_key, sizeof(derived_key) );
                 fputs( "Error: Authentication failed.\n"
                        "Possibilities: Wrong password, the file is corrupted, or it has been somehow tampered with.\n", stderr );
                 unmap_files( f_data );
                 close_files( f_data );
                 remove( output_filename );
-                ssc::zero_sensitive( derived_key, sizeof(derived_key) );
                 exit( EXIT_FAILURE );
             }
         }
