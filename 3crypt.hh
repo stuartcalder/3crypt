@@ -12,7 +12,7 @@
 #include <ssc/interface/terminal.hh>    // include <ssc/interface/terminal.hh> for a terminal interface
 #include <ssc/general/integers.hh>      // include <ssc/general/integers.hh> for integer type aliases
 /* Platform-Specific Includes */
-#if defined(__gnu_linux__)
+#if   defined(__gnu_linux__)
     #include <sys/types.h> // include <sys/types.h> for some types that we need
     #include <sys/stat.h>  // include <sys/stat.h> so we can use the stat() family of functions
     #include <fcntl.h>     // include <fcntl.h> for the file control options
@@ -43,7 +43,7 @@ namespace threecrypt
                                                                   as is in the block. */
     static constexpr auto const   Max_Password_Length = 80;      // Arbitrarily set 80 as the longest legal password.
     static constexpr auto const & Help_String = "Usage: 3crypt [Mode] [Switch...]\n"
-                                                "Arguments to switches MUST be in seperate words. (i.e. 3crypt -e -i file; not 3crypt -e -ifile)\n"
+                                                "Arguments to switches MUST be in seperate words. (i.e. 3crypt -e -i file; NOT 3crypt -e -ifile)\n"
                                                 "Modes:\n"
                                                 "-e, --encrypt  Symmetric encryption mode; encrypt a file using a passphrase.\n"
                                                 "-d, --decrypt  Symmetric decryption mode; decrypt a file using a passphrase.\n"
@@ -51,6 +51,7 @@ namespace threecrypt
                                                 "-i, --input-file  Input file ; Must be specified for symmetric encryption and decryption modes.\n"
                                                 "-o, --output-file Output file; For symmetric encryption and decryption modes. Optional for encryption.";
     static constexpr auto const & Help_Suggestion = "( Use 3crypt --help for more information )";
+
     using Threefish_t = ssc::Threefish<Block_Bits>;              // Abstractly define the desired cryptographic primitives.
     using Skein_t     = ssc::Skein    <Block_Bits>;
     using CBC_t       = ssc::CBC<Threefish_t, Block_Bits>;
