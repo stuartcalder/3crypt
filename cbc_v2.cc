@@ -111,14 +111,14 @@ namespace threecrypt::cbc_v2
             Skein_t skein;
             skein.MAC( out, f_data.output_map, derived_key, f_data.output_filesize - MAC_Bytes, sizeof(derived_key), MAC_Bytes );
         }
+        // Securely zero over the derived key
+        ssc::zero_sensitive( derived_key, sizeof(derived_key) );
         // Synchronize everything written to the output file
         sync_map( f_data );
         // Unmap the input and output files
         unmap_files( f_data );
         // Close the input and output files
         close_files( f_data );
-        // Securely zero over the derived key
-        ssc::zero_sensitive( derived_key, sizeof(derived_key) );
     }
     void CBC_V2_decrypt(char const * input_filename,
                         char const * output_filename)
@@ -242,6 +242,8 @@ namespace threecrypt::cbc_v2
         {
             // Decrypt the input file's ciphertext into the output file, recording the number of bytes of plaintext in `plaintext_size`
             CBC_t cbc{ Threefish_t{ derived_key, header.tweak } };
+            // Securely zero over the derived key now that we're done with it
+            ssc::zero_sensitive( derived_key, sizeof(derived_key) );
             static constexpr auto const File_Metadata_Size = CBC_V2_Header_t::Total_Size + MAC_Bytes;
             plaintext_size = cbc.decrypt( in,
                                           f_data.output_map,
@@ -262,7 +264,5 @@ namespace threecrypt::cbc_v2
 #endif
         // Close the input and output files
         close_files( f_data );
-        // Securely zero over the derived key now that we're done with it
-        ssc::zero_sensitive( derived_key, sizeof(derived_key) );
     }
 } /* ! namespace threecrypt::cbc_v1 */
