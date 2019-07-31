@@ -24,9 +24,9 @@ namespace threecrypt
         if ( sizeof(cbc_v2::CBC_V2_ID) > s ) {
             s = sizeof(cbc_v2::CBC_V2_ID);
         }
-        return s;
 #endif
-    }
+        return s;
+    }/* ! threecrypt::determine_biggest_identifier_string_size() */
     constexpr std::size_t const Biggest_Identifier_String_Size = determine_biggest_identifier_string_size();
 
     static constexpr std::size_t determine_smallest_identifier_string_size()
@@ -43,7 +43,7 @@ namespace threecrypt
         }
 #endif
         return s;
-    }
+    }/* ! threecrypt::determine_smallest_identifier_string_size() */
     constexpr std::size_t const Smallest_Identifier_String_Size = determine_smallest_identifier_string_size();
 
     enum class Decryption_Method_e {
@@ -57,6 +57,6 @@ namespace threecrypt
         Terminating_Enum
     };
     Decryption_Method_e determine_decrypt_method(char const * filename);
-}
+}/* ! namespace threecrypt */
 
 #endif
