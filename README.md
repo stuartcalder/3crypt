@@ -3,6 +3,7 @@
 A simple command-line program for encrypting and decrypting files on Linux, built upon the Threefish block cipher
 and the Skein hash function.
 ## Dependencies
+-    __ncurses__
 -    [libssc](https://github.com/stuartcalder/ssc)
 ## Encrypting files
 ```
@@ -17,6 +18,7 @@ and the Skein hash function.
     3crypt --decrypt --input-file $filename
 ```
 ## Building 3crypt
-1. git clone [3crypt](https://github.com/stuartcalder/3crypt)
-2. make
-3. make install
+1. build and install [libssc](https://github.com/stuartcalder/ssc)
+2. git clone [3crypt](https://github.com/stuartcalder/3crypt)
+3. make
+4. make install
