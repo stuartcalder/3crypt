@@ -41,7 +41,7 @@ namespace threecrypt
     static constexpr auto const Block_Bytes = Block_Bits / 8;
     static constexpr auto const MAC_Bytes   = Block_Bytes;     /* Use the same number of bytes of Message Authentication Code
                                                                   as is in the block. */
-    static constexpr auto const   Max_Password_Length = 80;      // Arbitrarily set 80 as the longest legal password.
+    static constexpr auto const   Max_Password_Length = 120;      // Arbitrarily set 80 as the longest legal password.
     static constexpr auto const & Help_String = "Usage: 3crypt [Mode] [Switch...]\n"
                                                 "Arguments to switches MUST be in seperate words. (i.e. 3crypt -e -i file; NOT 3crypt -e -ifile)\n"
                                                 "Modes:\n"
@@ -50,7 +50,7 @@ namespace threecrypt
                                                 "Switches:\n"
                                                 "-i, --input-file  Input file ; Must be specified for symmetric encryption and decryption modes.\n"
                                                 "-o, --output-file Output file; For symmetric encryption and decryption modes. Optional for encryption.";
-    static constexpr auto const & Help_Suggestion = "( Use 3crypt --help for more information )";
+    static constexpr auto const & Help_Suggestion = "( Use 3crypt --help for more information )\n";
 
     using Threefish_t = ssc::Threefish<Block_Bits>;              // Abstractly define the desired cryptographic primitives.
     using Skein_t     = ssc::Skein    <Block_Bits>;
