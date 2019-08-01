@@ -21,7 +21,7 @@ determine_decrypt_method.o:
 		determine_decrypt_method.cc
 3crypt: main.o 3crypt.o cbc_v1.o cbc_v2.o determine_decrypt_method.o
 	$(CC) $(CXXFLAGS) $(OPTFLAGS) \
-		-o 3crypt \
+		-o $@ \
 		main.o \
 		3crypt.o \
 		cbc_v1.o \
