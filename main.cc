@@ -20,7 +20,8 @@ static Arg_Map_t process_mode_args(Arg_Map_t && in_map, Mode_e & mode)
 {
     Arg_Map_t extraneous_args;
 
-    for ( int i = 1; i < in_map.size(); ++i ) {
+    for ( int i = 1; i < in_map.size(); ++i )
+    {
         if ( in_map[ i ].first == "-h" ||
              in_map[ i ].first == "--help" )
         {
@@ -77,7 +78,8 @@ static Arg_Map_t process_encrypt_arguments(Arg_Map_t && opt_arg_pairs,
     input_filename.clear();
     output_filename.clear();
 
-    for ( auto && pair : opt_arg_pairs ) {
+    for ( auto && pair : opt_arg_pairs )
+    {
         ssc::check_file_name_sanity( pair.second, 1 );
         if ( pair.first == "-i" ||
              pair.first == "--input-file" )
@@ -149,13 +151,13 @@ static Arg_Map_t process_decrypt_arguments(Arg_Map_t && opt_arg_pairs,
     }
     if ( input_filename.empty() )
     {
-        fputs( "Error: The input filename has a length of zero.", stderr );
+        fputs( "Error: The input filename was not specified.", stderr );
         fputs( Help_Suggestion, stderr );
         exit( EXIT_FAILURE );
     }
     if ( output_filename.empty() )
     {
-        fputs( "Error: The output filename has a length of zero.", stderr );
+        fputs( "Error: The output filename was not specified.", stderr );
         fputs( Help_Suggestion, stderr );
         exit( EXIT_FAILURE );
     }
@@ -183,7 +185,7 @@ int main(int const argc, char const * argv[])
                                                                        input_filename, output_filename );
                 if ( !remaining_args.empty() )
                 {
-                    std::fprintf( stderr, "Error: Unneeded options or arguments: " );
+                    std::fprintf( stderr, "Error: Unneeded or illegal options or arguments: " );
                     for ( auto const & pair : remaining_args )
                     {
                         std::fprintf( stderr, "%s -> %s, ",
@@ -202,7 +204,7 @@ int main(int const argc, char const * argv[])
                                                                        input_filename, output_filename );
                 if ( !remaining_args.empty() )
                 {
-                    std::fprintf( stderr, "Error: Unneeded options or arguments: " );
+                    std::fprintf( stderr, "Error: Unneeded or illegal options or arguments: " );
                     for ( auto const & pair : remaining_args )
                     {
                         std::fprintf( stderr, "%s -> %s, ",
