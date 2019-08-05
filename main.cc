@@ -99,13 +99,13 @@ static Arg_Map_t process_encrypt_arguments(Arg_Map_t && opt_arg_pairs,
     }
     if ( input_filename.empty() )
     {
-        fputs( "Error: The input filename has a length of zero.", stderr );
+        fputs( "Error: The input filename was not specified.", stderr );
         fputs( Help_Suggestion, stderr );
         exit( EXIT_FAILURE );
     }
     if ( output_filename.empty() )
     {
-        fputs( "Error: The output filename has a length of zero.", stderr );
+        fputs( "Error: The output filename was not specified.", stderr );
         fputs( Help_Suggestion, stderr );
         exit( EXIT_FAILURE );
     }
