@@ -6,7 +6,7 @@
 
 namespace threecrypt
 {
-    void open_files(File_Data & f_data, char const *input_filename, char const *output_filename)
+    void open_files(File_Data & f_data, char const * __restrict input_filename, char const * __restrict output_filename)
     {
         using namespace std;
         ssc::enforce_file_existence( input_filename , true  );
