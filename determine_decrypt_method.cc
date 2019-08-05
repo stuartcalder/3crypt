@@ -13,14 +13,16 @@ namespace threecrypt
         auto method = Decryption_Method_e::None;
 
         // Discard files that are smaller than the smallest identifier string.
-        if ( file_size < Smallest_Identifier_String_Size ) {
+        if ( file_size < Smallest_Identifier_String_Size )
+        {
             std::fprintf( stderr, "Error: The file `%s` is too small to be a 3crypt encrypted file.\n", filename );
             std::exit( EXIT_FAILURE );
         }
         {
             // Open the file
             std::FILE * file_ptr;
-            if ( (file_ptr = std::fopen( filename, "rb" )) == nullptr ) {
+            if ( (file_ptr = std::fopen( filename, "rb" )) == nullptr )
+            {
                 std::fprintf( stderr, "Error: Failed to open `%s` to determine its decryption method.\n", filename );
                 std::exit( EXIT_FAILURE );
             }
@@ -32,7 +34,8 @@ namespace threecrypt
             std::size_t const bytes_to_read = (file_size > Biggest_Identifier_String_Size) ? Biggest_Identifier_String_Size : file_size;
             std::size_t const read_bytes = std::fread( buffer, 1, bytes_to_read, file_ptr );
             // Ensure that all the requested bytes were read in.
-            if ( read_bytes != bytes_to_read ) {
+            if ( read_bytes != bytes_to_read )
+            {
                 std::fprintf( stderr, "Error: Failed to read bytes to determine decryption method: (%zu) requsted, (%zu) read.\n",
                               bytes_to_read, read_bytes );
                 std::exit( EXIT_FAILURE );
@@ -62,7 +65,8 @@ namespace threecrypt
             }
 #endif
             // Close the file.
-            if ( std::fclose( file_ptr ) != 0 ) {
+            if ( std::fclose( file_ptr ) != 0 )
+            {
                 std::fprintf( stderr, "Error: Failed to close `%s` after checking for its decryption method.\n", filename );
                 std::exit( EXIT_FAILURE );
             }
