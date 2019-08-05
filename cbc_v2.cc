@@ -59,9 +59,6 @@ namespace threecrypt::cbc_v2
                     repeat = false;
                 else
                     term.notify( "Passwords don't match." );
-#if 0
-                    term.notify( "Passwords don't match.\n" );
-#endif
             } while ( repeat );
             ssc::zero_sensitive( pwcheck, sizeof(pwcheck) );
         }
