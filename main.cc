@@ -34,7 +34,7 @@ static Arg_Map_t process_mode_args(Arg_Map_t && in_map, Mode_e & mode)
             if ( mode != Mode_e::None )
             {
                 std::fputs( "Error: Program mode already set.\n"
-                            "(Only one mode switch (e.g -e or -d) is allowed per invocation of 3crypt.", stderr );
+                            "(Only one mode switch (e.g -e or -d) is allowed per invocation of 3crypt.\n", stderr );
                 std::fputs( Help_Suggestion, stderr );
                 std::exit( EXIT_FAILURE );
             }
@@ -46,7 +46,7 @@ static Arg_Map_t process_mode_args(Arg_Map_t && in_map, Mode_e & mode)
             if ( mode != Mode_e::None )
             {
                 std::fputs( "Error: Program mode already set.\n"
-                            "(Only one mode switch( e.g. -e or -d) is allowed per invocation of 3crypt.", stderr );
+                            "(Only one mode switch( e.g. -e or -d) is allowed per invocation of 3crypt.\n", stderr );
                 std::fputs( Help_Suggestion, stderr );
                 std::exit( EXIT_FAILURE );
             }
@@ -101,13 +101,13 @@ static Arg_Map_t process_encrypt_arguments(Arg_Map_t && opt_arg_pairs,
     }
     if ( input_filename.empty() )
     {
-        fputs( "Error: The input filename was not specified.", stderr );
+        fputs( "Error: The input filename was not specified.\n", stderr );
         fputs( Help_Suggestion, stderr );
         exit( EXIT_FAILURE );
     }
     if ( output_filename.empty() )
     {
-        fputs( "Error: The output filename was not specified.", stderr );
+        fputs( "Error: The output filename was not specified.\n", stderr );
         fputs( Help_Suggestion, stderr );
         exit( EXIT_FAILURE );
     }
@@ -151,13 +151,13 @@ static Arg_Map_t process_decrypt_arguments(Arg_Map_t && opt_arg_pairs,
     }
     if ( input_filename.empty() )
     {
-        fputs( "Error: The input filename was not specified.", stderr );
+        fputs( "Error: The input filename was not specified.\n", stderr );
         fputs( Help_Suggestion, stderr );
         exit( EXIT_FAILURE );
     }
     if ( output_filename.empty() )
     {
-        fputs( "Error: The output filename was not specified.", stderr );
+        fputs( "Error: The output filename was not specified.\n", stderr );
         fputs( Help_Suggestion, stderr );
         exit( EXIT_FAILURE );
     }
