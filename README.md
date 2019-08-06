@@ -1,5 +1,4 @@
 # 3crypt
-
 A simple C++17 command-line program for encrypting and decrypting files on Linux, built upon the Threefish block cipher
 and the Skein hash function.
 ## Dependencies
