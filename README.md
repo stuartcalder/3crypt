@@ -4,7 +4,7 @@ A simple C++17 command-line program for encrypting and decrypting files on Linux
 and the Skein hash function.
 ## Dependencies
 -    __ncurses__
--    [libssc](https://github.com/stuartcalder/ssc)
+-    [ssc](https://github.com/stuartcalder/ssc)
 ## Encrypting files
 ```
     3crypt -e -i $filename
@@ -18,7 +18,7 @@ and the Skein hash function.
     3crypt --decrypt --input-file $filename
 ```
 ## Building 3crypt
-1. build and install [libssc](https://github.com/stuartcalder/ssc)
+1. build and install [ssc](https://github.com/stuartcalder/ssc)
 2. git clone [3crypt](https://github.com/stuartcalder/3crypt)
-3. make
+3. make 3crypt
 4. make install
