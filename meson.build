@@ -1,5 +1,5 @@
 # Declare 3crypt project written in C++17 that strips binaries by default
-project( '3crypt', 'cpp', default_options: ['cpp_std=c++17', 'strip=true', 'buildtype=release', 'optimization=3' ] )
+project( '3crypt', 'cpp', default_options: [ 'cpp_std=c++17', 'strip=true', 'buildtype=release', 'optimization=3' ] )
 
 # Get the C++17 compiler
 cc = meson.get_compiler( 'cpp' )
