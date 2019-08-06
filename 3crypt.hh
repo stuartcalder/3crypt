@@ -98,7 +98,8 @@ namespace threecrypt
         u8_t  cbc_iv      [Block_Bytes];// i.e. (512 / 8) Bytes
         u32_t num_iter;                 // i.e. 1'000'000 Iterations
         u32_t num_concat;               // i.e. 1'000'000 Concatenations
-        static constexpr auto const Total_Size = sizeof(id) + sizeof(total_size) + sizeof(tweak) + \        // Compile-Time-Constant, Describing the Combined Size in Bytes
+                                        // Compile-Time-Constant, Describing the Combined Size in Bytes
+        static constexpr auto const Total_Size = sizeof(id) + sizeof(total_size) + sizeof(tweak) + \
                                                  sizeof(sspkdf_salt) + sizeof(cbc_iv) + sizeof(num_iter) + \
                                                  sizeof(num_concat);
     };
