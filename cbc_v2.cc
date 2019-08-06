@@ -132,7 +132,7 @@ namespace threecrypt::cbc_v2
         f_data.input_filesize = ssc::get_file_size( f_data.input_fd );
 #elif defined(_WIN64)
         f_data.input_filesize = ssc::get_file_size( f_data.input_handle );
-#else
+#else   // All other platforms
         f_data.input_filesize = ssc::get_file_size( input_filename );
 #endif
         // For now, assume the size of the output file will be the same size as the input file
@@ -151,7 +151,7 @@ namespace threecrypt::cbc_v2
         set_file_size( f_data.output_fd, f_data.output_filesize );
 #elif defined(_WIN64)
         set_file_size( f_data.output_handle, f_data.output_filesize );
-#else
+#else   // All other platforms
         set_file_size( output_filename, f_data.output_filesize );
 #endif
         // Memory-map the input and output files
