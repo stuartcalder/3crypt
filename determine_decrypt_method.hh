@@ -15,14 +15,14 @@ namespace threecrypt
     static constexpr std::size_t determine_biggest_identifier_string_size()
     {
         std::size_t s = 0;
-#ifdef CBC_V1_HH
-        if ( sizeof(cbc_v1::CBC_V1_ID) > s ) {
-            s = sizeof(cbc_v1::CBC_V1_ID);
-        }
-#endif
 #ifdef CBC_V2_HH
         if ( sizeof(cbc_v2::CBC_V2_ID) > s ) {
             s = sizeof(cbc_v2::CBC_V2_ID);
+        }
+#endif
+#ifdef CBC_V1_HH
+        if ( sizeof(cbc_v1::CBC_V1_ID) > s ) {
+            s = sizeof(cbc_v1::CBC_V1_ID);
         }
 #endif
         return s;
@@ -32,14 +32,14 @@ namespace threecrypt
     static constexpr std::size_t determine_smallest_identifier_string_size()
     {
         std::size_t s = Biggest_Identifier_String_Size;
-#ifdef CBC_V1_HH
-        if ( sizeof(cbc_v1::CBC_V1_ID) < s ) {
-            s = sizeof(cbc_v1::CBC_V1_ID);
-        }
-#endif
 #ifdef CBC_V2_HH
         if ( sizeof(cbc_v2::CBC_V2_ID) < s ) {
             s = sizeof(cbc_v2::CBC_V2_ID);
+        }
+#endif
+#ifdef CBC_V1_HH
+        if ( sizeof(cbc_v1::CBC_V1_ID) < s ) {
+            s = sizeof(cbc_v1::CBC_V1_ID);
         }
 #endif
         return s;
