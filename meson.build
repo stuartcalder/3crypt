@@ -1,5 +1,6 @@
 # Declare 3crypt project written in C++17 that strips binaries by default
-project( '3crypt', 'cpp', default_options: [ 'cpp_std=c++17', 'strip=true', 'buildtype=release', 'optimization=3' ] )
+project( '3crypt', 'cpp', default_options: [ 'cpp_std=c++17', 'strip=true',
+    'buildtype=release', 'optimization=3' ] )
 
 # Get the C++17 compiler
 cc = meson.get_compiler( 'cpp' )
@@ -23,5 +24,10 @@ elif host_machine.system() == 'windows'
 endif
 
 # Build the 3crypt executable
-executable( '3crypt', sources: _3crypt_src, dependencies: _3crypt_dep_array,
-    include_directories: ssc_inc_arr )
+if host_machine.system() == 'linux'
+    executable( '3crypt', sources: _3crypt_src, dependencies: _3crypt_dep_array,
+        include_directories: ssc_inc_arr, install: true )
+elif host_machine.system() == 'windows'
+    executable( '3crypt', sources: _3crypt_src, dependencies:
+        _3crypt_dep_array, include_directories: ssc_inc_arr, install: true)
+endif

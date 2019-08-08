@@ -1,7 +1,7 @@
 #include "3crypt.hh"
 
-#if !(defined(__gnu_linux__) || defined(_WIN64))
-    #error "3crypt.cc only defined for Gnu/Linux and MS Windows"
+#if !(defined( __gnu_linux__ ) || defined( _WIN64 ))
+    #error "3crypt.cc only defined for Gnu/Linux and 64-bit MS Windows"
 #endif
 
 namespace threecrypt
@@ -12,7 +12,7 @@ namespace threecrypt
         ssc::enforce_file_existence( input_filename , true  );
         ssc::enforce_file_existence( output_filename, false );
 
-#if defined(__gnu_linux__)
+#if defined( __gnu_linux__ )
         if ( (f_data.input_fd = open( input_filename, (O_RDWR|O_CREAT), static_cast<mode_t>(0600) )) == -1 )
         {
             fprintf( stderr, "Error: Unable to open input file '%s'\n", input_filename );
@@ -23,7 +23,7 @@ namespace threecrypt
             fprintf( stderr, "Error: Unable to open output file '%s'\n", output_filename );
             exit( EXIT_FAILURE );
         }
-#elif defined(_WIN64)
+#elif defined( _WIN64 )
         /* CreateFileA( LPCSTR lpFileName, DWORD dwDesiredAccess, DWORD dwShareMode, LPSECURITY_ATTRIBUTES lpSecurityAttributes,
          *              DWORD dwCreationDisposition, DWORD dwFlagsAndAttributes, HANDLE hTemplateFile ) */
         {
@@ -55,7 +55,7 @@ namespace threecrypt
     void close_files(File_Data const & f_data)
     {
         using namespace std;
-#if   defined(__gnu_linux__)
+#if   defined( __gnu_linux__ )
         if ( close( f_data.input_fd ) == -1 )
         {
             fputs( "Error: was not able to close input file descriptor\n", stderr );
@@ -66,7 +66,7 @@ namespace threecrypt
             fputs( "Error: was not able to close output file descriptor\n", stderr );
             exit( EXIT_FAILURE );
         }
-#elif defined(_WIN64)
+#elif defined( _WIN64 )
         if ( CloseHandle( f_data.input_handle ) == 0 )
         {
             fputs( "Error: was not able to close input file handle\n", stderr );
@@ -84,7 +84,7 @@ namespace threecrypt
     void map_files(File_Data & f_data)
     {
         using namespace std;
-#if   defined(__gnu_linux__)
+#if   defined( __gnu_linux__ )
         f_data.input_map = reinterpret_cast<u8_t *>(mmap( 0, f_data.input_filesize, PROT_READ, MAP_SHARED, f_data.input_fd, 0 ));
         if ( f_data.input_map == MAP_FAILED )
         {
@@ -97,7 +97,7 @@ namespace threecrypt
             fputs( "Error: Failed to open output map\n", stderr );
             exit( EXIT_FAILURE );
         }
-#elif defined(_WIN64)
+#elif defined( _WIN64 )
         /* HANDLE CreateFileMappingA( HANDLE                hFile,
          *                            LPSECURITY_ATTRIBUTES lpFileMappingAttributes,
          *                            DWORD                 flProtect,
@@ -168,7 +168,7 @@ namespace threecrypt
     void unmap_files(File_Data const & f_data)
     {
         using namespace std;
-#if defined(__gnu_linux__)
+#if defined( __gnu_linux__ )
         if ( munmap( f_data.input_map, f_data.input_filesize ) == -1 )
         {
             fputs( "Error: Failed to unmap input file\n", stderr );
@@ -179,7 +179,7 @@ namespace threecrypt
             fputs( "Error: Failed to unmap input file\n", stderr );
             exit( EXIT_FAILURE );
         }
-#elif defined(_WIN64)
+#elif defined( _WIN64 )
         if ( UnmapViewOfFile( static_cast<LPCVOID>(f_data.input_map) ) == 0 )
         {
             fputs( "Error: Failed to unmap the input file\n", stderr );
@@ -197,7 +197,7 @@ namespace threecrypt
     void sync_map(File_Data const & f_data)
     {
         using namespace std;
-#if defined(__gnu_linux__)
+#if defined( __gnu_linux__ )
         if ( msync( f_data.output_map, f_data.output_filesize, MS_SYNC ) == -1 )
         {
             fputs( "Error: Failed to sync mmap()\n", stderr );
@@ -205,7 +205,7 @@ namespace threecrypt
             close_files( f_data );
             exit( EXIT_FAILURE );
         }
-#elif defined(_WIN64)
+#elif defined( _WIN64 )
         if ( FlushViewOfFile( static_cast<LPCVOID>(f_data.output_map), f_data.output_filesize ) == 0 )
         {
             fputs( "Error: Failed to FlushViewOfFile()\n", stderr );
@@ -217,7 +217,7 @@ namespace threecrypt
     #error "threecrypt::sync_map currently only implemented for Gnu/Linux and MS Windows"
 #endif
     }/* ! sync_map(File_Data const &) */
-#if   defined(__gnu_linux__)
+#if   defined( __gnu_linux__ )
     void set_file_size(int const file_d, size_t const new_size)
     {
         using namespace std;
@@ -227,7 +227,7 @@ namespace threecrypt
             exit( EXIT_FAILURE );
         }
     }
-#elif defined(_WIN64)
+#elif defined( _WIN64 )
     void set_file_size(HANDLE handle, size_t const new_size)
     {
         using namespace std;
@@ -251,7 +251,7 @@ namespace threecrypt
     void set_file_size(char const *filename, size_t const new_size)
     {
         using namespace std;
-#if defined(__gnu_linux__)
+#if defined( __gnu_linux__ )
         if ( truncate( filename, new_size ) == -1 )
         {
             fputs( "Error: Failed to set file size\n", stderr );
