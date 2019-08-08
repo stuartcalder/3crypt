@@ -19,7 +19,7 @@ ssc_inc_arr = []
 if host_machine.system() == 'linux'
     ssc_inc_arr += include_directories( '/usr/local/include' )
 elif host_machine.system() == 'windows'
-    ssc_inc_arr += include_directories( 'C:\\local\\include' )
+    ssc_inc_arr += include_directories( 'C:\local\include' )
 endif
 
 # Build the 3crypt executable
