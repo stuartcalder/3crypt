@@ -17,6 +17,7 @@ endif
 if host_machine.system() == 'linux'
     _3crypt_dep_array += cc.find_library( 'ssc' )
 elif host_machine.system() == 'windows'
+    _3crypt_dep_array += cc.find_library( 'bcrypt' )
     _3crypt_dep_array += cc.find_library( 'ssc', static: true, dirs:
     'C:/3crypt/' )
 else
