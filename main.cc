@@ -217,6 +217,7 @@ int main(int const argc, char const * argv[])
                     std::exit( EXIT_FAILURE );
                 }
             }
+            ssc::enforce_file_existence( input_filename.c_str(), true );
             auto const method = threecrypt::determine_decrypt_method( input_filename.c_str() );
             switch ( method )
             {

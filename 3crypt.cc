@@ -13,7 +13,7 @@ namespace threecrypt
         ssc::enforce_file_existence( output_filename, false );
 
 #if defined( __gnu_linux__ )
-        if ( (f_data.input_fd = open( input_filename, (O_RDWR|O_CREAT), static_cast<mode_t>(0600) )) == -1 )
+        if ( (f_data.input_fd = open( input_filename, (O_RDWR), static_cast<mode_t>(0600) )) == -1 )
         {
             fprintf( stderr, "Error: Unable to open input file '%s'\n", input_filename );
             exit( EXIT_FAILURE );
