@@ -190,6 +190,18 @@ namespace threecrypt
             fputs( "Error: Failed to unmap the output file\n", stderr );
             exit( EXIT_FAILURE );
         }
+#if 1
+        if ( CloseHandle( f_data.input_filemapping ) == 0 )
+        {
+            fputs( "Error: was not able to close input filemapping\n", stderr );
+            exit( EXIT_FAILURE );
+        }
+        if ( CloseHandle( f_data.output_filemapping) == 0 )
+        {
+            fputs( "Error: was not able to close output filemapping\n", stderr );
+            exit( EXIT_FAILURE );
+        }
+#endif
 #else
     #error "threecrypt::unmap_files only defined for Gnu/Linux and MS Windows"
 #endif
