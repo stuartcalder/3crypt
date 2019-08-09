@@ -1,9 +1,12 @@
 # 3crypt
-A simple C++17 command-line program for encrypting and decrypting files on Linux, built upon the Threefish block cipher
-and the Skein hash function.
-## Dependencies
+A simple C++17 command-line program for encrypting and decrypting files on Gnu/Linux and Microsoft Windows, built upon the Threefish block cipher
+and the Skein cryptographic hash function.
+## Universal Dependencies
+-   [ssc](https://github.com/stuartcalder/ssc)
+-   __Meson__ (if using the Meson build system)
+-   __Ninja__ (if using the Meson build system)
+### Linux-Specific Dependencies
 -    __ncurses__
--    [ssc](https://github.com/stuartcalder/ssc)
 ## Encrypting files
 ```
     3crypt -e -i $filename
@@ -16,8 +19,29 @@ and the Skein hash function.
     or
     3crypt --decrypt --input-file $filename
 ```
-## Building 3crypt
+## Building 3crypt on Linux ( Makefile method )
 1. build and install [ssc](https://github.com/stuartcalder/ssc)
 2. git clone [3crypt](https://github.com/stuartcalder/3crypt)
 3. make 3crypt
 4. make install
+## Building 3crypt with Meson
+### The Linux Method
+1. build and install [ssc](https://github.com/stuartcalder/ssc) using any
+   supported method into /usr/lib64
+    - Make sure the header files for [ssc](https://github.com/stuartcalder/ssc)
+      are in /usr/local/include/
+2. git clone [3crypt](https://github.com/stuartcalder/3crypt)
+3. cd 3crypt
+4. meson --prefix=/usr builddir
+5. cd builddir
+6. ninja
+7. ninja install
+### The Windows Method
+1. build and install [ssc](https://github.com/stuartcalder/ssc) using Meson.
+    - Make sure the header files for [ssc](https://github.com/stuartcalder/ssc)
+      are in C:\local\include\
+2. git clone [3crypt](https://github.com/stuartcalder/3crypt)
+3. cd 3crypt
+4. meson --backend ninja builddir
+5. cd builddir
+6. ninja
