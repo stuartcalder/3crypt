@@ -234,7 +234,6 @@ namespace threecrypt
 
         LARGE_INTEGER l_i;
         l_i.QuadPart = static_cast<decltype(l_i.QuadPart)>(new_size);
-        printf( "Setting file size of handle %p to %zu: \n", handle, l_i.QuadPart );
         // Move the file pointer to the desired offset from the beginning of the file
         if ( SetFilePointerEx( handle, l_i, NULL, FILE_BEGIN ) == 0 )
         {
@@ -245,9 +244,10 @@ namespace threecrypt
         if ( SetEndOfFile( handle ) == 0 )
         {
             fputs( "Failed to SetEndOfFile()\n", stderr );
+            auto last_error = GetLastError();
+            fprintf( stderr, "Last error code was %d\n", last_error );
             exit( EXIT_FAILURE );
         }
-        puts( "Looks like we successfully set_file_size'd" );
     }
 #endif
     void set_file_size(char const *filename, size_t const new_size)

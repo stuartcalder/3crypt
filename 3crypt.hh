@@ -111,9 +111,9 @@ namespace threecrypt
     void      map_files     (File_Data       & f_data); // Map the input and output files by their OS-Specific File Handlers
     void      unmap_files   (File_Data const & f_data); // Un-Map the input and output files by their OS-Specific File Handlers
     void      sync_map      (File_Data const & f_data); // Flush Data Written to The Memory-Mapped Output-File
-#if   defined(__gnu_linux__)
+#if   defined( __gnu_linux__ )
     void      set_file_size(int const file_d, size_t const new_size);       // Gnu/Linux-Specific Function for Truncating a File
-#elif defined(_WIN64)
+#elif defined( _WIN64 )
     void      set_file_size(HANDLE handle, size_t const new_size);          // Win64-Specific Function for Truncating a File
 #endif
     void      set_file_size(char const * filename, size_t const new_size);  // Generic Function for Truncating a File
