@@ -14,7 +14,7 @@ if host_machine.system() == 'linux'
 endif
 
 # Get ssc     (needs to be installed already on the system)
-_3crypt_dep_array += cc.find_library( 'ssc' )
+_3crypt_dep_array += cc.find_library( 'ssc', static: true )
 
 ssc_inc_arr = []
 if host_machine.system() == 'linux'
