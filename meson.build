@@ -14,13 +14,20 @@ if host_machine.system() == 'linux'
 endif
 
 # Get ssc     (needs to be installed already on the system)
-_3crypt_dep_array += cc.find_library( 'ssc', static: false )
+if host_machine.system() == 'linux'
+    _3crypt_dep_array += cc.find_library( 'ssc' )
+elif host_machine.system() == 'windows'
+    _3crypt_dep_array += cc.find_library( 'ssc', static: true, dirs:
+    'C:/3crypt/' )
+else
+    assert( false )
+endif
 
 ssc_inc_arr = []
 if host_machine.system() == 'linux'
     ssc_inc_arr += include_directories( '/usr/local/include' )
 elif host_machine.system() == 'windows'
-    ssc_inc_arr += include_directories( 'C:\local\include' )
+    ssc_inc_arr += include_directories( 'C:/local/include' )
 endif
 
 # Build the 3crypt executable
