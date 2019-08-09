@@ -209,7 +209,7 @@ namespace threecrypt::cbc_v2
             ssc::Terminal term;
             term.get_pw( password, Max_Password_Length, 1 );
         }
-        int password_length = strlen( password );
+        int const password_length = strlen( password );
         // Generate a 512-bit symmetric key from the given password
         u8_t derived_key [Block_Bytes];
         ssc::SSPKDF( derived_key, password, password_length, header.sspkdf_salt, header.num_iter, header.num_concat );
