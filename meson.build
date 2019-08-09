@@ -1,5 +1,6 @@
 #Define project
-project( '3crypt', 'cpp', default_options: [ 'cpp_std=c++17', 'strip=true', 'buildtype=release', 'optimization=3' ] )
+project( '3crypt', 'cpp', default_options: [ 'cpp_std=c++17', 'strip=true', 'buildtype=release',
+                                             'optimization=3', 'cpp_eh=none' ] )
 #Get compiler
 cc = meson.get_compiler( 'cpp' )
 #Determine what implementation files are needed
