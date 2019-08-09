@@ -24,8 +24,9 @@ and the Skein cryptographic hash function.
     - Make sure the header files for [ssc](https://github.com/stuartcalder/ssc)
       are in /usr/local/include
 2. git clone [3crypt](https://github.com/stuartcalder/3crypt)
-3. make 3crypt
-4. make install
+3. cd 3crypt
+4. make 3crypt
+5. make install
 ## Building 3crypt with Meson
 ### The Linux Method
 1. build and install [ssc](https://github.com/stuartcalder/ssc) using any
