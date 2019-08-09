@@ -5,7 +5,9 @@
 #include <ssc/general/static_string.hh>
 
 #include "3crypt.hh"
-#include "cbc_v1.hh"
+#ifndef _WIN64
+    #include "cbc_v1.hh"
+#endif
 #include "cbc_v2.hh"
 
 #include <vector>
