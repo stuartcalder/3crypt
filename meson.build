@@ -29,5 +29,6 @@ if host_machine.system() == 'linux'
         include_directories: ssc_inc_arr, install: true )
 elif host_machine.system() == 'windows'
     executable( '3crypt', sources: _3crypt_src, dependencies:
-        _3crypt_dep_array, include_directories: ssc_inc_arr, install: true)
+        _3crypt_dep_array, include_directories: ssc_inc_arr, install: true,
+        cpp_args: '-DIMPORT_STATIC' )
 endif
