@@ -22,7 +22,7 @@
     #include <windows.h>    // Windows Functions, Macros, Etc.
     #include <memoryapi.h>  // Windows Memory-Mapping API
 #else
-    #error "Currently, only Gnu/Linux and MS Windows are implemented."
+    #error "Currently, only Gnu/Linux and 64-bit MS Windows are implemented."
 #endif
 /* Standard Library Includes */
 #include <cstdlib>
@@ -77,7 +77,7 @@ namespace threecrypt
         HANDLE  input_filemapping;
         HANDLE output_filemapping;
 #else
-    #error "struct File_Data only defined for Gnu/Linux and MS Windows"
+    #error "struct File_Data only defined for Gnu/Linux and 64-bit MS Windows"
 #endif
         // Platform-Agnostic File_Data variables
         u8_t *  input_map;
