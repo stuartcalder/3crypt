@@ -1,6 +1,6 @@
 #include "3crypt.hh"
 
-#if !(defined( __gnu_linux__ ) || defined( _WIN64 ))
+#if !( defined( __gnu_linux__ ) || defined( _WIN64 ) )
     #error "3crypt.cc only defined for Gnu/Linux and 64-bit MS Windows"
 #endif
 
@@ -49,7 +49,7 @@ namespace threecrypt
             f_data.output_handle = handle;
         }
 #else
-    #error "threecrypt::open_files only defined for Gnu/Linux and MS Windows"
+    #error "threecrypt::open_files only defined for Gnu/Linux and 64-bit MS Windows"
 #endif
     }/*! open_files(File_Data &file_data, char const *input_filename, char const *output_filename) */
     void close_files(File_Data const & f_data)
@@ -78,7 +78,7 @@ namespace threecrypt
             exit( EXIT_FAILURE );
         }
 #else
-    #error "threecrypt::close_files only defined for Gnu/Linux and MS Windows"
+    #error "threecrypt::close_files only defined for Gnu/Linux and 64-bit MS Windows"
 #endif
     }/*! close_files(File_Data const & f_data) */
     void map_files(File_Data & f_data)
@@ -162,7 +162,7 @@ namespace threecrypt
             }
         }
 #else
-    #error "threecrypt::map_files only defined for Gnu/Linux and MS Windows"
+    #error "threecrypt::map_files only defined for Gnu/Linux and 64-bit MS Windows"
 #endif
     }/* ! map_files(File_Data & f_data) */
     void unmap_files(File_Data const & f_data)
@@ -190,7 +190,6 @@ namespace threecrypt
             fputs( "Error: Failed to unmap the output file\n", stderr );
             exit( EXIT_FAILURE );
         }
-#if 1
         if ( CloseHandle( f_data.input_filemapping ) == 0 )
         {
             fputs( "Error: was not able to close input filemapping\n", stderr );
@@ -201,9 +200,8 @@ namespace threecrypt
             fputs( "Error: was not able to close output filemapping\n", stderr );
             exit( EXIT_FAILURE );
         }
-#endif
 #else
-    #error "threecrypt::unmap_files only defined for Gnu/Linux and MS Windows"
+    #error "threecrypt::unmap_files only defined for Gnu/Linux and 64-bit MS Windows"
 #endif
     }/* ! unmap_files(File_Data const &f_data) */
     void sync_map(File_Data const & f_data)
@@ -226,7 +224,7 @@ namespace threecrypt
             exit( EXIT_FAILURE );
         }
 #else
-    #error "threecrypt::sync_map currently only implemented for Gnu/Linux and MS Windows"
+    #error "threecrypt::sync_map currently only implemented for Gnu/Linux and 64-bit MS Windows"
 #endif
     }/* ! sync_map(File_Data const &) */
 #if   defined( __gnu_linux__ )
