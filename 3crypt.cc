@@ -233,7 +233,7 @@ namespace threecrypt
         using namespace std;
 
         LARGE_INTEGER l_i;
-        l_i.QuadWord = static_cast<decltype(l_i.QuadWord)>(new_size);
+        l_i.QuadPart = static_cast<decltype(l_i.QuadPart)>(new_size);
         // Move the file pointer to the desired offset from the beginning of the file
         if ( SetFilePointerEx( handle, l_i, NULL, FILE_BEGIN ) == 0 )
         {
