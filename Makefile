@@ -1,5 +1,5 @@
 CC = g++
-CXXFLAGS = -std=c++17 -pipe -fno-exceptions
+CXXFLAGS = -std=c++17 -pipe -fno-exceptions -march=native -flto
 OPTFLAGS   = -O3
 LINKFLAGS  = -lssc -lncurses
 prefix     = /usr
