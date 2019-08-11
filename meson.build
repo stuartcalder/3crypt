@@ -17,7 +17,7 @@ if host_machine.system() == 'linux'
     ssc_inc_array     += include_directories( '/usr/local/include' )
 elif host_machine.system() == 'windows'
     _3crypt_dep_array += cc.find_library( 'bcrypt' )
-    _3crypt_dep_array += cc.find_library( 'ssc', static: true )
+    _3crypt_dep_array += cc.find_library( 'ssc', static: true, dirs: 'C:/local/lib' )
     ssc_inc_array     += include_directories( 'C:/local/include' )
 else
     assert( false )
