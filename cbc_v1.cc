@@ -45,9 +45,8 @@ namespace threecrypt::cbc_v1
                 static_assert(sizeof(password) == sizeof(pwcheck));
                 memset( password, 0, sizeof(password) );
                 memset( pwcheck , 0, sizeof(pwcheck)  );
-                term.get_pw( password, Max_Password_Length, 1 );
+                password_length = term.get_pw( password, Max_Password_Length, 1 );
                 term.get_pw( pwcheck , Max_Password_Length, 1 );
-                password_length = strlen( password );
                 if ( memcmp( password, pwcheck, sizeof(password) ) == 0 )
                     repeat = false;
                 else
@@ -143,9 +142,8 @@ namespace threecrypt::cbc_v1
         int password_length;                         // Prepare to store the length of the password
         {
             ssc::Terminal term;                             // Create a ssc::Terminal abstraction
-            term.get_pw( password, Max_Password_Length, 1 );// Copy terminally-input password into the password buffer
+            password_length = term.get_pw( password, Max_Password_Length, 1 );// Copy terminally-input password into the password buffer
         }
-        password_length = strlen( password );   // Get the length of the password, assuming password is a null-terminated C-string
         u8_t derived_key [Block_Bytes];         // Declare a buffer, big enough to store a 512-bit symmetric key
         /* Hash the password, with the random salt and compile-time iteration
            and concatenation constants */

@@ -52,9 +52,8 @@ namespace threecrypt::cbc_v2
                 static_assert(sizeof(password) == sizeof(pwcheck));
                 memset( password, 0, sizeof(password) );
                 memset( pwcheck , 0, sizeof(pwcheck) );
-                term.get_pw( password, Max_Password_Length, 1 );
+                password_length = term.get_pw( password, Max_Password_Length, 1 );
                 term.get_pw( pwcheck , Max_Password_Length, 1 );
-                password_length = strlen( password );
                 if ( memcmp( password, pwcheck, sizeof(password) ) == 0 )
                     repeat = false;
                 else
@@ -205,11 +204,11 @@ namespace threecrypt::cbc_v2
         }
         // Get the password
         char password [Max_Password_Length + 1] = { 0 };
+        int password_length;
         {
             ssc::Terminal term;
-            term.get_pw( password, Max_Password_Length, 1 );
+            password_length = term.get_pw( password, Max_Password_Length, 1 );
         }
-        int const password_length = strlen( password );
         // Generate a 512-bit symmetric key from the given password
         u8_t derived_key [Block_Bytes];
         ssc::SSPKDF( derived_key, password, password_length, header.sspkdf_salt, header.num_iter, header.num_concat );
