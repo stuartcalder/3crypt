@@ -3,10 +3,10 @@ A simple C++17 command-line program for encrypting and decrypting files on Gnu/L
 and the Skein cryptographic hash function.
 ## Universal Dependencies
 -   [ssc](https://github.com/stuartcalder/ssc)
--   __Meson__ (if using the Meson build system)
--   __Ninja__ (if using the Meson build system)
+-   **Meson** (if using the Meson build system)
+-   **Ninja** (if using the Meson build system)
 ### Linux-Specific Dependencies
--    __ncurses__
+-    **ncurses**
 ## Encrypting files
 ```
     3crypt -e -i $filename
@@ -48,3 +48,5 @@ and the Skein cryptographic hash function.
 4. meson --backend ninja builddir
 5. cd builddir
 6. ninja
+7. rename the output file, **libssc.a**, to **ssc.lib**
+8. copy **ssc.lib** to **/usr/local/lib**
