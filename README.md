@@ -6,7 +6,9 @@ and the Skein cryptographic hash function.
 -   **Meson** (if using the Meson build system)
 -   **Ninja** (if using the Meson build system)
 ### Linux-Specific Dependencies
--    **ncurses**
+-   **ncurses**
+### Windows-Specific Dependencies
+-   Requires Windows Vista / Server 2008 or later
 ## Encrypting files
 ```
     3crypt -e -i $filename
