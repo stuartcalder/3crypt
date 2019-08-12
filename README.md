@@ -49,4 +49,4 @@ and the Skein cryptographic hash function.
 5. cd builddir
 6. ninja
 7. rename the output file, **libssc.a**, to **ssc.lib**
-8. copy **ssc.lib** to **/usr/local/lib**
+8. copy **ssc.lib** to **C:\local\include**
