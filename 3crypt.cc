@@ -207,7 +207,7 @@ namespace threecrypt
     void sync_map(File_Data const & f_data)
     {
         using namespace std;
-#if defined( __gnu_linux__ )
+#if   defined( __gnu_linux__ )
         if ( msync( f_data.output_map, f_data.output_filesize, MS_SYNC ) == -1 )
         {
             fputs( "Error: Failed to sync mmap()\n", stderr );
