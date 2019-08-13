@@ -66,6 +66,11 @@ namespace threecrypt
      */
     struct File_Data
     {
+        // Platform-Agnostic File_Data variables
+        u8_t *  input_map;
+        u8_t * output_map;
+        u64_t  input_filesize;
+        u64_t output_filesize;
         // Platform-Specific File_Data Variables
 #if   defined( __gnu_linux__ )
         int  input_fd;
@@ -78,11 +83,6 @@ namespace threecrypt
 #else
     #error "struct File_Data only defined for Gnu/Linux and 64-bit MS Windows"
 #endif
-        // Platform-Agnostic File_Data variables
-        u8_t *  input_map;
-        u8_t * output_map;
-        u64_t  input_filesize;
-        u64_t output_filesize;
     }; /* ! struct File_Data */
     /* Structure Describing a File-Header: The Beginning Metadata of
      * 3crypt-Related files ( i.e. 3CRYPT_CBC_V2 ).
