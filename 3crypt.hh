@@ -59,7 +59,7 @@ namespace threecrypt
     // Abstractly Define Standard Types
     using Arg_Map_t   = typename ssc::Arg_Mapping::Arg_Map_t;   // Use std::vector<std::pair<std::string, std::string>> to Store Passed-Arguments.
     using std::size_t;                                          // Use size_t Generally
-    using namespace ssc::ints;
+    using namespace ssc::ints;                                  // Import ssc defined integers... like u8_t, u32_t, u64_t, etc.
 
     /* Structure Describing an Operating-System-Level Abstraction of
      * Memory-Mapped Files: The Input and Output Files of a 3crypt Invocation
