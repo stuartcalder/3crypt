@@ -14,8 +14,8 @@ namespace threecrypt::cbc_v2
             s += ( Block_Bytes - (s % Block_Bytes) );
         return s + File_Metadata_Size;
     }
-    void CBC_V2_encrypt(char const * input_filename,
-                        char const * output_filename)
+    void CBC_V2_encrypt(char const * __restrict input_filename,
+                        char const * __restrict output_filename)
     {
         using namespace std;
         File_Data f_data;
@@ -119,8 +119,8 @@ namespace threecrypt::cbc_v2
         // Close the input and output files
         close_files( f_data );
     }
-    void CBC_V2_decrypt(char const * input_filename,
-                        char const * output_filename)
+    void CBC_V2_decrypt(char const * __restrict input_filename,
+                        char const * __restrict output_filename)
     {
         using namespace std;
         File_Data f_data;
