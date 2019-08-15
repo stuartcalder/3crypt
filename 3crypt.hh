@@ -65,7 +65,7 @@ namespace threecrypt
     using namespace ssc::ints;                                  // Import ssc defined integers... like u8_t, u32_t, u64_t, etc.
 
 #if   defined( __gnu_linux__ )
-    using OS_File_t = int;
+    using OS_File_t = int;  // On Gnu/Linux, file descriptors are ints
     struct OS_Map
     {
         u8_t    * ptr;
@@ -73,13 +73,13 @@ namespace threecrypt
         OS_File_t os_file;
     };
 #elif defined( _WIN64 )
-    using OS_File_t = HANDLE;
+    using OS_File_t = HANDLE;   // On win32, files are described by HANDLEs
     struct OS_Map
     {
         u8_t    * ptr;
         u64_t     size;
         OS_File_t os_file;
-        OS_File_t win64_filemapping;
+        OS_File_t win64_filemapping; // On win32, an additional HANDLE is required to memory-map files
     };
 #else
     #error "OS file and map abstractions only defined for Gnu/Linux and 64-bit MS Windows"
