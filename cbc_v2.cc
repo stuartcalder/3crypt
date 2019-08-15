@@ -1,4 +1,5 @@
 #include "cbc_v2.hh"
+#include "input_abstraction.hh"
 
 namespace threecrypt::cbc_v2
 {
@@ -14,20 +15,23 @@ namespace threecrypt::cbc_v2
             s += ( Block_Bytes - (s % Block_Bytes) );
         return s + File_Metadata_Size;
     }
+#if 0
     void CBC_V2_encrypt(char const * __restrict input_filename,
                         char const * __restrict output_filename)
+#endif
+    void CBC_V2_encrypt(Input_Abstraction const & input_abstr)
     {
         using namespace std;
         File_Data f_data;
         // Open files
-        open_files( f_data, input_filename, output_filename );
+        open_files( f_data, input_abstr.input_filename.c_str(), input_abstr.output_filename.c_str() );
         // Determine input file size
 #if   defined( __gnu_linux__ )
         f_data.input_filesize = ssc::get_file_size( f_data.input_fd );
 #elif defined( _WIN64 )
         f_data.input_filesize = ssc::get_file_size( f_data.input_handle );
 #else
-        f_data.input_filesize = ssc::get_file_size( input_filename );
+        f_data.input_filesize = ssc::get_file_size( input_abstr.input_filename.c_str() );
 #endif
         // Determine output file size
         f_data.output_filesize = calculate_CBC_V2_size( f_data.input_filesize );
@@ -37,7 +41,7 @@ namespace threecrypt::cbc_v2
 #elif defined( _WIN64 )
         set_file_size( f_data.output_handle, f_data.output_filesize );
 #else
-        set_file_size( output_filename, f_data.output_filesize );
+        set_file_size( input_abstr.output_filename.c_str(), f_data.output_filesize );
 #endif
         // Memory-Map the files
         map_files( f_data );
@@ -69,8 +73,8 @@ namespace threecrypt::cbc_v2
         ssc::generate_random_bytes( header.tweak      , sizeof(header.tweak)       );
         ssc::generate_random_bytes( header.sspkdf_salt, sizeof(header.sspkdf_salt) );
         ssc::generate_random_bytes( header.cbc_iv     , sizeof(header.cbc_iv)      );
-        header.num_iter   = 1'000'000;
-        header.num_concat = 1'000'000;
+        header.num_iter = input_abstr.number_iterations;
+        header.num_concat = input_abstr.number_concatenations;
         // Copy header into the file, field at a time, advancing the pointer
         u8_t * out = f_data.output_map;
         {

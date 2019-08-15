@@ -4,9 +4,14 @@
 #endif
 #include "cbc_v2.hh"
 #include "determine_decrypt_method.hh"
+#include "input_abstraction.hh"
 
+#include <cstdlib>
 #include <string>
 #include <utility>
+
+#include <ssc/general/parse_string.hh>
+#include <ssc/general/integers.hh>
 
 enum class Mode_e
 {
@@ -17,7 +22,13 @@ enum class Mode_e
 
 using Arg_Map_t = typename ssc::Arg_Mapping::Arg_Map_t;
 using threecrypt::Help_String, threecrypt::Help_Suggestion;
+using namespace ssc::ints;
 
+/*
+ * Arg_Map_t process_mode_args(Arg_Map_t && in_map, Mode_e & mode)
+ *  Inputs:     Arg_Map_t universal reference, and a Mode enum reference.
+ *  Outputs:    returns unused argument pairs, writes detected mode to the mode reference
+ */
 static Arg_Map_t process_mode_args(Arg_Map_t && in_map, Mode_e & mode)
 {
     Arg_Map_t extraneous_args;
@@ -69,45 +80,86 @@ static Arg_Map_t process_mode_args(Arg_Map_t && in_map, Mode_e & mode)
     return extraneous_args;
 }
 
+/*
+ * Arg_Map_t process_encrypt_arguments(Arg_Map_t && opt_arg_pairs,
+ *                                     std::string & input_filename,
+ *                                     std::string & output_filename)
+ *  *Inputs:     Arg_Map_t universal reference, std::string reference for the input
+ *               file's name, std::string reference for the output file's name
+ *  *Outputs:    input and output filenames are written, return unused argument
+ *               pairs
+ */
 static Arg_Map_t process_encrypt_arguments(Arg_Map_t && opt_arg_pairs,
-                                           std::string & input_filename,
-                                           std::string & output_filename)
+                                           threecrypt::Input_Abstraction & input_abstr)
 {
     using namespace std;
 
     Arg_Map_t extraneous_args;
 
-    input_filename.clear();
-    output_filename.clear();
+    input_abstr.number_iterations     = 1'000'000;
+    input_abstr.number_concatenations = 1'000'000;
+    input_abstr.input_filename.clear();
+    input_abstr.output_filename.clear();
 
     for ( auto && pair : opt_arg_pairs )
     {
         ssc::check_file_name_sanity( pair.second, 1 );
+        // Get the input and output filenames
         if ( pair.first == "-i" ||
              pair.first == "--input-file" )
         {
-            input_filename = pair.second;
-            if ( output_filename.empty() )
-                output_filename = input_filename + ".3c";
-
+            input_abstr.input_filename = pair.second;
+            if ( input_abstr.output_filename.empty() )
+                input_abstr.output_filename = input_abstr.input_filename + ".3c";
         }
         else if ( pair.first == "-o" ||
                   pair.first == "--output-file" )
         {
-            output_filename = pair.second;
+            input_abstr.output_filename = pair.second;
+        }
+        // Absolutely optional arguments
+        else if ( pair.first == "--iter-count" )
+        {
+            static constexpr decltype(pair.second.size()) const Max_Count_Chars = 10;
+            string count = move( pair.second );
+            if ( count.size() > Max_Count_Chars )
+            {
+                fprintf( stderr, "Error: The specified iteration count (%s) too large.\n", count.c_str() );
+                fputs( Help_Suggestion, stderr );
+                exit( EXIT_FAILURE );
+            }
+            if ( ssc::enforce_integer( count ) )
+            {
+                input_abstr.number_iterations = static_cast<u32_t>(atoi( count.c_str() ));
+            }
+        }
+        else if ( pair.first == "--concat-count" )
+        {
+            static constexpr decltype(pair.second.size()) const Max_Count_Chars = 10;
+            string count = move( pair.second );
+            if ( count.size() > Max_Count_Chars )
+            {
+                fprintf( stderr, "Error: The specified concatenation count (%s) too large.\n", count.c_str() );
+                fputs( Help_Suggestion, stderr );
+                exit( EXIT_FAILURE );
+            }
+            if ( ssc::enforce_integer( count ) )
+            {
+                input_abstr.number_concatenations = static_cast<u32_t>(atoi( count.c_str() ));
+            }
         }
         else
         {
-            extraneous_args.push_back( std::move( pair ) );
+            extraneous_args.push_back( move( pair ) );
         }
     }
-    if ( input_filename.empty() )
+    if ( input_abstr.input_filename.empty() )
     {
         fputs( "Error: The input filename was not specified.\n", stderr );
         fputs( Help_Suggestion, stderr );
         exit( EXIT_FAILURE );
     }
-    if ( output_filename.empty() )
+    if ( input_abstr.output_filename.empty() )
     {
         fputs( "Error: The output filename was not specified.\n", stderr );
         fputs( Help_Suggestion, stderr );
@@ -171,7 +223,10 @@ int main(int const argc, char const * argv[])
     using threecrypt::Decryption_Method_e;
 
     auto mode = Mode_e::None;
+#if 0
     std::string input_filename, output_filename;
+#endif
+    threecrypt::Input_Abstraction input_abstr;
     ssc::Arg_Mapping args{ argc, argv };
     auto mode_specific_arguments = process_mode_args( args.consume(), mode );
     switch ( mode )
@@ -183,8 +238,7 @@ int main(int const argc, char const * argv[])
             std::exit( EXIT_FAILURE );
         case (Mode_e::Symmetric_Encrypt):
             {
-                auto const remaining_args = process_encrypt_arguments( std::move( mode_specific_arguments ),
-                                                                       input_filename, output_filename );
+                auto const remaining_args = process_encrypt_arguments( std::move( mode_specific_arguments ), input_abstr );
                 if ( !remaining_args.empty() )
                 {
                     std::fprintf( stderr, "Error: Unneeded or illegal options or arguments: " );
@@ -198,12 +252,15 @@ int main(int const argc, char const * argv[])
                     std::exit( EXIT_FAILURE );
                 }
             }
+#if 0
             threecrypt::cbc_v2::CBC_V2_encrypt( input_filename.c_str(), output_filename.c_str() );
+#endif
+            threecrypt::cbc_v2::CBC_V2_encrypt( input_abstr );
             break;
         case (Mode_e::Symmetric_Decrypt):
             {
                 auto const remaining_args = process_decrypt_arguments( std::move( mode_specific_arguments ),
-                                                                       input_filename, output_filename );
+                                                                       input_abstr.input_filename, input_abstr.output_filename );
                 if ( !remaining_args.empty() )
                 {
                     std::fprintf( stderr, "Error: Unneeded or illegal options or arguments: " );
@@ -217,8 +274,8 @@ int main(int const argc, char const * argv[])
                     std::exit( EXIT_FAILURE );
                 }
             }
-            ssc::enforce_file_existence( input_filename.c_str(), true );
-            auto const method = threecrypt::determine_decrypt_method( input_filename.c_str() );
+            ssc::enforce_file_existence( input_abstr.input_filename.c_str(), true );
+            auto const method = threecrypt::determine_decrypt_method( input_abstr.input_filename.c_str() );
             switch ( method )
             {
                 default:
@@ -227,17 +284,17 @@ int main(int const argc, char const * argv[])
                     std::exit( EXIT_FAILURE );
                 case ( Decryption_Method_e::None ):
                     std::fprintf( stderr, "Error: the input file `%s` does not appear to be a valid 3crypt encrypted file.\n",
-                                  input_filename.c_str() );
+                                  input_abstr.input_filename.c_str() );
                     std::fputs( Help_Suggestion, stderr );
                     std::exit( EXIT_FAILURE );
 #ifdef CBC_V2_HH
                 case ( Decryption_Method_e::CBC_V2 ):
-                    threecrypt::cbc_v2::CBC_V2_decrypt( input_filename.c_str(), output_filename.c_str() );
+                    threecrypt::cbc_v2::CBC_V2_decrypt( input_abstr.input_filename.c_str(), input_abstr.output_filename.c_str() );
                     break;
 #endif
 #ifdef CBC_V1_HH
                 case ( Decryption_Method_e::CBC_V1 ):
-                    threecrypt::cbc_v1::CBC_V1_decrypt( input_filename.c_str(), output_filename.c_str() );
+                    threecrypt::cbc_v1::CBC_V1_decrypt( input_abstr.input_filename.c_str(), input_abstr.output_filename.c_str() );
                     break;
 #endif
             }/* ! switch( method ) */
