@@ -40,7 +40,7 @@ and the Skein cryptographic hash function.
 4. meson --prefix=/usr builddir
 5. cd builddir
 6. ninja
-7. ninja install
+7. ninja install (**as root**)
 ### The Windows Method
 1. build and install [ssc](https://github.com/stuartcalder/ssc) using Meson.
     - Make sure the header files for [ssc](https://github.com/stuartcalder/ssc)
