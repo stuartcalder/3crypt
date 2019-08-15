@@ -159,4 +159,4 @@ namespace threecrypt
     void      set_file_size(char const * filename, size_t const new_size);  // Generic Function for Truncating a File
 #endif
 } /* ! namespace threecrypt */
-#endif /* ! defined 3CRYPT_HH */
+#endif /* ! defined THREECRYPT_HH */
