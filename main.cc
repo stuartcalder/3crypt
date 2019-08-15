@@ -223,9 +223,6 @@ int main(int const argc, char const * argv[])
     using threecrypt::Decryption_Method_e;
 
     auto mode = Mode_e::None;
-#if 0
-    std::string input_filename, output_filename;
-#endif
     threecrypt::Input_Abstraction input_abstr;
     ssc::Arg_Mapping args{ argc, argv };
     auto mode_specific_arguments = process_mode_args( args.consume(), mode );
@@ -252,9 +249,6 @@ int main(int const argc, char const * argv[])
                     std::exit( EXIT_FAILURE );
                 }
             }
-#if 0
-            threecrypt::cbc_v2::CBC_V2_encrypt( input_filename.c_str(), output_filename.c_str() );
-#endif
             threecrypt::cbc_v2::CBC_V2_encrypt( input_abstr );
             break;
         case (Mode_e::Symmetric_Decrypt):
