@@ -50,8 +50,8 @@ namespace threecrypt
                                                 "Switches:\n"
                                                 "-i, --input-file  Input file ; Must be specified for symmetric encryption and decryption modes.\n"
                                                 "-o, --output-file Output file; For symmetric encryption and decryption modes. Optional for encryption.\n"
-                                                "--iter-count      Iteration Count; Higher takes more time. May only be specified for encryption.\n"
-                                                "--concat-count    Concatenation Count; Higher takes more time. May only be specified for encryption.\n";
+                                                "--iter-count      Iteration Count (Default: 1,000,000); Higher takes more time. May only be specified for encryption.\n"
+                                                "--concat-count    Concatenation Count (Default: 1,000,000); Higher takes more time. May only be specified for encryption.\n";
     static constexpr auto const & Help_Suggestion = "( Use 3crypt --help for more information )\n";
 
     // Abstractly Define Cryptographic Primitives
