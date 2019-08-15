@@ -49,7 +49,9 @@ namespace threecrypt
                                                 "-d, --decrypt  Symmetric decryption mode; decrypt a file using a passphrase.\n"
                                                 "Switches:\n"
                                                 "-i, --input-file  Input file ; Must be specified for symmetric encryption and decryption modes.\n"
-                                                "-o, --output-file Output file; For symmetric encryption and decryption modes. Optional for encryption.";
+                                                "-o, --output-file Output file; For symmetric encryption and decryption modes. Optional for encryption.\n"
+                                                "--iter-count      Iteration Count; Higher takes more time. May only be specified for encryption.\n"
+                                                "--concat-count    Concatenation Count; Higher takes more time. May only be specified for encryption.\n";
     static constexpr auto const & Help_Suggestion = "( Use 3crypt --help for more information )\n";
 
     // Abstractly Define Cryptographic Primitives
