@@ -42,11 +42,12 @@ namespace threecrypt
     static constexpr auto const MAC_Bytes   = Block_Bytes;     /* Use the same number of bytes of Message Authentication Code
                                                                   as is in the block. */
     static constexpr auto const   Max_Password_Length = 120;   // 80 as The Longest Legal Password, Arbitrarily.
-    static constexpr auto const & Help_String = "Usage: 3crypt [Mode] [Switch...]\n"
+    static constexpr auto const & Help_String = "Usage: 3crypt Mode [Switches...]\n"
                                                 "Arguments to switches MUST be in seperate words. (i.e. 3crypt -e -i file; NOT 3crypt -e -ifile)\n"
                                                 "Modes:\n"
                                                 "-e, --encrypt  Symmetric encryption mode; encrypt a file using a passphrase.\n"
                                                 "-d, --decrypt  Symmetric decryption mode; decrypt a file using a passphrase.\n"
+                                                "--dump-header  Dump information on a 3crypt encrypted file; must specify an input-file.\n\n"
                                                 "Switches:\n"
                                                 "-i, --input-file  Input file ; Must be specified for symmetric encryption and decryption modes.\n"
                                                 "-o, --output-file Output file; For symmetric encryption and decryption modes. Optional for encryption.\n"
@@ -63,9 +64,35 @@ namespace threecrypt
     using std::size_t;                                          // Use size_t Generally
     using namespace ssc::ints;                                  // Import ssc defined integers... like u8_t, u32_t, u64_t, etc.
 
+#if   defined( __gnu_linux__ )
+    using OS_File_t = int;
+    struct OS_Map
+    {
+        u8_t    * ptr;
+        u64_t     size;
+        OS_File_t os_file;
+    };
+#elif defined( _WIN64 )
+    using OS_File_t = HANDLE;
+    struct OS_Map
+    {
+        u8_t    * ptr;
+        u64_t     size;
+        OS_File_t os_file;
+        OS_File_t win64_filemapping;
+    };
+#else
+    #error "OS file and map abstractions only defined for Gnu/Linux and 64-bit MS Windows"
+#endif
     /* Structure Describing an Operating-System-Level Abstraction of
      * Memory-Mapped Files: The Input and Output Files of a 3crypt Invocation
      */
+    struct File_Data
+    {
+        OS_Map  input_map;
+        OS_Map output_map;
+    };
+#if 0
     struct File_Data
     {
         // Platform-Agnostic File_Data variables
@@ -86,6 +113,7 @@ namespace threecrypt
     #error "struct File_Data only defined for Gnu/Linux and 64-bit MS Windows"
 #endif
     }; /* ! struct File_Data */
+#endif
     /* Structure Describing a File-Header: The Beginning Metadata of
      * 3crypt-Related files ( i.e. 3CRYPT_CBC_V2 ).
      */
@@ -105,18 +133,30 @@ namespace threecrypt
                                                  sizeof(num_concat);
     };
 
-    void      open_files    (File_Data       & f_data,  // Open the input file by `input_filename`, the output file by `output_filename`
+    // Atomic file operations
+    OS_File_t open_file_existing(char const * filename, bool const readonly);
+    OS_File_t create_new_file   (char const * filename);
+    void      close_file        (OS_File_t const file);
+    void      map_file          (OS_Map & os_map, bool const readonly);
+    void      unmap_file        (OS_Map const & os_map);
+    void      synchronize_map   (OS_Map const & os_map);
+    void      set_file_size     (OS_File_t const os_file, size_t const new_size);
+    void      set_file_size     (char const * filename  , size_t const new_size);
+    // File_Data operations
+    void      open_files    (File_Data             & f_data,  // Open the input file by `input_filename`, the output file by `output_filename`
                              char const * __restrict input_filename,
                              char const * __restrict output_filename);
     void      close_files   (File_Data const & f_data); // Close the input and output files by their OS-Specific File Handlers
     void      map_files     (File_Data       & f_data); // Map the input and output files by their OS-Specific File Handlers
     void      unmap_files   (File_Data const & f_data); // Un-Map the input and output files by their OS-Specific File Handlers
     void      sync_map      (File_Data const & f_data); // Flush Data Written to The Memory-Mapped Output-File
+#if 0
 #if   defined( __gnu_linux__ )
     void      set_file_size(int const file_d, size_t const new_size);       // Gnu/Linux-Specific Function for Truncating a File
 #elif defined( _WIN64 )
     void      set_file_size(HANDLE handle, size_t const new_size);          // Win64-Specific Function for Truncating a File
 #endif
     void      set_file_size(char const * filename, size_t const new_size);  // Generic Function for Truncating a File
+#endif
 } /* ! namespace threecrypt */
 #endif /* ! defined 3CRYPT_HH */

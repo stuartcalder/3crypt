@@ -13,5 +13,6 @@ namespace threecrypt::cbc_v2
     void CBC_V2_encrypt(Input_Abstraction const & input_abstr);
     void CBC_V2_decrypt(char const * __restrict input_filename,
                         char const * __restrict output_filename);
+    void dump_header   (char const * filename);
 }
 #endif /* ! define CBC_V2_HH */

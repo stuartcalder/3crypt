@@ -17,7 +17,9 @@ enum class Mode_e
 {
     None,
     Symmetric_Encrypt,
-    Symmetric_Decrypt
+    Symmetric_Decrypt,
+    Dump_Fileheader,
+    Terminating_Enum
 };
 
 using Arg_Map_t = typename ssc::Arg_Mapping::Arg_Map_t;
@@ -35,14 +37,8 @@ static Arg_Map_t process_mode_args(Arg_Map_t && in_map, Mode_e & mode)
 
     for ( int i = 1; i < in_map.size(); ++i )
     {
-        if ( in_map[ i ].first == "-h" ||
-             in_map[ i ].first == "--help" )
-        {
-            std::puts( Help_String );
-            std::exit( EXIT_SUCCESS );
-        }
-        else if ( in_map[ i ].first == "-e" ||
-                  in_map[ i ].first == "--encrypt" )
+        if ( in_map[ i ].first == "-e" ||
+             in_map[ i ].first == "--encrypt" )
         {
             if ( mode != Mode_e::None )
             {
@@ -64,6 +60,22 @@ static Arg_Map_t process_mode_args(Arg_Map_t && in_map, Mode_e & mode)
                 std::exit( EXIT_FAILURE );
             }
             mode = Mode_e::Symmetric_Decrypt;
+        }
+        else if ( in_map[ i ].first == "--dump-header" )
+        {
+            if ( mode != Mode_e::None )
+            {
+                std::fputs( "Error: Program mode already set.\n"
+                            "(Only one mode switch (e.g. -e or -d) is allowed per invocation of 3crypt.\n", stderr );
+                std::exit( EXIT_FAILURE );
+            }
+            mode = Mode_e::Dump_Fileheader;
+        }
+        else if ( in_map[ i ].first == "-h" ||
+                  in_map[ i ].first == "--help" )
+        {
+            std::puts( Help_String );
+            std::exit( EXIT_SUCCESS );
         }
         else if ( in_map[ i ].first.empty() &&
                   !(in_map[ i ].second.empty()) )
@@ -218,6 +230,48 @@ static Arg_Map_t process_decrypt_arguments(Arg_Map_t && opt_arg_pairs,
     return extraneous_args;
 }
 
+static Arg_Map_t process_dump_header_arguments(Arg_Map_t && opt_arg_pairs,
+                                               threecrypt::Input_Abstraction & input_abstr)
+{
+    using namespace std;
+
+    Arg_Map_t extraneous_args;
+
+    input_abstr.input_filename.clear();
+
+    for ( auto && pair : opt_arg_pairs )
+    {
+        ssc::check_file_name_sanity( pair.second, 1 );
+        if ( pair.first == "-i" ||
+             pair.first == "--input-file" )
+        {
+            input_abstr.input_filename = pair.second;
+        }
+        else
+        {
+            extraneous_args.push_back( move( pair ) );
+        }
+    }
+    if ( input_abstr.input_filename.empty() )
+    {
+        fputs( "Error: Input filename not specified for file-header dump.\n", stderr );
+        fputs( Help_Suggestion, stderr );
+        exit( EXIT_FAILURE );
+    }
+    return extraneous_args;
+}
+static void die_unneeded_args(Arg_Map_t const & args)
+{
+    std::fprintf( stderr, "Error: Unneeded or illegal options or arguments: " );
+    for ( auto const & pair : args )
+    {
+        std::fprintf( stderr, "%s -> %s, ", pair.first.c_str(), pair.second.c_str() );
+    }
+    std::fputc( '\n', stderr );
+    std::fputs( Help_Suggestion, stderr );
+    std::exit( EXIT_FAILURE );
+}
+
 int main(int const argc, char const * argv[])
 {
     using threecrypt::Decryption_Method_e;
@@ -238,6 +292,8 @@ int main(int const argc, char const * argv[])
                 auto const remaining_args = process_encrypt_arguments( std::move( mode_specific_arguments ), input_abstr );
                 if ( !remaining_args.empty() )
                 {
+                    die_unneeded_args( remaining_args );
+#if 0
                     std::fprintf( stderr, "Error: Unneeded or illegal options or arguments: " );
                     for ( auto const & pair : remaining_args )
                     {
@@ -247,9 +303,10 @@ int main(int const argc, char const * argv[])
                     std::fputc( '\n', stderr );
                     fputs( Help_Suggestion, stderr );
                     std::exit( EXIT_FAILURE );
+#endif
                 }
+                threecrypt::cbc_v2::CBC_V2_encrypt( input_abstr );
             }
-            threecrypt::cbc_v2::CBC_V2_encrypt( input_abstr );
             break;
         case (Mode_e::Symmetric_Decrypt):
             {
@@ -257,6 +314,8 @@ int main(int const argc, char const * argv[])
                                                                        input_abstr.input_filename, input_abstr.output_filename );
                 if ( !remaining_args.empty() )
                 {
+                    die_unneeded_args( remaining_args );
+#if 0
                     std::fprintf( stderr, "Error: Unneeded or illegal options or arguments: " );
                     for ( auto const & pair : remaining_args )
                     {
@@ -266,33 +325,64 @@ int main(int const argc, char const * argv[])
                     std::fputc( '\n', stderr );
                     fputs( Help_Suggestion, stderr );
                     std::exit( EXIT_FAILURE );
+#endif
                 }
-            }
-            ssc::enforce_file_existence( input_abstr.input_filename.c_str(), true );
-            auto const method = threecrypt::determine_decrypt_method( input_abstr.input_filename.c_str() );
-            switch ( method )
-            {
-                default:
-                    std::fprintf( stderr, "Error: Invalid decrypt method ( %d ).\n", static_cast<int>(method) );
-                    std::fputs( Help_Suggestion, stderr );
-                    std::exit( EXIT_FAILURE );
-                case ( Decryption_Method_e::None ):
-                    std::fprintf( stderr, "Error: the input file `%s` does not appear to be a valid 3crypt encrypted file.\n",
-                                  input_abstr.input_filename.c_str() );
-                    std::fputs( Help_Suggestion, stderr );
-                    std::exit( EXIT_FAILURE );
+                ssc::enforce_file_existence( input_abstr.input_filename.c_str(), true );
+                auto const method = threecrypt::determine_decrypt_method( input_abstr.input_filename.c_str() );
+                switch ( method )
+                {
+                    default:
+                        std::fprintf( stderr, "Error: Invalid decrypt method ( %d ).\n", static_cast<int>(method) );
+                        std::fputs( Help_Suggestion, stderr );
+                        std::exit( EXIT_FAILURE );
+                    case ( Decryption_Method_e::None ):
+                        std::fprintf( stderr, "Error: the input file `%s` does not appear to be a valid 3crypt encrypted file.\n",
+                                      input_abstr.input_filename.c_str() );
+                        std::fputs( Help_Suggestion, stderr );
+                        std::exit( EXIT_FAILURE );
 #ifdef CBC_V2_HH
-                case ( Decryption_Method_e::CBC_V2 ):
-                    threecrypt::cbc_v2::CBC_V2_decrypt( input_abstr.input_filename.c_str(), input_abstr.output_filename.c_str() );
-                    break;
+                    case ( Decryption_Method_e::CBC_V2 ):
+                        threecrypt::cbc_v2::CBC_V2_decrypt( input_abstr.input_filename.c_str(), input_abstr.output_filename.c_str() );
+                        break;
 #endif
 #ifdef CBC_V1_HH
-                case ( Decryption_Method_e::CBC_V1 ):
-                    threecrypt::cbc_v1::CBC_V1_decrypt( input_abstr.input_filename.c_str(), input_abstr.output_filename.c_str() );
-                    break;
+                    case ( Decryption_Method_e::CBC_V1 ):
+                        threecrypt::cbc_v1::CBC_V1_decrypt( input_abstr.input_filename.c_str(), input_abstr.output_filename.c_str() );
+                        break;
 #endif
-            }/* ! switch( method ) */
-            break;
+                }/* ! switch( method ) */
+            }
+            break;/* ! case( Mode_e::Symmetric_Decrypt ) */
+        case (Mode_e::Dump_Fileheader):
+            {
+                auto const remaining_args = process_dump_header_arguments( std::move( mode_specific_arguments ), input_abstr );
+                if ( !remaining_args.empty() )
+                {
+                    die_unneeded_args( remaining_args );
+                }
+                ssc::enforce_file_existence( input_abstr.input_filename.c_str(), true );
+                auto const method = threecrypt::determine_decrypt_method( input_abstr.input_filename.c_str() );
+                switch ( method )
+                {
+                    default:
+                    case ( Decryption_Method_e::None ):
+                        std::fprintf( stderr, "Error: The input file `%s` does not appear to be a valid 3crypt encrypted file.\n", input_abstr.input_filename.c_str() );
+                        std::fputs( Help_Suggestion, stderr );
+                        std::exit( EXIT_FAILURE );
+#ifdef CBC_V2_HH
+                    case ( Decryption_Method_e::CBC_V2 ):
+                        threecrypt::cbc_v2::dump_header( input_abstr.input_filename.c_str() );
+                        break;
+#endif
+#ifdef CBC_V1_HH
+                    case ( Decryption_Method_e::CBC_V1 ):
+                        std::fputs( "Error: Dumping CBC_V1 headers not supported.\n", stderr );
+                        std::exit( EXIT_FAILURE );
+                        break;
+#endif
+                }
+            }
+            break;/* ! case( Mode_e::Dump_Fileheader ) */
     } /* ! switch ( mode ) */
 
     return EXIT_SUCCESS;
