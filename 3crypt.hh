@@ -42,8 +42,8 @@ namespace threecrypt
     static constexpr auto const MAC_Bytes   = Block_Bytes;     /* Use the same number of bytes of Message Authentication Code
                                                                   as is in the block. */
     static constexpr auto const   Max_Password_Length = 120;   // 80 as The Longest Legal Password, Arbitrarily.
-    static constexpr auto const & Help_String = "Usage: 3crypt Mode [Switches...]\n"
-                                                "Arguments to switches MUST be in seperate words. (i.e. 3crypt -e -i file; NOT 3crypt -e -ifile)\n"
+    static constexpr auto const & Help_String = "Usage: 3crypt Mode [Switches...]\n\n"
+                                                "Arguments to switches MUST be in seperate words. (i.e. 3crypt -e -i file; NOT 3crypt -e -ifile)\n\n"
                                                 "Modes:\n"
                                                 "-e, --encrypt  Symmetric encryption mode; encrypt a file using a passphrase.\n"
                                                 "-d, --decrypt  Symmetric decryption mode; decrypt a file using a passphrase.\n"
