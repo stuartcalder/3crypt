@@ -31,7 +31,7 @@ namespace threecrypt::cbc_v2
 #endif
         // Determine output file size
         f_data.output_map.size = calculate_CBC_V2_size( f_data.input_map.size );
-        // Extend or shrink the output file to be `f_data.output_filesize` bytes
+        // Extend or shrink the output file to match calculated file size
 #if   defined( __gnu_linux__ ) || defined( _WIN64 )
         set_file_size( f_data.output_map.os_file, f_data.output_map.size );
 #else
