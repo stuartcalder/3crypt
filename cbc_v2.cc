@@ -258,7 +258,7 @@ namespace threecrypt::cbc_v2
     }
     void dump_header(char const * filename)
     {
-        using std::memcpy, std::fprintf, std::fputs, std::exit;
+        using std::memcpy, std::fprintf, std::fputs, std::putchar, std::exit;
         OS_Map os_map;
         os_map.os_file = open_file_existing( filename, true );
         os_map.size    = ssc::get_file_size( os_map.os_file );
@@ -272,6 +272,7 @@ namespace threecrypt::cbc_v2
         map_file( os_map, true );
 
         CBC_V2_Header_t header;
+        u8_t mac [MAC_Bytes];
         {
             u8_t const * p = os_map.ptr;
 
@@ -294,19 +295,25 @@ namespace threecrypt::cbc_v2
             p += sizeof(header.num_iter);
 
             memcpy( &header.num_concat, p, sizeof(header.num_concat) );
+
+            p = os_map.ptr + os_map.size - MAC_Bytes;
+            memcpy( mac, p, MAC_Bytes );
         }
         unmap_file( os_map );
         close_file( os_map.os_file );
 
-        fprintf( stdout,   "File Header ID           : %s\n", header.id );
-        fprintf( stdout,   "File Size                : %zu\n", header.total_size );
-        fputs  (           "Threefish Tweak          : ", stdout );
+        fprintf( stdout,   "File Header ID             : %s\n", header.id );
+        fprintf( stdout,   "File Size                  : %zu\n", header.total_size );
+        fputs  (           "Threefish Tweak            : ", stdout );
         ssc::print_integral_buffer<u8_t>( header.tweak, sizeof(header.tweak) );
-        fputs  (         "\nSSPKDF Salt              : ", stdout );
+        fputs  (         "\nSSPKDF Salt                : ", stdout );
         ssc::print_integral_buffer<u8_t>( header.sspkdf_salt, sizeof(header.sspkdf_salt) );
-        fputs  (         "\nCBC Initialization Vector: ", stdout );
+        fputs  (         "\nCBC Initialization Vector  : ", stdout );
         ssc::print_integral_buffer<u8_t>( header.cbc_iv, sizeof(header.cbc_iv) );
-        fprintf( stdout, "\nNumber Iterations        : %u\n", header.num_iter );
-        fprintf( stdout,   "Number Concatenations    : %u\n", header.num_concat );
+        fprintf( stdout, "\nNumber Iterations          : %u\n", header.num_iter );
+        fprintf( stdout,   "Number Concatenations      : %u\n", header.num_concat );
+        fputs(             "Message Authentication Code: ", stdout );
+        ssc::print_integral_buffer<u8_t>( mac, sizeof(mac) );
+        std::putchar( '\n' );
     }
 } /* ! namespace threecrypt::cbc_v1 */
