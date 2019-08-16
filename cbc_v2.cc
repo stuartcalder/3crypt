@@ -29,34 +29,13 @@ namespace threecrypt::cbc_v2
 #else
         f_data.input_map.size = ssc::get_file_size( input_abstr.input_filename.c_str() );
 #endif
-#if 0
-#if   defined( __gnu_linux__ )
-        f_data.input_filesize = ssc::get_file_size( f_data.input_fd );
-#elif defined( _WIN64 )
-        f_data.input_filesize = ssc::get_file_size( f_data.input_handle );
-#else
-        f_data.input_filesize = ssc::get_file_size( input_abstr.input_filename.c_str() );
-#endif
-#endif
         // Determine output file size
         f_data.output_map.size = calculate_CBC_V2_size( f_data.input_map.size );
-#if 0
-        f_data.output_filesize = calculate_CBC_V2_size( f_data.input_filesize );
-#endif
         // Extend or shrink the output file to be `f_data.output_filesize` bytes
 #if   defined( __gnu_linux__ ) || defined( _WIN64 )
         set_file_size( f_data.output_map.os_file, f_data.output_map.size );
 #else
         set_file_size( input_abstr.output_filename.c_str(), f_data.output_map.size );
-#endif
-#if 0
-#if   defined( __gnu_linux__ )
-        set_file_size( f_data.output_fd, f_data.output_filesize );
-#elif defined( _WIN64 )
-        set_file_size( f_data.output_handle, f_data.output_filesize );
-#else
-        set_file_size( input_abstr.output_filename.c_str(), f_data.output_filesize );
-#endif
 #endif
         // Memory-Map the files
         map_files( f_data );
@@ -151,15 +130,6 @@ namespace threecrypt::cbc_v2
 #else
         f_data.input_map.size = ssc::get_file_size( input_filename );
 #endif
-#if 0
-#if   defined( __gnu_linux__ )
-        f_data.input_filesize = ssc::get_file_size( f_data.input_fd );
-#elif defined( _WIN64 )
-        f_data.input_filesize = ssc::get_file_size( f_data.input_handle );
-#else   // All other platforms
-        f_data.input_filesize = ssc::get_file_size( input_filename );
-#endif
-#endif
         // For now, assume the size of the output file will be the same size as the input file
         f_data.output_map.size = f_data.input_map.size;
         // Check to see if the input file is too small to have possibly been 3crypt encrypted, using any supported means
@@ -176,15 +146,6 @@ namespace threecrypt::cbc_v2
         set_file_size( f_data.output_map.os_file, f_data.output_map.size );
 #else
         set_file_size( output_filename, f_data.output_map.size );
-#endif
-#if 0
-#if   defined( __gnu_linux__ )
-        set_file_size( f_data.output_fd, f_data.output_filesize );
-#elif defined( _WIN64 )
-        set_file_size( f_data.output_handle, f_data.output_filesize );
-#else   // All other platforms
-        set_file_size( output_filename, f_data.output_filesize );
-#endif
 #endif
         // Memory-map the input and output files
         map_files( f_data );
@@ -284,9 +245,6 @@ namespace threecrypt::cbc_v2
         }
         // Synchronize the output file
         synchronize_map( f_data.output_map );
-#if 0
-        sync_map( f_data );
-#endif
         // Unmap the memory-mapped input and output files
         unmap_files( f_data );
         // Truncate the output file to the number of plaintext bytes
@@ -294,15 +252,6 @@ namespace threecrypt::cbc_v2
         set_file_size( f_data.output_map.os_file, plaintext_size );
 #else
         set_file_size( output_filename, plaintext_size );
-#endif
-#if 0
-#if   defined( __gnu_linux__ )
-        set_file_size( f_data.output_fd, plaintext_size );
-#elif defined( _WIN64 )
-        set_file_size( f_data.output_handle, plaintext_size );
-#else
-        set_file_size( output_filename, plaintext_size );
-#endif
 #endif
         // Close the input and output files
         close_files( f_data );
