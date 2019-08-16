@@ -195,43 +195,6 @@ namespace threecrypt
         using namespace std;
         unmap_file( f_data.input_map );
         unmap_file( f_data.output_map );
-#if 0
-#if defined( __gnu_linux__ )
-        if ( munmap( f_data.input_map, f_data.input_filesize ) == -1 )
-        {
-            fputs( "Error: Failed to unmap input file\n", stderr );
-            exit( EXIT_FAILURE );
-        }
-        if ( munmap( f_data.output_map, f_data.output_filesize ) == -1 )
-        {
-            fputs( "Error: Failed to unmap input file\n", stderr );
-            exit( EXIT_FAILURE );
-        }
-#elif defined( _WIN64 )
-        if ( UnmapViewOfFile( static_cast<LPCVOID>(f_data.input_map) ) == 0 )
-        {
-            fputs( "Error: Failed to unmap the input file\n", stderr );
-            exit( EXIT_FAILURE );
-        }
-        if ( UnmapViewOfFile( static_cast<LPCVOID>(f_data.output_map) ) == 0 )
-        {
-            fputs( "Error: Failed to unmap the output file\n", stderr );
-            exit( EXIT_FAILURE );
-        }
-        if ( CloseHandle( f_data.input_filemapping ) == 0 )
-        {
-            fputs( "Error: was not able to close input filemapping\n", stderr );
-            exit( EXIT_FAILURE );
-        }
-        if ( CloseHandle( f_data.output_filemapping) == 0 )
-        {
-            fputs( "Error: was not able to close output filemapping\n", stderr );
-            exit( EXIT_FAILURE );
-        }
-#else
-    #error "threecrypt::unmap_files only defined for Gnu/Linux and 64-bit MS Windows"
-#endif
-#endif
     }/* ! unmap_files(File_Data const &f_data) */
     void sync_map(File_Data const & f_data)
     {

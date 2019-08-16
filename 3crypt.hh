@@ -92,28 +92,6 @@ namespace threecrypt
         OS_Map  input_map;
         OS_Map output_map;
     };
-#if 0
-    struct File_Data
-    {
-        // Platform-Agnostic File_Data variables
-        u8_t *  input_map;
-        u8_t * output_map;
-        u64_t  input_filesize;
-        u64_t output_filesize;
-        // Platform-Specific File_Data Variables
-#if   defined( __gnu_linux__ )
-        int  input_fd;
-        int output_fd;
-#elif defined( _WIN64 )
-        HANDLE  input_handle;
-        HANDLE output_handle;
-        HANDLE  input_filemapping;
-        HANDLE output_filemapping;
-#else
-    #error "struct File_Data only defined for Gnu/Linux and 64-bit MS Windows"
-#endif
-    }; /* ! struct File_Data */
-#endif
     /* Structure Describing a File-Header: The Beginning Metadata of
      * 3crypt-Related files ( i.e. 3CRYPT_CBC_V2 ).
      */
@@ -150,13 +128,5 @@ namespace threecrypt
     void      map_files     (File_Data       & f_data); // Map the input and output files by their OS-Specific File Handlers
     void      unmap_files   (File_Data const & f_data); // Un-Map the input and output files by their OS-Specific File Handlers
     void      sync_map      (File_Data const & f_data); // Flush Data Written to The Memory-Mapped Output-File
-#if 0
-#if   defined( __gnu_linux__ )
-    void      set_file_size(int const file_d, size_t const new_size);       // Gnu/Linux-Specific Function for Truncating a File
-#elif defined( _WIN64 )
-    void      set_file_size(HANDLE handle, size_t const new_size);          // Win64-Specific Function for Truncating a File
-#endif
-    void      set_file_size(char const * filename, size_t const new_size);  // Generic Function for Truncating a File
-#endif
 } /* ! namespace threecrypt */
 #endif /* ! defined THREECRYPT_HH */
