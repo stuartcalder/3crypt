@@ -1,6 +1,6 @@
-#include <cstdio>
 #include "cbc_v2.hh"
 #include "input_abstraction.hh"
+#include <cstdio>
 #include <ssc/general/print.hh>
 
 namespace threecrypt::cbc_v2
@@ -20,26 +20,19 @@ namespace threecrypt::cbc_v2
     void CBC_V2_encrypt(Input_Abstraction const & input_abstr)
     {
         using namespace std;
+        using ssc::OS_Map, ssc::OS_File_t;
         OS_Map input_map, output_map;
-        input_map.os_file = open_file_existing( input_abstr.input_filename.c_str(), true );
-        output_map.os_file = create_new_file( input_abstr.output_filename.c_str() );
+        input_map.os_file = ssc::open_existing_os_file( input_abstr.input_filename.c_str(), true );
+        output_map.os_file = ssc::create_os_file( input_abstr.output_filename.c_str() );
         // Determine input file size
-#if   defined( __gnu_linux__ ) || defined( _WIN64 )
         input_map.size = ssc::get_file_size( input_map.os_file );
-#else
-        input_map.size = ssc::get_file_size( input_abstr.input_filename.c_str() );
-#endif
         // Determine output file size
         output_map.size = calculate_CBC_V2_size( input_map.size );
         // Extend or shrink the output file to match calculated file size
-#if   defined( __gnu_linux__ ) || defined( _WIN64 )
-        set_file_size( output_map.os_file, output_map.size );
-#else
-        set_file_size( input_abstr.output_filename.c_str(), output_map.size );
-#endif
+        ssc::set_os_file_size( output_map.os_file, output_map.size );
         // Memory-Map the files
-        map_file( input_map , true  );
-        map_file( output_map, false );
+        ssc::map_file( input_map , true  );
+        ssc::map_file( output_map, false );
         // Get the password
         char password [Max_Password_Length + 1];
         int password_length;
@@ -112,27 +105,25 @@ namespace threecrypt::cbc_v2
         // Securely zero over the derived key
         ssc::zero_sensitive( derived_key, sizeof(derived_key) );
         // Synchronize everything written to the output file
-        synchronize_map( output_map );
+        ssc::sync_map( output_map );
         // Unmap the input and output files
-        unmap_file( input_map );
-        unmap_file( output_map );
+        ssc::unmap_file( input_map );
+        ssc::unmap_file( output_map );
         // Close the input and output files
-        close_file( input_map.os_file );
-        close_file( output_map.os_file );
+        ssc::close_os_file( input_map.os_file );
+        ssc::close_os_file( output_map.os_file );
     }
     void CBC_V2_decrypt(char const * __restrict input_filename,
                         char const * __restrict output_filename)
     {
         using namespace std;
+        using ssc::OS_Map, ssc::OS_File_t;
+
         OS_Map input_map, output_map;
-        input_map.os_file = open_file_existing( input_filename, true );
-        output_map.os_file = create_new_file( output_filename );
+        input_map.os_file = ssc::open_existing_os_file( input_filename, true );
+        output_map.os_file = ssc::create_os_file( output_filename );
         // Get the size fo the input file
-#if   defined( __gnu_linux__ ) || defined( _WIN64 )
         input_map.size = ssc::get_file_size( input_map.os_file );
-#else
-        input_map.size = ssc::get_file_size( input_filename );
-#endif
         // For now, assume the size of the output file will be the same size as the input file
         output_map.size = input_map.size;
         // Check to see if the input file is too small to have possibly been 3crypt encrypted, using any supported means
@@ -140,20 +131,16 @@ namespace threecrypt::cbc_v2
         if ( input_map.size < Minimum_Possible_File_Size )
         {
             fprintf( stderr, "Error: Input file doesn't appear to be large enough to be a %s encrypted file\n", CBC_V2_ID );
-            close_file( input_map.os_file );
-            close_file( output_map.os_file );
+            ssc::close_os_file( input_map.os_file );
+            ssc::close_os_file( output_map.os_file );
             remove( output_filename );
             exit( EXIT_FAILURE );
         }
         // Set the output file to be `f_data.output_filesize` bytes
-#if   defined( __gnu_linux__ ) || defined( _WIN64 )
-        set_file_size( output_map.os_file, output_map.size );
-#else
-        set_file_size( output_filename, output_map.size );
-#endif
+        ssc::set_os_file_size( output_map.os_file, output_map.size );
         // Memory-map the input and output files
-        map_file( input_map, true );
-        map_file( output_map, false );
+        ssc::map_file( input_map, true );
+        ssc::map_file( output_map, false );
         // `in` pointer used for reading from the input files, and incremented as it's used to read
         u8_t const * in = input_map.ptr;
         CBC_V2_Header_t header;
@@ -186,10 +173,10 @@ namespace threecrypt::cbc_v2
         if ( memcmp( header.id, CBC_V2_ID, sizeof(CBC_V2_ID) ) != 0 )
         {
             fprintf( stderr, "Error: The input file doesn't appear to be a %s encrypted file.\n", CBC_V2_ID );
-            unmap_file( input_map );
-            unmap_file( output_map );
-            close_file( input_map.os_file );
-            close_file( output_map.os_file );
+            ssc::unmap_file( input_map );
+            ssc::unmap_file( output_map );
+            ssc::close_os_file( input_map.os_file );
+            ssc::close_os_file( output_map.os_file );
             remove( output_filename );
             exit( EXIT_FAILURE );
         }
@@ -198,10 +185,10 @@ namespace threecrypt::cbc_v2
         {
             fprintf( stderr, "Error: Input file size (%zu) does not equal file size in the file header of the input file (%zu)\n",
                      header.total_size, input_map.size );
-            unmap_file( input_map );
-            unmap_file( output_map );
-            close_file( input_map.os_file );
-            close_file( output_map.os_file );
+            ssc::unmap_file( input_map );
+            ssc::unmap_file( output_map );
+            ssc::close_os_file( input_map.os_file );
+            ssc::close_os_file( output_map.os_file );
             remove( output_filename );
             exit( EXIT_FAILURE );
         }
@@ -234,10 +221,10 @@ namespace threecrypt::cbc_v2
                 ssc::zero_sensitive( derived_key, sizeof(derived_key) );
                 fputs( "Error: Authentication failed.\n"
                        "Possibilities: Wrong password, the file is corrupted, or it has been somehow tampered with.\n", stderr );
-                unmap_file( input_map );
-                unmap_file( output_map );
-                close_file( input_map.os_file );
-                close_file( output_map.os_file );
+                ssc::unmap_file( input_map );
+                ssc::unmap_file( output_map );
+                ssc::close_os_file( input_map.os_file );
+                ssc::close_os_file( output_map.os_file );
                 remove( output_filename );
                 exit( EXIT_FAILURE );
             }
@@ -255,34 +242,31 @@ namespace threecrypt::cbc_v2
                                           header.cbc_iv );
         }
         // Synchronize the output file
-        synchronize_map( output_map );
+        ssc::sync_map( output_map );
         // Unmap the memory-mapped input and output files
-        unmap_file( input_map );
-        unmap_file( output_map );
+        ssc::unmap_file( input_map );
+        ssc::unmap_file( output_map );
         // Truncate the output file to the number of plaintext bytes
-#if   defined( __gnu_linux__ ) || defined( _WIN64 )
-        set_file_size( output_map.os_file, plaintext_size );
-#else
-        set_file_size( output_filename, plaintext_size );
-#endif
+        ssc::set_os_file_size( output_map.os_file, plaintext_size );
         // Close the input and output files
-        close_file( input_map.os_file );
-        close_file( output_map.os_file );
+        ssc::close_os_file( input_map.os_file );
+        ssc::close_os_file( output_map.os_file );
     }
     void dump_header(char const * filename)
     {
         using std::memcpy, std::fprintf, std::fputs, std::putchar, std::exit;
+        using ssc::OS_Map, ssc::OS_File_t;
         OS_Map os_map;
-        os_map.os_file = open_file_existing( filename, true );
+        os_map.os_file = ssc::open_existing_os_file( filename, true );
         os_map.size    = ssc::get_file_size( os_map.os_file );
         static constexpr auto const Minimum_Size = CBC_V2_Header_t::Total_Size + Block_Bytes + MAC_Bytes;
         if ( os_map.size < Minimum_Size )
         {
-            close_file( os_map.os_file );
+            ssc::close_os_file( os_map.os_file );
             fprintf( stderr, "File %s looks too small to be CBC_V2 encrypted\n", filename );
             exit( EXIT_FAILURE );
         }
-        map_file( os_map, true );
+        ssc::map_file( os_map, true );
 
         CBC_V2_Header_t header;
         u8_t mac [MAC_Bytes];
@@ -310,10 +294,10 @@ namespace threecrypt::cbc_v2
             memcpy( &header.num_concat, p, sizeof(header.num_concat) );
 
             p = os_map.ptr + os_map.size - MAC_Bytes;
-            memcpy( mac, p, MAC_Bytes );
+            memcpy( mac, p, sizeof(mac) );
         }
-        unmap_file( os_map );
-        close_file( os_map.os_file );
+        ssc::unmap_file( os_map );
+        ssc::close_os_file( os_map.os_file );
 
         fprintf( stdout,   "File Header ID             : %s\n", header.id );
         fprintf( stdout,   "File Size                  : %zu\n", header.total_size );

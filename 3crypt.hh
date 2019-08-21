@@ -9,6 +9,7 @@
 #include <ssc/crypto/skein.hh>          // Skein hash function for its Message Authentication Code Functionality
 #include <ssc/crypto/sspkdf.hh>         // SSPKDF Key-Derivation Function
 #include <ssc/files/files.hh>           // Genericized File-Related Functions
+#include <ssc/files/os_map.hh>          // OS-Abstracted memory-mapping functionalities
 #include <ssc/interface/terminal.hh>    // Terminal Interface
 #include <ssc/general/integers.hh>      // Integer Type Aliases
 /* Platform-Specific Includes */
@@ -64,6 +65,7 @@ namespace threecrypt
     using std::size_t;                                          // Use size_t Generally
     using namespace ssc::ints;                                  // Import ssc defined integers... like u8_t, u32_t, u64_t, etc.
 
+#if 0
 #if   defined( __gnu_linux__ )
     using OS_File_t = int;  // On Gnu/Linux, file descriptors are ints
     struct OS_Map
@@ -84,6 +86,8 @@ namespace threecrypt
 #else
     #error "OS file and map abstractions only defined for Gnu/Linux and 64-bit MS Windows"
 #endif
+#endif
+#if 0
     /* Structure Describing an Operating-System-Level Abstraction of
      * Memory-Mapped Files: The Input and Output Files of a 3crypt Invocation
      */
@@ -92,8 +96,9 @@ namespace threecrypt
         OS_Map  input_map;
         OS_Map output_map;
     };
+#endif
     /* Structure Describing a File-Header: The Beginning Metadata of
-     * 3crypt-Related files ( i.e. 3CRYPT_CBC_V2 ).
+     * 3crypt-Related files that use SSPKDF as their key-derivation function ( i.e. 3CRYPT_CBC_V2 ).
      */
     template <size_t ID_Bytes>
     struct SSPKDF_Header
@@ -111,6 +116,7 @@ namespace threecrypt
                                                  sizeof(num_concat);
     };
 
+#if 0
     // Atomic file operations
     OS_File_t open_file_existing(char const * filename, bool const readonly);
     OS_File_t create_new_file   (char const * filename);
@@ -128,5 +134,6 @@ namespace threecrypt
     void      map_files     (File_Data       & f_data); // Map the input and output files by their OS-Specific File Handlers
     void      unmap_files   (File_Data const & f_data); // Un-Map the input and output files by their OS-Specific File Handlers
     void      sync_map      (File_Data const & f_data); // Flush Data Written to The Memory-Mapped Output-File
+#endif
 } /* ! namespace threecrypt */
 #endif /* ! defined THREECRYPT_HH */

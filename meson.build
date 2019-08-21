@@ -4,7 +4,7 @@ project( '3crypt', 'cpp', default_options: [ 'cpp_std=c++17', 'strip=true', 'bui
 #Get compiler
 cc = meson.get_compiler( 'cpp' )
 #Determine what implementation files are needed
-_3crypt_src = [ '3crypt.cc', 'cbc_v2.cc', 'determine_decrypt_method.cc', 'main.cc' ]
+_3crypt_src = [ 'cbc_v2.cc', 'determine_decrypt_method.cc', 'main.cc' ]
 if host_machine.system() != 'windows'
     _3crypt_src += 'cbc_v1.cc'
 endif
