@@ -13,6 +13,8 @@
 #include <ssc/interface/terminal.hh>    // Terminal Interface
 #include <ssc/general/integers.hh>      // Integer Type Aliases
 /* Platform-Specific Includes */
+extern "C"
+{
 #if   defined(__gnu_linux__)
     #include <sys/types.h> // For Some Types That We Need
     #include <sys/stat.h>  // The stat() Family of Functions
@@ -25,6 +27,7 @@
 #else
     #error "Currently, only Gnu/Linux and 64-bit MS Windows are implemented."
 #endif
+}/* ! extern "C" */
 /* Standard Library Includes */
 #include <cstdlib>
 #include <memory>
