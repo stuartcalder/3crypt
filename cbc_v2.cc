@@ -23,7 +23,9 @@ namespace threecrypt::cbc_v2
         using ssc::OS_Map, ssc::OS_File_t;
         OS_Map input_map, output_map;
         puts( "Opening input and output files..." );
+        // Open input file
         input_map.os_file = ssc::open_existing_os_file( input_abstr.input_filename.c_str(), true );
+        // Create output file
         output_map.os_file = ssc::create_os_file( input_abstr.output_filename.c_str() );
         // Determine input file size
         input_map.size = ssc::get_file_size( input_map.os_file );
@@ -124,7 +126,7 @@ namespace threecrypt::cbc_v2
         puts( "Closing files..." );
         ssc::close_os_file( input_map.os_file );
         ssc::close_os_file( output_map.os_file );
-    }
+    }/* ! CBC_V2_encrypt */
     void CBC_V2_decrypt(char const * __restrict input_filename,
                         char const * __restrict output_filename)
     {
@@ -279,7 +281,7 @@ namespace threecrypt::cbc_v2
         puts( "Closing files..." );
         ssc::close_os_file( input_map.os_file );
         ssc::close_os_file( output_map.os_file );
-    }
+    }/* ! CBC_V2_decrypt */
     void dump_header(char const * filename)
     {
         using std::memcpy, std::fprintf, std::fputs, std::putchar, std::exit;
@@ -340,5 +342,5 @@ namespace threecrypt::cbc_v2
         fputs(             "Message Authentication Code: ", stdout );
         ssc::print_integral_buffer<u8_t>( mac, sizeof(mac) );
         std::putchar( '\n' );
-    }
+    }/* ! dump_header */
 } /* ! namespace threecrypt::cbc_v1 */
