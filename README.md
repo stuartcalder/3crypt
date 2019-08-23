@@ -29,7 +29,7 @@ and the Skein cryptographic hash function.
       are in /usr/include/
 2. git clone [3crypt](https://github.com/stuartcalder/3crypt)
 3. cd 3crypt
-4. meson --prefix=/usr builddir
+4. meson --backend ninja --prefix=/usr builddir
 5. cd builddir
 6. ninja
 7. ninja install (**as root**)
