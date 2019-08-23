@@ -14,7 +14,7 @@
 #include <ssc/general/integers.hh>      // Integer Type Aliases
 /* Platform-Specific Includes */
 extern "C" {
-#if   defined(__gnu_linux__)
+#if defined(__gnu_linux__)
 #   include <sys/types.h> // For Some Types That We Need
 #   include <sys/stat.h>  // The stat() Family of Functions
 #   include <fcntl.h>     // File Control Options
