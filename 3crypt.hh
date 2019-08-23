@@ -13,19 +13,18 @@
 #include <ssc/interface/terminal.hh>    // Terminal Interface
 #include <ssc/general/integers.hh>      // Integer Type Aliases
 /* Platform-Specific Includes */
-extern "C"
-{
+extern "C" {
 #if   defined(__gnu_linux__)
-    #include <sys/types.h> // For Some Types That We Need
-    #include <sys/stat.h>  // The stat() Family of Functions
-    #include <fcntl.h>     // File Control Options
-    #include <sys/mman.h>  // Memory-Mapping Related Functions and Defines
-    #include <unistd.h>    // ftruncate() and truncate() Etc. 
+#   include <sys/types.h> // For Some Types That We Need
+#   include <sys/stat.h>  // The stat() Family of Functions
+#   include <fcntl.h>     // File Control Options
+#   include <sys/mman.h>  // Memory-Mapping Related Functions and Defines
+#   include <unistd.h>    // ftruncate() and truncate() Etc. 
 #elif defined(_WIN64)
-    #include <windows.h>    // Windows Functions, Macros, Etc.
-    #include <memoryapi.h>  // Windows Memory-Mapping API
+#   include <windows.h>    // Windows Functions, Macros, Etc.
+#   include <memoryapi.h>  // Windows Memory-Mapping API
 #else
-    #error "Currently, only Gnu/Linux and 64-bit MS Windows are implemented."
+#   error "Currently, only Gnu/Linux and 64-bit MS Windows are implemented."
 #endif
 }/* ! extern "C" */
 /* Standard Library Includes */

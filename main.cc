@@ -1,7 +1,9 @@
 #include "3crypt.hh"
+
 #ifndef _WIN64
-    #include "cbc_v1.hh"
+#   include "cbc_v1.hh"
 #endif
+
 #include "cbc_v2.hh"
 #include "determine_decrypt_method.hh"
 #include "input_abstraction.hh"

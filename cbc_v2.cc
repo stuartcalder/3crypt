@@ -1,7 +1,7 @@
-#include "cbc_v2.hh"
-#include "input_abstraction.hh"
 #include <cstdio>
 #include <ssc/general/print.hh>
+#include "cbc_v2.hh"
+#include "input_abstraction.hh"
 
 namespace threecrypt::cbc_v2
 {

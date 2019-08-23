@@ -12,5 +12,5 @@ namespace threecrypt
         std::string   output_filename;
         u32_t       number_iterations;
         u32_t   number_concatenations;
-    };/* ! struct Input_Abstraction */
+    };
 }/* ! namespace threefish */

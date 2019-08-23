@@ -1,16 +1,16 @@
 #ifndef DETERMINE_DECRYPT_METHOD_HH
 #define DETERMINE_DECRYPT_METHOD_HH
 
+#include <vector>
 #include <ssc/files/files.hh>
 #include <ssc/general/static_string.hh>
 
 #include "3crypt.hh"
-#ifndef _WIN64
-    #include "cbc_v1.hh"
-#endif
 #include "cbc_v2.hh"
 
-#include <vector>
+#ifndef _WIN64
+#   include "cbc_v1.hh"
+#endif
 
 namespace threecrypt
 {
