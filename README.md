@@ -24,7 +24,7 @@ and the Skein cryptographic hash function.
 ## Building 3crypt on Linux ( Makefile method )
 1. build and install [ssc](https://github.com/stuartcalder/ssc)
     - Make sure the header files for [ssc](https://github.com/stuartcalder/ssc)
-      are in /usr/local/include
+      are in /usr/include
 2. git clone [3crypt](https://github.com/stuartcalder/3crypt)
 3. cd 3crypt
 4. make 3crypt
@@ -34,7 +34,7 @@ and the Skein cryptographic hash function.
 1. build and install [ssc](https://github.com/stuartcalder/ssc) using any
    supported method into /usr/lib64
     - Make sure the header files for [ssc](https://github.com/stuartcalder/ssc)
-      are in /usr/local/include/
+      are in /usr/include/
 2. git clone [3crypt](https://github.com/stuartcalder/3crypt)
 3. cd 3crypt
 4. meson --prefix=/usr builddir
