@@ -15,7 +15,7 @@ ssc_inc_array     = []
 if os == 'linux'
     _3crypt_dep_array += cc.find_library( 'ncurses' )
     _3crypt_dep_array += cc.find_library( 'ssc' )
-    ssc_inc_array     += include_directories( '/usr/local/include' )
+    ssc_inc_array     += include_directories( '/usr/include' )
     executable( '3crypt', sources: _3crypt_src, dependencies:
         _3crypt_dep_array, include_directories: ssc_inc_array, install: true )
 elif os == 'windows'
