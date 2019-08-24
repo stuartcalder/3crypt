@@ -36,7 +36,7 @@ namespace threecrypt::cbc_v2
         ssc::set_os_file_size( output_map.os_file, output_map.size );
         // Memory-Map the files
         puts( "Mapping input file..." );
-        ssc::map_file( input_map , true  );
+        ssc::map_file( input_map, true );
         puts( "Mapping output file..." );
         ssc::map_file( output_map, false );
         // Get the password
@@ -68,7 +68,7 @@ namespace threecrypt::cbc_v2
         ssc::generate_random_bytes( header.tweak      , sizeof(header.tweak)       );
         ssc::generate_random_bytes( header.sspkdf_salt, sizeof(header.sspkdf_salt) );
         ssc::generate_random_bytes( header.cbc_iv     , sizeof(header.cbc_iv)      );
-        header.num_iter = input_abstr.number_iterations;
+        header.num_iter   = input_abstr.number_iterations;
         header.num_concat = input_abstr.number_concatenations;
         // Copy header into the file, field at a time, advancing the pointer
         u8_t * out = output_map.ptr;
