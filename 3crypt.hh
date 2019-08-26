@@ -67,38 +67,6 @@ namespace threecrypt
     using std::size_t;                                          // Use size_t Generally
     using namespace ssc::ints;                                  // Import ssc defined integers... like u8_t, u32_t, u64_t, etc.
 
-#if 0
-#if   defined( __gnu_linux__ )
-    using OS_File_t = int;  // On Gnu/Linux, file descriptors are ints
-    struct OS_Map
-    {
-        u8_t    * ptr;
-        u64_t     size;
-        OS_File_t os_file;
-    };
-#elif defined( _WIN64 )
-    using OS_File_t = HANDLE;   // On win32, files are described by HANDLEs
-    struct OS_Map
-    {
-        u8_t    * ptr;
-        u64_t     size;
-        OS_File_t os_file;
-        OS_File_t win64_filemapping; // On win32, an additional HANDLE is required to memory-map files
-    };
-#else
-    #error "OS file and map abstractions only defined for Gnu/Linux and 64-bit MS Windows"
-#endif
-#endif
-#if 0
-    /* Structure Describing an Operating-System-Level Abstraction of
-     * Memory-Mapped Files: The Input and Output Files of a 3crypt Invocation
-     */
-    struct File_Data
-    {
-        OS_Map  input_map;
-        OS_Map output_map;
-    };
-#endif
     /* Structure Describing a File-Header: The Beginning Metadata of
      * 3crypt-Related files that use SSPKDF as their key-derivation function ( i.e. 3CRYPT_CBC_V2 ).
      */
@@ -117,25 +85,5 @@ namespace threecrypt
                                                  sizeof(sspkdf_salt) + sizeof(cbc_iv) + sizeof(num_iter) + \
                                                  sizeof(num_concat);
     };
-
-#if 0
-    // Atomic file operations
-    OS_File_t open_file_existing(char const * filename, bool const readonly);
-    OS_File_t create_new_file   (char const * filename);
-    void      close_file        (OS_File_t const file);
-    void      map_file          (OS_Map & os_map, bool const readonly);
-    void      unmap_file        (OS_Map const & os_map);
-    void      synchronize_map   (OS_Map const & os_map);
-    void      set_file_size     (OS_File_t const os_file, size_t const new_size);
-    void      set_file_size     (char const * filename  , size_t const new_size);
-    // File_Data operations
-    void      open_files    (File_Data             & f_data,  // Open the input file by `input_filename`, the output file by `output_filename`
-                             char const * __restrict input_filename,
-                             char const * __restrict output_filename);
-    void      close_files   (File_Data const & f_data); // Close the input and output files by their OS-Specific File Handlers
-    void      map_files     (File_Data       & f_data); // Map the input and output files by their OS-Specific File Handlers
-    void      unmap_files   (File_Data const & f_data); // Un-Map the input and output files by their OS-Specific File Handlers
-    void      sync_map      (File_Data const & f_data); // Flush Data Written to The Memory-Mapped Output-File
-#endif
 } /* ! namespace threecrypt */
 #endif /* ! defined THREECRYPT_HH */
