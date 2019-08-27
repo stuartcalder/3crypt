@@ -3,6 +3,7 @@
 /* SSC Library Includes */
 #include <ssc/general/arg_mapping.hh>   // Processing Command-Line Arguments
 #include <ssc/general/static_string.hh> // Constexpr C-String Functionalities
+#include <ssc/general/integers.hh>      // Integer Type Aliases
 #include <ssc/crypto/operations.hh>     // Genericized Cryptographic Operations
 #include <ssc/crypto/threefish.hh>      // Threefish Tweakable Block Cipher
 #include <ssc/crypto/cbc.hh>            // Cipher Block Chaining Mode for Threefish
@@ -11,7 +12,6 @@
 #include <ssc/files/files.hh>           // Genericized File-Related Functions
 #include <ssc/files/os_map.hh>          // OS-Abstracted memory-mapping functionalities
 #include <ssc/interface/terminal.hh>    // Terminal Interface
-#include <ssc/general/integers.hh>      // Integer Type Aliases
 /* Platform-Specific Includes */
 extern "C" {
 #if defined(__gnu_linux__)
