@@ -2,14 +2,14 @@
 A simple C++17 command-line program for encrypting and decrypting files on Gnu/Linux and Microsoft Windows, built upon the Threefish block cipher
 and the Skein cryptographic hash function.
 ## Buildtime Dependencies
-###(Gnu/Linux and Microsoft Windows)
+### (Gnu/Linux and Microsoft Windows)
 -   [ssc](https://github.com/stuartcalder/ssc) header and library files.
 -   __meson__ frontend build system.
 -   __ninja__ backend build system.
-###(Gnu/Linux only)
+### (Gnu/Linux only)
 -   __GCC 7+__ compiler.
 -   __ncurses__ header and library files.
-###(Microsoft Windows only)
+### (Microsoft Windows only)
 -   __Windows Vista/Server 2008__ or later.
 -   __Visual Studio 2019__ development suite.
 ## Encrypting files
