@@ -1,46 +1,58 @@
 # 3crypt
 A simple C++17 command-line program for encrypting and decrypting files on Gnu/Linux and Microsoft Windows, built upon the Threefish block cipher
 and the Skein cryptographic hash function.
-## Universal Dependencies
--   [ssc](https://github.com/stuartcalder/ssc)
--   **Meson** (if using the Meson build system)
--   **Ninja** (if using the Meson build system)
-### Linux-Specific Dependencies
--   **ncurses**
-### Windows-Specific Dependencies
--   Requires Windows Vista / Server 2008 or later
+## Buildtime Dependencies
+###(Gnu/Linux and Microsoft Windows)
+-   [ssc](https://github.com/stuartcalder/ssc) header and library files.
+-   __meson__ frontend build system.
+-   __ninja__ backend build system.
+###(Gnu/Linux only)
+-   __GCC 7+__ compiler.
+-   __ncurses__ header and library files.
+###(Microsoft Windows only)
+-   __Windows Vista/Server 2008__ or later.
+-   __Visual Studio 2019__ development suite.
 ## Encrypting files
 ```
-    3crypt -e -i $filename
-    or
-    3crypt --encrypt --input-file $filename
+3crypt -e -i $filename
+```
+or
+```
+3crypt --encrypt --input-file $filename
 ```
 ## Decrypting files
 ```
-    3crypt -d -i $filename
-    or
-    3crypt --decrypt --input-file $filename
+3crypt -d -i $filename
+```
+or
+```
+3crypt --decrypt --input-file $filename
 ```
 ## Building 3crypt with Meson
-### The Linux Method
-1. build and install [ssc](https://github.com/stuartcalder/ssc) using any
-   supported method into /usr/lib64
-    - Make sure the header files for [ssc](https://github.com/stuartcalder/ssc)
-      are in /usr/include/
-2. git clone [3crypt](https://github.com/stuartcalder/3crypt)
-3. cd 3crypt
-4. meson --backend ninja --prefix=/usr builddir
-5. cd builddir
-6. ninja
-7. ninja install (**as root**)
-### The Windows Method
-1. build and install [ssc](https://github.com/stuartcalder/ssc) using Meson.
-    - Make sure the header files for [ssc](https://github.com/stuartcalder/ssc)
-      are in C:/local/include
-2. git clone [3crypt](https://github.com/stuartcalder/3crypt)
-3. cd 3crypt
-4. meson --backend ninja builddir
-5. cd builddir
-6. ninja
-7. rename the output file, **libssc.a**, to **ssc.lib**
-8. copy **ssc.lib** to **C:/local/include**
+### The Gnu/Linux Method
+1. build and install [ssc](https://github.com/stuartcalder/ssc).
+    - Make sure the header files for [ssc](https://github.com/stuartcalder/ssc) are in __/usr/include/__.
+2. git clone [3crypt](https://github.com/stuartcalder/3crypt) anywhere.
+3. cd into the 3crypt project directory, and execute:
+```
+meson --backend=ninja --prefix=/usr builddir
+```
+4. cd into builddir, and execute:
+```
+ninja
+sudo ninja install
+```
+5. 3crypt should now be successfully installed on your Gnu/Linux system.
+### The Microsoft Windows Method
+1. build and install [ssc](https://github.com/stuartcalder/ssc).
+    - Make sure the header files for [ssc](https://github.com/stuartcalder/ssc) are in __C:/include__.
+2. git clone [3crypt](https://github.com/stuartcalder/3crypt) anywhere.
+3. cd into the 3crypt project directory, and execute:
+```
+meson --backend=ninja builddir
+```
+4. cd into builddir, and execute:
+```
+ninja
+```
+5. copy the output file, __3crypt.exe__ into the directory __C:/bin__.
