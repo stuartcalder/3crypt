@@ -46,6 +46,7 @@ sudo ninja install
 ### The Microsoft Windows Method
 1. build and install [ssc](https://github.com/stuartcalder/ssc).
     - Make sure the header files for [ssc](https://github.com/stuartcalder/ssc) are in __C:/include/__.
+    - Make sure that __ssc.lib__ is in __C:/lib/__.
 2. git clone [3crypt](https://github.com/stuartcalder/3crypt) anywhere.
 3. cd into the 3crypt project directory, and execute:
 ```
