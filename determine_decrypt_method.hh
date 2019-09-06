@@ -2,6 +2,7 @@
 #define DETERMINE_DECRYPT_METHOD_HH
 
 #include <vector>
+
 #include <ssc/files/files.hh>
 #include <ssc/general/static_string.hh>
 
@@ -9,56 +10,51 @@
 #include "cbc_v2.hh"
 
 #ifndef _WIN64
-#   include "cbc_v1.hh"
+#	include "cbc_v1.hh"
 #endif
 
-namespace threecrypt
-{
-    static constexpr std::size_t determine_biggest_identifier_string_size()
-    {
-        std::size_t s = 0;
+namespace threecrypt {
+	static constexpr size_t
+	determine_biggest_identifier_string_size (void) {
+		size_t s = 0;
 #ifdef CBC_V2_HH
-        if ( sizeof(cbc_v2::CBC_V2_ID) > s ) {
-            s = sizeof(cbc_v2::CBC_V2_ID);
-        }
+		if ( sizeof(cbc_v2::CBC_V2_ID) > s )
+			s = sizeof(cbc_v2::CBC_V2_ID);
 #endif
 #ifdef CBC_V1_HH
-        if ( sizeof(cbc_v1::CBC_V1_ID) > s ) {
-            s = sizeof(cbc_v1::CBC_V1_ID);
-        }
+		if ( sizeof(cbc_v1::CBC_V1_ID) > s )
+			s = sizeof(cbc_v1::CBC_V1_ID);
 #endif
-        return s;
-    }/* ! threecrypt::determine_biggest_identifier_string_size() */
-    constexpr std::size_t const Biggest_Identifier_String_Size = determine_biggest_identifier_string_size();
+		return s;
+	}/* ! threecrypt::determine_biggest_identifier_string_size() */
+	constexpr size_t const Biggest_Identifier_String_Size = determine_biggest_identifier_string_size();
 
-    static constexpr std::size_t determine_smallest_identifier_string_size()
-    {
-        std::size_t s = Biggest_Identifier_String_Size;
+	static constexpr size_t
+	determine_smallest_identifier_string_size (void) {
+		size_t s = Biggest_Identifier_String_Size;
 #ifdef CBC_V2_HH
-        if ( sizeof(cbc_v2::CBC_V2_ID) < s ) {
-            s = sizeof(cbc_v2::CBC_V2_ID);
-        }
+		if ( sizeof(cbc_v2::CBC_V2_ID) < s )
+			s = sizeof(cbc_v2::CBC_V2_ID);
 #endif
 #ifdef CBC_V1_HH
-        if ( sizeof(cbc_v1::CBC_V1_ID) < s ) {
-            s = sizeof(cbc_v1::CBC_V1_ID);
-        }
+		if ( sizeof(cbc_v1::CBC_V1_ID) < s )
+			s = sizeof(cbc_v1::CBC_V1_ID);
 #endif
-        return s;
-    }/* ! threecrypt::determine_smallest_identifier_string_size() */
-    constexpr std::size_t const Smallest_Identifier_String_Size = determine_smallest_identifier_string_size();
+		return s;
+	}/* ! threecrypt::determine_smallest_identifier_string_size() */
+	constexpr size_t const Smallest_Identifier_String_Size = determine_smallest_identifier_string_size();
 
-    enum class Decryption_Method_e {
-        None,
+	enum class Decryption_Method_e {
+		None,
 #ifdef CBC_V1_HH
-        CBC_V1,
+		CBC_V1,
 #endif
 #ifdef CBC_V2_HH
-        CBC_V2,
+		CBC_V2,
 #endif
-        Terminating_Enum
-    };
-    Decryption_Method_e determine_decrypt_method(char const * filename);
+		Terminating_Enum
+	};
+	Decryption_Method_e determine_decrypt_method(char const * filename);
 }/* ! namespace threecrypt */
 
 #endif
