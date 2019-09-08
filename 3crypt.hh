@@ -37,7 +37,7 @@ extern "C" {
 #include <vector>
 
 namespace threecrypt {
-	static_assert(CHAR_BIT == 8);
+	static_assert (CHAR_BIT == 8);
 	static constexpr auto const Salt_Bits   = 128;             // Sufficiently-Big 128-Bit Salt for SSPKDF.
 	static constexpr auto const Salt_Bytes  = Salt_Bits / 8;   // Number of SSPKDF Salt Bytes.
 	static constexpr auto const Tweak_Bits  = 128;             // Required 128-Bit Tweak for Threefish.

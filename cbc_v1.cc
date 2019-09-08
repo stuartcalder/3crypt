@@ -33,7 +33,7 @@ namespace threecrypt::cbc_v1 {
 			char pwcheck [Max_Password_Length + 1];
 			bool repeat = true;
 			do {
-				static_assert(sizeof(password) == sizeof(pwcheck));
+				static_assert (sizeof(password) == sizeof(pwcheck));
 				memset( password, 0, sizeof(password) );
 				memset( pwcheck , 0, sizeof(pwcheck)  );
 				password_length = term.get_pw( password, Max_Password_Length, 1 );
@@ -103,7 +103,7 @@ namespace threecrypt::cbc_v1 {
 		CBC_V1_Header_t header;                 // Declare a CBC_V1 header, to store the header from the input file                 
 		memcpy( &header, in, sizeof(header) );  // Copy the header from the input file into 
 		in += sizeof(header);                   // Increment the pointer by the size of the copied header
-		static_assert(sizeof(header.id) == ssc::static_strlen(CBC_V1_ID));	// Ensure we know the sizes
+		static_assert (sizeof(header.id) == ssc::static_strlen(CBC_V1_ID));	// Ensure we know the sizes
 		if (memcmp( header.id, CBC_V1_ID, sizeof(header.id) ) != 0) {		// If the copied-in header isn't a CBC_V1 header ...
 			// Cleanup & Die
 			fprintf( stderr, "Error: The input file doesn't appear to be a `%s` encrypted file.\n", CBC_V1_ID );

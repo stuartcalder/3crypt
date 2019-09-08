@@ -40,7 +40,7 @@ namespace threecrypt {
 #ifdef CBC_V2_HH
 			{
 				using namespace cbc_v2;
-				static_assert(sizeof(CBC_V2_Header_t::id) == sizeof(CBC_V2_ID));
+				static_assert (sizeof(CBC_V2_Header_t::id) == sizeof(CBC_V2_ID));
 				if (method == Decryption_Method_e::None &&
 				    memcmp( buffer, CBC_V2_ID, sizeof(CBC_V2_ID) ) == 0)
 				{
@@ -52,7 +52,7 @@ namespace threecrypt {
 #ifdef CBC_V1_HH
 			{
 				using namespace cbc_v1;
-				static_assert(sizeof(CBC_V1_Header_t::id) == ssc::static_strlen(CBC_V1_ID));
+				static_assert (sizeof(CBC_V1_Header_t::id) == ssc::static_strlen(CBC_V1_ID));
 				if (method == Decryption_Method_e::None &&
 				    memcmp( buffer, CBC_V1_ID, sizeof(CBC_V1_ID) ) == 0)
 				{

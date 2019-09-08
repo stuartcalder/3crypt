@@ -32,29 +32,30 @@ using namespace ssc::ints;
  */
 static Arg_Map_t
 process_mode_args	(Arg_Map_t && in_map, Mode_e & mode) {
+
 	Arg_Map_t extraneous_args;
+	static constexpr auto const & Mode_Already_Set = "Error: Program mode already set.\n"
+							 "(Only one mode switch (e.g. -e or -d) is allowed per invocation of 3crypt.\n";
 
 	for (int i = 1; i < in_map.size(); ++i) {
 		if (in_map[ i ].first == "-e" || in_map[ i ].first == "--encrypt") {
 			if (mode != Mode_e::None) {
-				std::fputs( "Error: Program mode already set.\n"
-					    "(Only one mode switch (e.g -e or -d) is allowed per invocation of 3crypt.\n", stderr );
-				std::fputs( Help_Suggestion, stderr );
+				std::fputs( Mode_Already_Set, stderr );
+				std::fputs( Help_Suggestion , stderr );
 				std::exit( EXIT_FAILURE );
 			}
 			mode = Mode_e::Symmetric_Encrypt;
 		} else if (in_map[ i ].first == "-d" || in_map[ i ].first == "--decrypt") {
 			if (mode != Mode_e::None) {
-				std::fputs( "Error: Program mode already set.\n"
-					    "(Only one mode switch( e.g. -e or -d) is allowed per invocation of 3crypt.\n", stderr );
-				std::fputs( Help_Suggestion, stderr );
+				std::fputs( Mode_Already_Set, stderr );
+				std::fputs( Help_Suggestion , stderr );
 				std::exit( EXIT_FAILURE );
 			}
 			mode = Mode_e::Symmetric_Decrypt;
 		} else if (in_map[ i ].first == "--dump-header") {
 			if (mode != Mode_e::None) {
-				std::fputs( "Error: Program mode already set.\n"
-					    "(Only one mode switch (e.g. -e or -d) is allowed per invocation of 3crypt.\n", stderr );
+				std::fputs( Mode_Already_Set, stderr );
+				std::fputs( Help_Suggestion , stderr );
 				std::exit( EXIT_FAILURE );
 			}
 			mode = Mode_e::Dump_Fileheader;
@@ -65,12 +66,11 @@ process_mode_args	(Arg_Map_t && in_map, Mode_e & mode) {
 			std::fprintf( stderr, "Error: floating arguments ( %s ) not allowed.\n", in_map[ i ].second.c_str() );
 			std::fputs( Help_Suggestion, stderr );
 			std::exit( EXIT_FAILURE );
-		} else {
+		} else
 			extraneous_args.push_back( std::move( in_map[ i ] ) );
-		}
 	}
 	return extraneous_args;
-}
+}/* process_mode_args */
 
 /*
  * Arg_Map_t process_encrypt_arguments(Arg_Map_t && opt_arg_pairs,

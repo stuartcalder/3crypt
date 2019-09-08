@@ -50,7 +50,7 @@ namespace threecrypt::cbc_v2 {
 			char pwcheck [Max_Password_Length + 1];
 			bool repeat = true;
 			do {
-				static_assert(sizeof(password) == sizeof(pwcheck));
+				static_assert (sizeof(password) == sizeof(pwcheck));
 				memset( password, 0, sizeof(password) );
 				memset( pwcheck , 0, sizeof(pwcheck)  );
 				password_length = term.get_pw( password, Max_Password_Length, 1 );
@@ -64,7 +64,7 @@ namespace threecrypt::cbc_v2 {
 		}
 		// Create a header
 		CBC_V2_Header_t header;
-		static_assert(sizeof(header.id) == sizeof(CBC_V2_ID));
+		static_assert (sizeof(header.id) == sizeof(CBC_V2_ID));
 		memcpy( header.id, CBC_V2_ID, sizeof(header.id) );
 		header.total_size = static_cast<decltype(header.total_size)>(output_map.size);
 		puts( "Getting entropy from the OS..." );
@@ -191,7 +191,7 @@ namespace threecrypt::cbc_v2 {
 			in += sizeof(header.num_concat);
 		}
 		// Check for the magic "3CRYPT_CBC_V2" at the beginning of the file header
-		static_assert(sizeof(header.id) == sizeof(CBC_V2_ID));
+		static_assert (sizeof(header.id) == sizeof(CBC_V2_ID));
 		puts( "Checking header ID..." );
 		if (memcmp( header.id, CBC_V2_ID, sizeof(CBC_V2_ID) ) != 0) {
 			fprintf( stderr, "Error: The input file doesn't appear to be a %s encrypted file.\n", CBC_V2_ID );
