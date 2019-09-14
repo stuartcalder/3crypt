@@ -28,7 +28,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 
 /* Platform-Specific Includes */
 extern "C" {
-#if defined(__gnu_linux__)
+#if defined(__OpenBSD__) || defined(__gnu_linux__)
 #	include <sys/types.h> // For Some Types That We Need
 #	include <sys/stat.h>  // The stat() Family of Functions
 #	include <fcntl.h>     // File Control Options
@@ -38,7 +38,7 @@ extern "C" {
 #	include <windows.h>    // Windows Functions, Macros, Etc.
 #	include <memoryapi.h>  // Windows Memory-Mapping API
 #else
-#	error "Currently, only Gnu/Linux and 64-bit MS Windows are implemented."
+#	error "Currently, only OpenBSD, GNU/Linux, and 64-bit MS Windows are implemented."
 #endif
 }/*  extern "C" */
 
