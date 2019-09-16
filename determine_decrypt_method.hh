@@ -21,7 +21,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include "3crypt.hh"
 #include "cbc_v2.hh"
 
-#ifndef _WIN64
+#ifdef __gnu_linux__
 #	include "cbc_v1.hh"
 #endif
 
