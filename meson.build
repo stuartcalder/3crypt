@@ -6,7 +6,7 @@ cc = meson.get_compiler( 'cpp' )
 os = host_machine.system()
 #Determine what implementation files are needed
 _3crypt_src = [ 'cbc_v2.cc', 'determine_decrypt_method.cc', 'main.cc' ]
-if os != 'windows'
+if os == 'linux'
     _3crypt_src += 'cbc_v1.cc'
 endif
 #Determine 3crypt library dependencies & header includes
