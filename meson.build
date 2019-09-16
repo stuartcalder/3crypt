@@ -14,7 +14,7 @@ _3crypt_dep_array = []
 ssc_inc_array     = []
 if os == 'openbsd'
 	_3crypt_dep_array += cc.find_library('ncurses')
-	_3crypt_dep_array += cc.find_library('ssc')
+	_3crypt_dep_array += cc.find_library('ssc', dirs: '/usr/local/lib')
 	ssc_inc_array += include_directories('/usr/local/include')
 	executable('3crypt', sources: _3crypt_src, dependencies: _3crypt_dep_array,
 		   include_directories: ssc_inc_array, install: true)
