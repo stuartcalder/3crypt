@@ -11,9 +11,6 @@ the following disclaimer in the documentation and/or other materials provided wi
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 #include "3crypt.hh"
-#ifdef __gnu_linux__
-#	include "cbc_v1.hh"
-#endif
 #include "cbc_v2.hh"
 #include "determine_decrypt_method.hh"
 #include "input_abstraction.hh"
@@ -269,11 +266,6 @@ main	(int const argc, char const *argv[]) {
 					threecrypt::cbc_v2::CBC_V2_decrypt( input_abstr.input_filename.c_str(), input_abstr.output_filename.c_str() );
 					break;
 #endif
-#ifdef CBC_V1_HH
-				case (Decryption_Method_e::CBC_V1):
-					threecrypt::cbc_v1::CBC_V1_decrypt( input_abstr.input_filename.c_str(), input_abstr.output_filename.c_str() );
-					break;
-#endif
 			}/* ! switch( method ) */
 		}
 		break;/* ! case( Mode_e::Symmetric_Decrypt ) */
@@ -294,12 +286,6 @@ main	(int const argc, char const *argv[]) {
 #ifdef CBC_V2_HH
 				case (Decryption_Method_e::CBC_V2):
 					threecrypt::cbc_v2::dump_header( input_abstr.input_filename.c_str() );
-					break;
-#endif
-#ifdef CBC_V1_HH
-				case (Decryption_Method_e::CBC_V1):
-					std::fputs( "Error: Dumping CBC_V1 headers not supported.\n", stderr );
-					std::exit( EXIT_FAILURE );
 					break;
 #endif
 			}
