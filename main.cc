@@ -237,11 +237,11 @@ main	(int const argc, char const *argv[]) {
 			std::exit( EXIT_FAILURE );
 		case (Mode_e::Symmetric_Encrypt):
 			{
-			auto const remaining_args = process_encrypt_arguments( std::move( mode_specific_arguments ), input_abstr );
-			if (!remaining_args.empty())
-				die_unneeded_args( remaining_args );
-			threecrypt::cbc_v2::CBC_V2_encrypt( input_abstr );
+				auto const remaining_args = process_encrypt_arguments( std::move( mode_specific_arguments ), input_abstr );
+				if (!remaining_args.empty())
+					die_unneeded_args( remaining_args );
 			}
+			threecrypt::cbc_v2::encrypt( input_abstr );
 		break;
 		case (Mode_e::Symmetric_Decrypt):
 		{
@@ -263,7 +263,7 @@ main	(int const argc, char const *argv[]) {
 					std::exit( EXIT_FAILURE );
 #ifdef CBC_V2_HH
 				case (Decryption_Method_e::CBC_V2):
-					threecrypt::cbc_v2::CBC_V2_decrypt( input_abstr.input_filename.c_str(), input_abstr.output_filename.c_str() );
+					threecrypt::cbc_v2::decrypt( input_abstr.input_filename.c_str(), input_abstr.output_filename.c_str() );
 					break;
 #endif
 			}/* ! switch( method ) */

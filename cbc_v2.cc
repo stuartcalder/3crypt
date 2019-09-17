@@ -32,7 +32,7 @@ namespace threecrypt::cbc_v2 {
 	}
 
 	void
-	CBC_V2_encrypt	(Input_Abstraction const & input_abstr) {
+	encrypt	(Input_Abstraction const & input_abstr) {
 		using namespace std;
 
 		ssc::OS_Map input_map, output_map;
@@ -142,10 +142,10 @@ namespace threecrypt::cbc_v2 {
 		puts( "Closing files..." );
 		ssc::close_os_file( input_map.os_file );
 		ssc::close_os_file( output_map.os_file );
-	}/* ! CBC_V2_encrypt */
+	}/* encrypt */
 	void
-	CBC_V2_decrypt	(char const * __restrict input_filename,
-			 char const * __restrict output_filename) {
+	decrypt	(char const * __restrict input_filename,
+		 char const * __restrict output_filename) {
 		using namespace std;
 
 		ssc::OS_Map input_map, output_map;
@@ -292,7 +292,7 @@ namespace threecrypt::cbc_v2 {
 		puts( "Closing files..." );
 		ssc::close_os_file( input_map.os_file );
 		ssc::close_os_file( output_map.os_file );
-	}/* ! CBC_V2_decrypt */
+	}/* decrypt */
 	
 	void
 	dump_header	(char const * filename) {
