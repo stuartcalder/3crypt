@@ -72,7 +72,7 @@ namespace threecrypt::cbc_v1 {
 		ssc::sspkdf( derived_key, password, password_length, header.sspkdf_salt, header.num_iter, header.num_concat );
 		ssc::zero_sensitive( password, sizeof(password) );
 		{
-			Cipher_Mode_t cbc{ Threefish_t{ derived_key, header.tweak } };
+			CBC_t cbc{ Threefish_t{ derived_key, header.tweak } };
 			out += cbc.encrypt( input_map.ptr, out, input_map.size, header.cbc_iv );
 		}
 		{
@@ -169,7 +169,7 @@ namespace threecrypt::cbc_v1 {
 			/* Create a CipherBlockChaining object using Threefish and the
 			* derived key & cipher tweak. Prepare to decrypt.
 			*/
-			Cipher_Mode_t cbc{ Threefish_t{ derived_key, header.tweak } };
+			CBC_t cbc{ Threefish_t{ derived_key, header.tweak } };
 			ssc::zero_sensitive( derived_key, sizeof(derived_key) ); // Securely zero over the derived key, now that we'v consumed it.
 			/* All the metadata of a CBC_V1 encrypted file is in the header,
 			* and the M.A.C. appended to the end of the file

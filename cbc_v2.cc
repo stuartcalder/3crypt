@@ -120,7 +120,7 @@ namespace threecrypt::cbc_v2 {
 		{
 			// Encrypt the input file, writing the ciphertext into the memory-mapped output file
 			puts( "Encrypting..." );
-			Cipher_Mode_t cbc{ Threefish_t{ derived_key, header.tweak } };
+			CBC_t cbc{ Threefish_t{ derived_key, header.tweak } };
 			out += cbc.encrypt( input_map.ptr, out, input_map.size, header.cbc_iv );
 		}
 		{	/* Create a 512-bit Message Authentication Code of the ciphertext, using the derived key and the ciphertext with Skein's native MAC
@@ -269,7 +269,7 @@ namespace threecrypt::cbc_v2 {
 		{
 			// Decrypt the input file's ciphertext into the output file, recording the number of bytes of plaintext in `plaintext_size`
 			puts( "Decrypting..." );
-			Cipher_Mode_t cbc{ Threefish_t{ derived_key, header.tweak } };
+			CBC_t cbc{ Threefish_t{ derived_key, header.tweak } };
 			// Securely zero over the derived key now that we're done with it
 			ssc::zero_sensitive( derived_key, sizeof(derived_key) );
 			static constexpr auto const File_Metadata_Size = CBC_V2_Header_t::Total_Size + MAC_Bytes;
