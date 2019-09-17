@@ -76,7 +76,7 @@ namespace threecrypt {
 	// Abstractly Define Cryptographic Primitives
 	using Threefish_t   = ssc::Threefish<Block_Bits>;				/*Use Threefish<Block_Bits> as Default Block-Cipher in 3crypt.*/
 	using Skein_t       = ssc::Skein    <Block_Bits>;				/*Use Skein<Block_Bits> as Default Cryptographic Hash-Function in 3crypt.*/
-	using CBC_t =       ssc::CipherBlockChaining<Threefish_t, Block_Bits>;	/*Use Threefish block cipher in Cipher-Block-Chaining Mode.*/
+	using CBC_t         = ssc::CipherBlockChaining<Threefish_t, Block_Bits>;	/*Use Threefish block cipher in Cipher-Block-Chaining Mode.*/
 	// Abstractly Define Standard Types
 	using Arg_Map_t   = typename ssc::Arg_Mapping::Arg_Map_t;   // Use std::vector<std::pair<std::string, std::string>> to Store Passed-Arguments.
 	using namespace ssc::ints;                                  // Import ssc defined integers... like u8_t, u32_t, u64_t, etc.
