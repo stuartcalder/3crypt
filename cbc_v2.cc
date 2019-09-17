@@ -355,4 +355,4 @@ namespace threecrypt::cbc_v2 {
 		ssc::print_integral_buffer<u8_t>( mac, sizeof(mac) );
 		std::putchar( '\n' );
 	}/* ! dump_header */
-} /* ! namespace threecrypt::cbc_v1 */
+} /* ! namespace threecrypt::cbc_v2 */

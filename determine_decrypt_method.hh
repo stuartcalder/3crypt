@@ -21,10 +21,6 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include "3crypt.hh"
 #include "cbc_v2.hh"
 
-#ifdef __gnu_linux__
-#	include "cbc_v1.hh"
-#endif
-
 namespace threecrypt {
 	static constexpr size_t
 	determine_biggest_identifier_string_size (void) {
@@ -32,10 +28,6 @@ namespace threecrypt {
 #ifdef CBC_V2_HH
 		if ( sizeof(cbc_v2::CBC_V2_ID) > s )
 			s = sizeof(cbc_v2::CBC_V2_ID);
-#endif
-#ifdef CBC_V1_HH
-		if ( sizeof(cbc_v1::CBC_V1_ID) > s )
-			s = sizeof(cbc_v1::CBC_V1_ID);
 #endif
 		return s;
 	}/* ! threecrypt::determine_biggest_identifier_string_size() */
@@ -48,19 +40,12 @@ namespace threecrypt {
 		if ( sizeof(cbc_v2::CBC_V2_ID) < s )
 			s = sizeof(cbc_v2::CBC_V2_ID);
 #endif
-#ifdef CBC_V1_HH
-		if ( sizeof(cbc_v1::CBC_V1_ID) < s )
-			s = sizeof(cbc_v1::CBC_V1_ID);
-#endif
 		return s;
 	}/* ! threecrypt::determine_smallest_identifier_string_size() */
 	constexpr size_t const Smallest_Identifier_String_Size = determine_smallest_identifier_string_size();
 
 	enum class Decryption_Method_e {
 		None,
-#ifdef CBC_V1_HH
-		CBC_V1,
-#endif
 #ifdef CBC_V2_HH
 		CBC_V2,
 #endif
