@@ -150,7 +150,7 @@ namespace threecrypt::cbc_v2 {
 
 		ssc::OS_Map input_map, output_map;
 		puts( "Opening input and output files..." );
-		input_map.os_file = ssc::open_existing_os_file( input_filename, true );
+		input_map.os_file  = ssc::open_existing_os_file( input_filename, true );
 		output_map.os_file = ssc::create_os_file( output_filename );
 		// Get the size fo the input file
 		input_map.size = ssc::get_file_size( input_map.os_file );

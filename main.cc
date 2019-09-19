@@ -258,7 +258,7 @@ main	(int const argc, char const *argv[]) {
 					std::exit( EXIT_FAILURE );
 				case (Decryption_Method_e::None):
 					std::fprintf( stderr, "Error: the input file `%s` does not appear to be a valid 3crypt encrypted file.\n",
-					input_abstr.input_filename.c_str() );
+					              input_abstr.input_filename.c_str() );
 					std::fputs( Help_Suggestion, stderr );
 					std::exit( EXIT_FAILURE );
 #ifdef CBC_V2_HH
