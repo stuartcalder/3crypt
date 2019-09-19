@@ -20,7 +20,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 namespace threecrypt::cbc_v2 {
 
 	static size_t
-	calculate_CBC_V2_size	(size_t const pre_encryption_size) {
+	calculate_encrypted_size	(size_t const pre_encryption_size) {
 		/* CBC_V2 encrypted files */
 		constexpr auto const File_Metadata_Size = CBC_V2_Header_t::Total_Size + MAC_Bytes;
 		auto s = pre_encryption_size;
@@ -45,7 +45,7 @@ namespace threecrypt::cbc_v2 {
 		// Determine input file size
 		input_map.size = ssc::get_file_size( input_map.os_file );
 		// Determine output file size
-		output_map.size = calculate_CBC_V2_size( input_map.size );
+                output_map.size = calculate_encrypted_size( input_map.size );
 		// Extend or shrink the output file to match calculated file size
 		puts( "Resizing output file..." );
 		ssc::set_os_file_size( output_map.os_file, output_map.size );
