@@ -1,5 +1,6 @@
 /*
-Copyright 2019 Stuart Steven Calder
+Copyright 2019 (c) Stuart Steven Calder
+All rights reserved.
 
 Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
 
@@ -246,7 +247,7 @@ main	(int const argc, char const *argv[]) {
 		case (Mode_e::Symmetric_Decrypt):
 		{
 			auto const remaining_args = process_decrypt_arguments( std::move( mode_specific_arguments ),
-			input_abstr.input_filename, input_abstr.output_filename );
+									       input_abstr.input_filename, input_abstr.output_filename );
 			if (!remaining_args.empty())
 				die_unneeded_args( remaining_args );
 			ssc::enforce_file_existence( input_abstr.input_filename.c_str(), true );
