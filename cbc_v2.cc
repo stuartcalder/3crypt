@@ -179,7 +179,7 @@ namespace threecrypt::cbc_v2 {
 		u8_t const * in = input_map.ptr;
 		CBC_V2_Header_t header;
 		/* Copy all the fields of CBC_V2_Header_t from the memory-mapped file
-		into the header struct */
+		   into the header struct */
 		{
 			puts( "Copying header from the input file into memory..." );
 			memcpy( header.id, in, sizeof(header.id) );
