@@ -25,8 +25,8 @@ namespace threecrypt::cbc_v2 {
 	encrypt (Input_Abstraction const & input_abstr);
 
 	void
-	decrypt (char const * __restrict input_filename,
-	 	 char const * __restrict output_filename);
+	decrypt (char const *__restrict input_filename,
+	 	 char const *__restrict output_filename);
 
 	void
 	dump_header (char const * filename);

@@ -144,8 +144,8 @@ namespace threecrypt::cbc_v2 {
 		ssc::close_os_file( output_map.os_file );
 	}/* encrypt */
 	void
-	decrypt	(char const * __restrict input_filename,
-		 char const * __restrict output_filename) {
+	decrypt	(char const *__restrict input_filename,
+		 char const *__restrict output_filename) {
 		using namespace std;
 
 		ssc::OS_Map input_map, output_map;
