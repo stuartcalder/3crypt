@@ -15,6 +15,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #define THREECRYPT_HH
 
 /* SSC Library Includes */
+#include <ssc/general/symbols.hh>	// Useful Macros
 #include <ssc/general/arg_mapping.hh>   // Processing Command-Line Arguments
 #include <ssc/general/static_string.hh> // Constexpr C-String Functionalities
 #include <ssc/general/integers.hh>      // Integer Type Aliases
@@ -29,7 +30,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 
 /* Platform-Specific Includes */
 extern "C" {
-#if defined(__OpenBSD__) || defined(__gnu_linux__)
+#if defined(__Unix_Like__)
 #	include <sys/types.h> // For Some Types That We Need
 #	include <sys/stat.h>  // The stat() Family of Functions
 #	include <fcntl.h>     // File Control Options
