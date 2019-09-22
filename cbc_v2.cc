@@ -81,9 +81,9 @@ namespace threecrypt::cbc_v2 {
 		memcpy( header.id, CBC_V2_ID, sizeof(header.id) );
 		header.total_size = static_cast<decltype(header.total_size)>(output_map.size);
 		puts( "Getting entropy from the OS..." );
-		ssc::generate_random_bytes( header.tweak      , sizeof(header.tweak)       );
-		ssc::generate_random_bytes( header.sspkdf_salt, sizeof(header.sspkdf_salt) );
-		ssc::generate_random_bytes( header.cbc_iv     , sizeof(header.cbc_iv)      );
+		ssc::obtain_os_entropy( header.tweak      , sizeof(header.tweak)       );
+		ssc::obtain_os_entropy( header.sspkdf_salt, sizeof(header.sspkdf_salt) );
+		ssc::obtain_os_entropy( header.cbc_iv     , sizeof(header.cbc_iv)      );
 		header.num_iter   = input_abstr.number_iterations;
 		header.num_concat = input_abstr.number_concatenations;
 		// Copy header into the file, field at a time, advancing the pointer
