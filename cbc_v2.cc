@@ -14,6 +14,8 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include <cstdio>
 
 #include <ssc/general/print.hh>
+#include <ssc/general/symbols.hh>
+#include <ssc/memory/os_memory_locking.hh>
 
 #include "cbc_v2.hh"
 #include "input_abstraction.hh"
@@ -61,6 +63,11 @@ namespace threecrypt::cbc_v2 {
 		{
 			ssc::Terminal term;
 			char pwcheck [Max_Password_Length + 1];
+#ifdef __SSC_memlocking__
+			ssc::lock_os_memory( password, sizeof(password) );
+			ssc::lock_os_memory( pwcheck , sizeof(pwcheck)  );
+			puts( "Successfuly locked the password buffer(s)..." );
+#endif
 			bool repeat = true;
 			do {
 				static_assert (sizeof(password) == sizeof(pwcheck));
@@ -74,6 +81,9 @@ namespace threecrypt::cbc_v2 {
 					term.notify( "Passwords don't match." );
 			} while (repeat);
 			ssc::zero_sensitive( pwcheck, sizeof(pwcheck) );
+#ifdef __SSC_memlocking__
+			ssc::unlock_os_memory( pwcheck, sizeof(pwcheck) );
+#endif
 		}
 		// Create a header
 		CBC_V2_Header_t header;
@@ -115,9 +125,16 @@ namespace threecrypt::cbc_v2 {
 		// Generate a 512-bit symmetric key using the password we got earlier as input
 		puts( "Generating symmetric key using SSPKDF..." );
 		u8_t derived_key [Block_Bytes];
+#ifdef __SSC_memlocking__
+		ssc::lock_os_memory( derived_key, sizeof(derived_key) );
+		puts( "Successfully locked the derived key..." );
+#endif
 		ssc::sspkdf( derived_key, password, password_length, header.sspkdf_salt, header.num_iter, header.num_concat );
 		// Securely zero over the password buffer after we've used it to generate the symmetric key
 		ssc::zero_sensitive( password, sizeof(password) );
+#ifdef __SSC_memlocking__
+		ssc::unlock_os_memory( password, sizeof(password) );
+#endif
 		{
 			// Encrypt the input file, writing the ciphertext into the memory-mapped output file
 			puts( "Encrypting..." );
@@ -132,6 +149,9 @@ namespace threecrypt::cbc_v2 {
 		}
 		// Securely zero over the derived key
 		ssc::zero_sensitive( derived_key, sizeof(derived_key) );
+#ifdef __SSC_memlocking__
+		ssc::unlock_os_memory( derived_key, sizeof(derived_key) );
+#endif
 		// Synchronize everything written to the output file
 		puts( "Synchronizing output mapping..." );
 		ssc::sync_map( output_map );
@@ -229,6 +249,10 @@ namespace threecrypt::cbc_v2 {
 		}
 		// Get the password
 		char password [Max_Password_Length + 1] = { 0 };
+#ifdef __SSC_memlocking__
+		ssc::lock_os_memory( password, sizeof(password) );
+		puts( "Successfuly locked the password buffer(s)..." );
+#endif
 		int password_length;
 		{
 			ssc::Terminal term;
@@ -236,10 +260,17 @@ namespace threecrypt::cbc_v2 {
 		}
 		// Generate a 512-bit symmetric key from the given password
 		u8_t derived_key [Block_Bytes];
+#ifdef __SSC_memlocking__
+		ssc::lock_os_memory( derived_key, sizeof(derived_key) );
+		puts( "Successfully locked the derived key..." );
+#endif
 		puts( "Generating symmetric key using SSPKDF..." );
 		ssc::sspkdf( derived_key, password, password_length, header.sspkdf_salt, header.num_iter, header.num_concat );
 		// Securely zero over the password now that we have the derived key
 		ssc::zero_sensitive( password, sizeof(password) );
+#ifdef __SSC_memlocking__
+		ssc::unlock_os_memory( password, sizeof(password) );
+#endif
 		{
 			// Generate a MAC using the ciphertext and the derived key, and compare it to the MAC at the end of the input file
 			u8_t gen_mac [MAC_Bytes];
@@ -256,6 +287,9 @@ namespace threecrypt::cbc_v2 {
 			puts( "Comparing generated MAC with the MAC at the end of the input file..." );
 			if (memcmp( gen_mac, (input_map.ptr + input_map.size - MAC_Bytes), MAC_Bytes) != 0) {
 				ssc::zero_sensitive( derived_key, sizeof(derived_key) );
+#ifdef __SSC_memlocking__
+				ssc::unlock_os_memory( derived_key, sizeof(derived_key) );
+#endif
 				fputs( "Error: Authentication failed.\n"
 				       "Possibilities: Wrong password, the file is corrupted, or it has been somehow tampered with.\n", stderr );
 				ssc::unmap_file( input_map );
@@ -273,6 +307,9 @@ namespace threecrypt::cbc_v2 {
 			CBC_t cbc{ Threefish_t{ derived_key, header.tweak } };
 			// Securely zero over the derived key now that we're done with it
 			ssc::zero_sensitive( derived_key, sizeof(derived_key) );
+#ifdef __SSC_memlocking__
+			ssc::unlock_os_memory( derived_key, sizeof(derived_key) );
+#endif
 			static constexpr auto const File_Metadata_Size = CBC_V2_Header_t::Total_Size + MAC_Bytes;
 			plaintext_size = cbc.decrypt( in,
 						      output_map.ptr,
