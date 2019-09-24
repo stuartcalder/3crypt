@@ -64,7 +64,7 @@ namespace threecrypt::cbc_v2 {
 			exit( EXIT_FAILURE );
 		}
 #	endif
-		if (pledge( "stdio rpath wpath cpath tty", NULL ) != 0) {
+		if (pledge( "stdio rpath wpath cpath tty fattr", NULL ) != 0) {
 			fputs( "Error: Failed to pledge\n", stderr );
 			exit( EXIT_FAILURE );
 		}
