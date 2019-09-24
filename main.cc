@@ -242,7 +242,11 @@ main	(int const argc, char const *argv[]) {
 				if (!remaining_args.empty())
 					die_unneeded_args( remaining_args );
 			}
+#ifdef CBC_V2_HH
 			threecrypt::cbc_v2::encrypt( input_abstr );
+#else
+#	error		"CBC_V2 header filed not included, when it is the only supported encryption method."
+#endif
 		break;
 		case (Mode_e::Symmetric_Decrypt):
 		{
