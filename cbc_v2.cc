@@ -20,7 +20,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include "cbc_v2.hh"
 #include "input_abstraction.hh"
 
-#ifdef __OpenBSD__
+#if 0 && defined(__OpenBSD__)
 extern "C" {
 #	include <unistd.h> // Include so we may use unveil() and pledge().
 }
@@ -48,7 +48,7 @@ namespace threecrypt::cbc_v2 {
 		/*
 		 * Disable this for now, until more research into how pledge() works is done.
 		 */
-#if 0 &&  __OpenBSD__
+#if 0 &&  defined(__OpenBSD__)
 #	if 0
 		if (unveil( input_abstr.input_filename.c_str(), "r" ) != 0) {		// The input file must be Read-only.
 			fputs( "Error: Failed to unveil the input file...\n", stderr );
