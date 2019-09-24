@@ -22,7 +22,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 
 #ifdef __OpenBSD__
 extern "C" {
-#	include <unistd.h>
+#	include <unistd.h> // Include so we may use unveil() and pledge().
 }
 #endif
 
@@ -64,7 +64,7 @@ namespace threecrypt::cbc_v2 {
 			exit( EXIT_FAILURE );
 		}
 #	endif
-		if (pledge( "stdio rpath wpath cpath", NULL ) != 0) {
+		if (pledge( "stdio rpath wpath cpath tty", NULL ) != 0) {
 			fputs( "Error: Failed to pledge\n", stderr );
 			exit( EXIT_FAILURE );
 		}
