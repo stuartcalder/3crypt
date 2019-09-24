@@ -45,7 +45,10 @@ namespace threecrypt::cbc_v2 {
 		using namespace std;
 
 		ssc::OS_Map input_map, output_map;
-#ifdef __OpenBSD__
+		/*
+		 * Disable this for now, until more research into how pledge() works is done.
+		 */
+#if 0 &&  __OpenBSD__
 #	if 0
 		if (unveil( input_abstr.input_filename.c_str(), "r" ) != 0) {		// The input file must be Read-only.
 			fputs( "Error: Failed to unveil the input file...\n", stderr );
