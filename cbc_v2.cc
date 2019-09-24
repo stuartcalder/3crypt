@@ -20,6 +20,12 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include "cbc_v2.hh"
 #include "input_abstraction.hh"
 
+#ifdef __OpenBSD__
+extern "C" {
+#	include <unistd.h>
+}
+#endif
+
 namespace threecrypt::cbc_v2 {
 
 	static size_t
@@ -39,6 +45,16 @@ namespace threecrypt::cbc_v2 {
 		using namespace std;
 
 		ssc::OS_Map input_map, output_map;
+#ifdef __OpenBSD__
+		if (unveil( input_abstr.input_filename.c_str(), "r" ) != 0) {		// The input file must be Read-only.
+			fputs( "Error: Failed to unveil the input file...\n", stderr );
+			exit( EXIT_FAILURE );
+		}
+		if (unveil( input_abstr.output_filename.c_str(), "rwc" ) != 0) {	// The output file is Read-Write, and will be Created.
+			fputs( "Error: Failed to unveil the output file...\n", stderr );
+			exit( EXIT_FAILURE );
+		}
+#endif
 
 		puts( "Opening input and output files..." );
 		// Open input file
