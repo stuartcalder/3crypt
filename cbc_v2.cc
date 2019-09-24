@@ -54,6 +54,14 @@ namespace threecrypt::cbc_v2 {
 			fputs( "Error: Failed to unveil the output file...\n", stderr );
 			exit( EXIT_FAILURE );
 		}
+		if (unveil( "/usr/local/bin", "rx" ) != 0) {
+			fputs( "Error: Failed to unveil the binary directory...\n", stderr );
+			exit( EXIT_FAILURE );
+		}
+		if (unveil( "/usr/local/lib", "rx" ) != 0) {
+			fputs( "Error: Failed to unveil the library directory...\n", stderr );
+			exit( EXIT_FAILURE );
+		}
 #endif
 
 		puts( "Opening input and output files..." );
