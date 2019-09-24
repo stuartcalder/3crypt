@@ -46,6 +46,7 @@ namespace threecrypt::cbc_v2 {
 
 		ssc::OS_Map input_map, output_map;
 #ifdef __OpenBSD__
+#	if 0
 		if (unveil( input_abstr.input_filename.c_str(), "r" ) != 0) {		// The input file must be Read-only.
 			fputs( "Error: Failed to unveil the input file...\n", stderr );
 			exit( EXIT_FAILURE );
@@ -60,6 +61,11 @@ namespace threecrypt::cbc_v2 {
 		}
 		if (unveil( "/usr/local/lib", "rx" ) != 0) {
 			fputs( "Error: Failed to unveil the library directory...\n", stderr );
+			exit( EXIT_FAILURE );
+		}
+#	endif
+		if (pledge( "stdio rpath wpath cpath ", NULL ) != 0) {
+			fputs( "Error: Failed to pledge\n", stderr );
 			exit( EXIT_FAILURE );
 		}
 #endif
