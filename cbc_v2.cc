@@ -45,45 +45,25 @@ namespace threecrypt::cbc_v2 {
 		using namespace std;
 
 		ssc::OS_Map input_map, output_map;
-#if 0 &&  defined(__OpenBSD__)
-#	if 0
-		if (unveil( input_abstr.input_filename.c_str(), "r" ) != 0) {		// The input file must be Read-only.
-			fputs( "Error: Failed to unveil the input file...\n", stderr );
-			exit( EXIT_FAILURE );
-		}
-		if (unveil( input_abstr.output_filename.c_str(), "rwc" ) != 0) {	// The output file is Read-Write, and will be Created.
-			fputs( "Error: Failed to unveil the output file...\n", stderr );
-			exit( EXIT_FAILURE );
-		}
-		if (unveil( "/usr/local/bin", "rx" ) != 0) {
-			fputs( "Error: Failed to unveil the binary directory...\n", stderr );
-			exit( EXIT_FAILURE );
-		}
-		if (unveil( "/usr/local/lib", "rx" ) != 0) {
-			fputs( "Error: Failed to unveil the library directory...\n", stderr );
-			exit( EXIT_FAILURE );
-		}
-#	endif
-		if (pledge( "stdio rpath wpath cpath tty fattr", NULL ) != 0) {
-			fputs( "Error: Failed to pledge\n", stderr );
-			exit( EXIT_FAILURE );
-		}
-#endif
 
 /* OpenBSD-specific security enhancing systemcalls */
 #ifdef __OpenBSD__
+		// Allow reading and executing everything under /usr.
 		if (unveil( "/usr", "rx" ) != 0) {
 			fputs( "Error: Failed to unveil() /usr\n", stderr );
 			exit( EXIT_FAILURE );
 		}
+		// Allow reading the input file.
 		if (unveil( input_abstr.input_filename.c_str(), "r" ) != 0) {
 			fputs( "Error: Failed to unveil() the input file...\n", stderr );
 			exit( EXIT_FAILURE );
 		}
+		// Allow reading, writing, and creating the output file.
 		if (unveil( input_abstr.output_filename.c_str(), "rwc" ) != 0) {
 			fputs( "Error: Failed to unveil() the output file...\n", stderr );
 			exit( EXIT_FAILURE );
 		}
+		// Disallow further unveil() calls.
 		if (unveil( NULL, NULL ) != 0) {
 			fputs( "Error: Failed to finalize unveil()\n", stderr );
 		}
@@ -221,18 +201,22 @@ namespace threecrypt::cbc_v2 {
 
 		ssc::OS_Map input_map, output_map;
 #ifdef __OpenBSD__
+		// Allow reading and executing everything under /usr.
 		if (unveil( "/usr", "rx" ) != 0) {
 			fputs( "Error: Failed to unveil() /usr\n", stderr );
 			exit( EXIT_FAILURE );
 		}
+		// Allow reading the input file.
 		if (unveil( input_filename, "r" ) != 0) {
 			fputs( "Error: Failed to unveil() the input file...\n", stderr );
 			exit( EXIT_FAILURE );
 		}
+		// Allow reading, writing, and creating the output file.
 		if (unveil( output_filename, "rwc" ) != 0) {
 			fputs( "Error: Failed to unveil() the output file...\n", stderr );
 			exit( EXIT_FAILURE );
 		}
+		// Disallow further unveil() calls.
 		if (unveil( NULL, NULL ) != 0) {
 			fputs( "Error: Failed to finalize unveil()\n", stderr );
 		}
