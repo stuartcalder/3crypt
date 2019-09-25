@@ -20,7 +20,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include "cbc_v2.hh"
 #include "input_abstraction.hh"
 
-#if 0 && defined(__OpenBSD__)
+#if 1 && defined(__OpenBSD__)
 extern "C" {
 #	include <unistd.h> // Include so we may use unveil() and pledge().
 }
@@ -45,9 +45,6 @@ namespace threecrypt::cbc_v2 {
 		using namespace std;
 
 		ssc::OS_Map input_map, output_map;
-		/*
-		 * Disable this for now, until more research into how pledge() works is done.
-		 */
 #if 0 &&  defined(__OpenBSD__)
 #	if 0
 		if (unveil( input_abstr.input_filename.c_str(), "r" ) != 0) {		// The input file must be Read-only.
@@ -71,6 +68,26 @@ namespace threecrypt::cbc_v2 {
 			fputs( "Error: Failed to pledge\n", stderr );
 			exit( EXIT_FAILURE );
 		}
+#endif
+
+/* OpenBSD-specific security enhancing systemcalls */
+#ifdef __OpenBSD__
+		if (unveil( "/usr", "rx" ) != 0) {
+			fputs( "Error: Failed to unveil() /usr\n", stderr );
+			exit( EXIT_FAILURE );
+		}
+		if (unveil( input_abstr.input_filename.c_str(), "r" ) != 0) {
+			fputs( "Error: Failed to unveil() the input file...\n", stderr );
+			exit( EXIT_FAILURE );
+		}
+		if (unveil( input_abstr.output_filename.c_str(), "rwc" ) != 0) {
+			fputs( "Error: Failed to unveil() the output file...\n", stderr );
+			exit( EXIT_FAILURE );
+		}
+		if (unveil( NULL, NULL ) != 0) {
+			fputs( "Error: Failed to finalize unveil()\n", stderr );
+		}
+		puts( "Successfully restricted filesystem visibility with pledge()" );
 #endif
 
 		puts( "Opening input and output files..." );
@@ -203,6 +220,24 @@ namespace threecrypt::cbc_v2 {
 		using namespace std;
 
 		ssc::OS_Map input_map, output_map;
+#ifdef __OpenBSD__
+		if (unveil( "/usr", "rx" ) != 0) {
+			fputs( "Error: Failed to unveil() /usr\n", stderr );
+			exit( EXIT_FAILURE );
+		}
+		if (unveil( input_filename, "r" ) != 0) {
+			fputs( "Error: Failed to unveil() the input file...\n", stderr );
+			exit( EXIT_FAILURE );
+		}
+		if (unveil( output_filename, "rwc" ) != 0) {
+			fputs( "Error: Failed to unveil() the output file...\n", stderr );
+			exit( EXIT_FAILURE );
+		}
+		if (unveil( NULL, NULL ) != 0) {
+			fputs( "Error: Failed to finalize unveil()\n", stderr );
+		}
+		puts( "Successfully restricted filesystem visibility with pledge()" );
+#endif
 		puts( "Opening input and output files..." );
 		input_map.os_file  = ssc::open_existing_os_file( input_filename, true );
 		output_map.os_file = ssc::create_os_file( output_filename );
