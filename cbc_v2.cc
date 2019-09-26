@@ -67,7 +67,7 @@ namespace threecrypt::cbc_v2 {
 		if (unveil( NULL, NULL ) != 0) {
 			fputs( "Error: Failed to finalize unveil()\n", stderr );
 		}
-		puts( "Successfully restricted filesystem visibility with pledge()" );
+		puts( "Successfully restricted filesystem visibility with unveil()" );
 #endif
 
 		puts( "Opening input and output files..." );
@@ -153,7 +153,7 @@ namespace threecrypt::cbc_v2 {
 		}
 
 		// Generate a 512-bit symmetric key using the password we got earlier as input
-		puts( "Generating symmetric key using SSPKDF..." );
+		puts( "Generating symmetric key using sspkdf..." );
 		u8_t derived_key [Block_Bytes];
 #ifdef __SSC_memlocking__
 		ssc::lock_os_memory( derived_key, sizeof(derived_key) );
@@ -220,7 +220,7 @@ namespace threecrypt::cbc_v2 {
 		if (unveil( NULL, NULL ) != 0) {
 			fputs( "Error: Failed to finalize unveil()\n", stderr );
 		}
-		puts( "Successfully restricted filesystem visibility with pledge()" );
+		puts( "Successfully restricted filesystem visibility with unveil()" );
 #endif
 		puts( "Opening input and output files..." );
 		input_map.os_file  = ssc::open_existing_os_file( input_filename, true );
