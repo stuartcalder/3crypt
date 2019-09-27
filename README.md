@@ -58,16 +58,17 @@ sudo ninja install
 ```
 5. 3crypt should now be successfully installed on your GNU/Linux system.
 ### On Microsoft Windows(c) systems
-1. build and install [ssc](https://github.com/stuartcalder/ssc).
-	- Make sure the header files for [ssc](https://github.com/stuartcalder/ssc) are in __C:/include/__.
-	- Make sure that __ssc.lib__ is in __C:/lib/__.
-2. git clone [3crypt](https://github.com/stuartcalder/3crypt) anywhere.
-3. cd into the 3crypt project directory, and execute:
+1. Before attempting to build 3crypt, build and install [ssc](https://github.com/stuartcalder/ssc).
+	- Make sure the header files for [ssc](https://github.com/stuartcalder/ssc) are in __C:/include__.
+	- Make sure that __ssc.lib__ is in __C:/lib__.
+2. Create the directory __C:/bin__ if it does not exist.
+3. git clone [3crypt](https://github.com/stuartcalder/3crypt) anywhere.
+4. cd into the 3crypt project directory, and execute:
 ```
 meson --backend=ninja builddir
 ```
-4. cd into builddir, and execute:
+5. cd into builddir, and execute:
 ```
 ninja
 ```
-5. copy the output file, __3crypt.exe__ into the directory __C:/bin/__.
+6. copy the output file, __3crypt.exe__ into the directory __C:/bin__.
