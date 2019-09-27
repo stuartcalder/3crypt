@@ -291,7 +291,7 @@ namespace threecrypt::cbc_v2 {
 		puts( "Comparing file size with size in the input file header..." );
 		if (header.total_size != static_cast<decltype(header.total_size)>(input_map.size)) {
 			fprintf( stderr, "Error: Input file size (%zu) does not equal file size in the file header of the input file (%zu)\n",
-				 header.total_size, input_map.size );
+				 input_map.size, header.total_size );
 			ssc::unmap_file( input_map );
 			ssc::unmap_file( output_map );
 			ssc::close_os_file( input_map.os_file );
