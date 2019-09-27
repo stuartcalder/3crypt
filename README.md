@@ -1,8 +1,8 @@
 # 3crypt
-A simple C++17 command-line program for encrypting and decrypting files on OpenBSD, GNU/Linux, and Microsoft Windows(c), built upon the
+A simple C++17 command-line program for encrypting and decrypting files on OpenBSD, GNU/Linux, and Microsoft Windows, built upon the
 Threefish block cipher and the Skein cryptographic hash function. 3crypt provides 512 bits of symmetric security.
 ## Buildtime Dependencies
-### (OpenBSD, GNU/Linux, and Microsoft Windows(c))
+### (OpenBSD, GNU/Linux, and Microsoft Windows)
 -   [ssc](https://github.com/stuartcalder/ssc) header and library files.
 -   __meson__ frontend build system.
 -   __ninja__ backend build system.
@@ -31,7 +31,7 @@ or
 ## Building 3crypt with Meson
 ### On OpenBSD systems
 1. build and install [ssc](https://github.com/stuartcalder/ssc).
-	- Make sure the header files for [ssc](https://github.com/stuartcalder/ssc) are in __/usr/local/include/__.
+	- Make sure the root of the project directory for [ssc](https://github.com/stuartcalder/ssc) is in the __/usr/local/include__ directory.
 2. git clone [3crypt](https://github.com/stuartcalder/3crypt) anywhere.
 3. cd into the 3crypt project directory, and execute:
 ```
@@ -42,10 +42,10 @@ meson --backend=ninja builddir
 ninja
 doas ninja install
 ```
-5. 3crypt should now be successfully install on your OpenBSD system.
+5. 3crypt should now be successfully installed on your OpenBSD system.
 ### On GNU/Linux systems
 1. build and install [ssc](https://github.com/stuartcalder/ssc).
-	- Make sure the header files for [ssc](https://github.com/stuartcalder/ssc) are in __/usr/include/__.
+	- Make sure the root of the project directory for [ssc](https://github.com/stuartcalder/ssc) is in the __/usr/include__ directory.
 2. git clone [3crypt](https://github.com/stuartcalder/3crypt) anywhere.
 3. cd into the 3crypt project directory, and execute:
 ```
@@ -57,10 +57,10 @@ ninja
 sudo ninja install
 ```
 5. 3crypt should now be successfully installed on your GNU/Linux system.
-### On Microsoft Windows(c) systems
+### On Microsoft Windows systems
 1. Before attempting to build 3crypt, build and install [ssc](https://github.com/stuartcalder/ssc).
-	- Make sure the header files for [ssc](https://github.com/stuartcalder/ssc) are in __C:/include__.
-	- Make sure that __ssc.lib__ is in __C:/lib__.
+	- Make sure the root of the project director for [ssc](https://github.com/stuartcalder/ssc) is in the __C:/include__ directory.
+	- Make sure that __ssc.lib__ is in the __C:/lib__ directory.
 2. Create the directory __C:/bin__ if it does not exist.
 3. git clone [3crypt](https://github.com/stuartcalder/3crypt) anywhere.
 4. cd into the 3crypt project directory, and execute:
@@ -72,3 +72,4 @@ meson --backend=ninja builddir
 ninja
 ```
 6. copy the output file, __3crypt.exe__ into the directory __C:/bin__.
+7. 3crypt should now be successfully installed on your 64-bit Windows system.
