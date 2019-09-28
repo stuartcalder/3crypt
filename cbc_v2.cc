@@ -316,7 +316,7 @@ namespace threecrypt::cbc_v2 {
 		ssc::lock_os_memory( derived_key, sizeof(derived_key) );
 		puts( "Successfully locked the derived key..." );
 #endif
-		puts( "Generating symmetric key using SSPKDF..." );
+		puts( "Generating symmetric key using sspkdf..." );
 		ssc::sspkdf( derived_key, password, password_length, header.sspkdf_salt, header.num_iter, header.num_concat );
 		// Securely zero over the password now that we have the derived key
 		ssc::zero_sensitive( password, sizeof(password) );
