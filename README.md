@@ -73,3 +73,7 @@ ninja
 ```
 6. copy the output file, __3crypt.exe__ into the directory __C:/bin__.
 7. 3crypt should now be successfully installed on your 64-bit Windows system.
+8. For now, to invoke 3crypt for encryption as example:
+```
+C:\bin\3crypt --encrypt --input-file plaintext --output-file ciphertext
+```
