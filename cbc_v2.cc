@@ -88,31 +88,33 @@ namespace threecrypt::cbc_v2 {
 		puts( "Mapping output file..." );
 		ssc::map_file( output_map, false );
 		// Get the password
-		char password [Max_Password_Length + 1];
+		constexpr auto const Password_Buffer_Bytes = Max_Password_Length + 1;
+		char password [Password_Buffer_Bytes];
 		int password_length;
 		{
 			ssc::Terminal term;
-			char pwcheck [Max_Password_Length + 1];
+			char pwcheck [Password_Buffer_Bytes];
 #ifdef __SSC_memlocking__
-			ssc::lock_os_memory( password, sizeof(password) );
-			ssc::lock_os_memory( pwcheck , sizeof(pwcheck)  );
+			ssc::lock_os_memory( password, Password_Buffer_Bytes );
+			ssc::lock_os_memory( pwcheck , Password_Buffer_Bytes );
 			puts( "Successfully locked the password buffer(s)..." );
 #endif
 			bool repeat = true;
 			do {
-				static_assert (sizeof(password) == sizeof(pwcheck));
-				memset( password, 0, sizeof(password) );
-				memset( pwcheck , 0, sizeof(pwcheck)  );
+				static_assert (sizeof(password) == Password_Buffer_Bytes);
+				static_assert (sizeof(pwcheck)  == Password_Buffer_Bytes);
+				memset( password, 0, Password_Buffer_Bytes );
+				memset( pwcheck , 0, Password_Buffer_Bytes );
 				password_length = term.get_pw( password, Max_Password_Length, 1 );
 				static_cast<void>(term.get_pw( pwcheck , Max_Password_Length, 1 ));
-				if (memcmp( password, pwcheck, sizeof(password) ) == 0)
+				if (memcmp( password, pwcheck, Password_Buffer_Bytes ) == 0)
 					repeat = false;
 				else
 					term.notify( "Passwords don't match." );
 			} while (repeat);
-			ssc::zero_sensitive( pwcheck, sizeof(pwcheck) );
+			ssc::zero_sensitive( pwcheck, Password_Buffer_Bytes );
 #ifdef __SSC_memlocking__
-			ssc::unlock_os_memory( pwcheck, sizeof(pwcheck) );
+			ssc::unlock_os_memory( pwcheck, Password_Buffer_Bytes );
 #endif
 		}
 		// Create a header
