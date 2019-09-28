@@ -96,7 +96,7 @@ namespace threecrypt::cbc_v2 {
 #ifdef __SSC_memlocking__
 			ssc::lock_os_memory( password, sizeof(password) );
 			ssc::lock_os_memory( pwcheck , sizeof(pwcheck)  );
-			puts( "Successfuly locked the password buffer(s)..." );
+			puts( "Successfully locked the password buffer(s)..." );
 #endif
 			bool repeat = true;
 			do {
