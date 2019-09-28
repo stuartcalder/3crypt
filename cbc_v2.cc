@@ -303,7 +303,7 @@ namespace threecrypt::cbc_v2 {
 		char password [Max_Password_Length + 1] = { 0 };
 #ifdef __SSC_memlocking__
 		ssc::lock_os_memory( password, sizeof(password) );
-		puts( "Successfuly locked the password buffer(s)..." );
+		puts( "Successfully locked the password buffer(s)..." );
 #endif
 		int password_length;
 		{
