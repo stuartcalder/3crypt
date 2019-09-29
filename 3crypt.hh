@@ -28,7 +28,6 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include <ssc/interface/terminal.hh>    // Terminal Interface
 
 /* Platform-Specific Includes */
-extern "C" {
 #if defined(__Unix_Like__)
 #	include <sys/types.h> // For Some Types That We Need
 #	include <sys/stat.h>  // The stat() Family of Functions
@@ -41,7 +40,6 @@ extern "C" {
 #else
 #	error "Currently, only OpenBSD, GNU/Linux, and 64-bit MS Windows are implemented."
 #endif
-}/*  extern "C" */
 
 /* Standard Library Includes */
 #include <cstdlib>
