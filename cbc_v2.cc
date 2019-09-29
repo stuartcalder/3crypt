@@ -20,10 +20,8 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include "cbc_v2.hh"
 #include "input_abstraction.hh"
 
-#if 1 && defined(__OpenBSD__)
-extern "C" {
+#ifdef __OpenBSD__
 #	include <unistd.h> // Include so we may use unveil() and pledge().
-}
 #endif
 
 namespace threecrypt::cbc_v2 {
