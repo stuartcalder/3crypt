@@ -64,6 +64,7 @@ namespace threecrypt::cbc_v2 {
 		// Disallow further unveil() calls.
 		if (unveil( NULL, NULL ) != 0) {
 			fputs( "Error: Failed to finalize unveil()\n", stderr );
+			exit( EXIT_FAILURE );
 		}
 		puts( "Successfully restricted filesystem visibility with unveil()" );
 #endif
