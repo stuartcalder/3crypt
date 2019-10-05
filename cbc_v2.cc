@@ -241,7 +241,7 @@ namespace threecrypt::cbc_v2 {
 			remove( output_filename );
 			exit( EXIT_FAILURE );
 		}
-		// Set the output file to be `f_data.output_filesize` bytes
+		// Set the output file to be `output_map.size` bytes
 		puts( "Resizing output file..." );
 		ssc::set_os_file_size( output_map.os_file, output_map.size );
 		// Memory-map the input and output files
