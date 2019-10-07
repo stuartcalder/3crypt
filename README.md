@@ -60,6 +60,7 @@ sudo ninja install
 ### On Microsoft Windows systems
 1. Before attempting to build 3crypt, build and install [ssc](https://github.com/stuartcalder/ssc).
 	- Make sure the root of the project director for [ssc](https://github.com/stuartcalder/ssc) is in the __C:/include__ directory.
+	  Create this directory if it does not exist.
 	- Make sure that __ssc.lib__ is in the __C:/lib__ directory.
 2. Create the directory __C:/bin__ if it does not exist.
 3. git clone [3crypt](https://github.com/stuartcalder/3crypt) anywhere.
