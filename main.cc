@@ -107,11 +107,6 @@ process_mode_args	(Arg_Map_t && in_map, Mode_e & mode) {
  *  *Outputs:    input and output filenames are written, return unused argument
  *               pairs
  */
-#if 0
-static Arg_Map_t
-process_encrypt_arguments	(Arg_Map_t && opt_arg_pairs,
-                                 threecrypt::Input_Abstraction & input_abstr) {
-#endif
 static Arg_Map_t
 process_encrypt_arguments	(Arg_Map_t && opt_arg_pairs,
 		                 Default_Input_t & encr_input) {
