@@ -48,6 +48,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include <vector>
 
 namespace threecrypt {
+#if 0
 	static_assert (CHAR_BIT == 8);
 	static constexpr auto const Salt_Bits   = 128;             // Sufficiently-Big 128-Bit Salt for SSPKDF.
 	static constexpr auto const Salt_Bytes  = Salt_Bits / 8;   // Number of SSPKDF Salt Bytes.
@@ -76,10 +77,12 @@ namespace threecrypt {
 	using Threefish_t   = ssc::Threefish<Block_Bits>;				/*Use Threefish<Block_Bits> as Default Block-Cipher in 3crypt.*/
 	using Skein_t       = ssc::Skein    <Block_Bits>;				/*Use Skein<Block_Bits> as Default Cryptographic Hash-Function in 3crypt.*/
 	using CBC_t         = ssc::CipherBlockChaining<Threefish_t, Block_Bits>;	/*Use Threefish block cipher in Cipher-Block-Chaining Mode.*/
+#endif
 	// Abstractly Define Standard Types
 	using Arg_Map_t   = typename ssc::Arg_Mapping::Arg_Map_t;   // Use std::vector<std::pair<std::string, std::string>> to Store Passed-Arguments.
 	using namespace ssc::ints;                                  // Import ssc defined integers... like u8_t, u32_t, u64_t, etc.
 
+#if 0
 	/* Structure Describing a File-Header: The Beginning Metadata of
 	 * 3crypt-Related files that use SSPKDF as their key-derivation function ( i.e. 3CRYPT_CBC_V2 ).
 	 */
@@ -97,4 +100,5 @@ namespace threecrypt {
 							 sizeof(sspkdf_salt) + sizeof(cbc_iv) + sizeof(num_iter) +
 							 sizeof(num_concat);
 	};
+#endif
 } /* ! namespace threecrypt */
