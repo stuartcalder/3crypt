@@ -43,7 +43,7 @@ static constexpr auto const & Help_String = "Usage: 3crypt Mode [Switches...]\n\
 					    "--concat-count    Concatenation Count (Default: 1,000,000); Higher takes more time. May only be specified for encryption.\n";
 static constexpr auto const & Help_Suggestion = "( Use 3crypt --help for more information )\n";
 #ifdef __SSC_CBC_V2__
-using Default_Input_t = typename::ssc::cbc_v2::Encrypt_Input;
+using Default_Input_t = typename ssc::cbc_v2::Encrypt_Input;
 #else
 #	error "CBC_V2 the only currently supported decrypt method."
 #endif
@@ -309,27 +309,27 @@ main	(int const argc, char const *argv[]) {
 			}
 			break;/* ! case( Mode_e::Symmetric_Decrypt ) */
 		case (Mode_e::Dump_Fileheader):
-		{
-			auto const remaining_args = process_dump_header_arguments( std::move( mode_specific_arguments ), input.input_filename );
-			if (!remaining_args.empty())
-				die_unneeded_args( remaining_args );
-			ssc::enforce_file_existence( input.input_filename.c_str(), true );
-			auto const method = ssc::determine_crypto_method( input.input_filename.c_str() );
-			switch (method) {
-				default:
-				case (Crypto_Method_e::None):
-					std::fprintf( stderr, "Error: The input file `%s` does not appear to be a valid 3crypt encrypted file.\n",
-						      input.input_filename.c_str() );
-					std::fputs( Help_Suggestion, stderr );
-					std::exit( EXIT_FAILURE );
+			{
+				auto const remaining_args = process_dump_header_arguments( std::move( mode_specific_arguments ), input.input_filename );
+				if (!remaining_args.empty())
+					die_unneeded_args( remaining_args );
+				ssc::enforce_file_existence( input.input_filename.c_str(), true );
+				auto const method = ssc::determine_crypto_method( input.input_filename.c_str() );
+				switch (method) {
+					default:
+					case (Crypto_Method_e::None):
+						std::fprintf( stderr, "Error: The input file `%s` does not appear to be a valid 3crypt encrypted file.\n",
+							      input.input_filename.c_str() );
+						std::fputs( Help_Suggestion, stderr );
+						std::exit( EXIT_FAILURE );
 #ifdef __SSC_CBC_V2__
-				case (Crypto_Method_e::CBC_V2):
-					ssc::cbc_v2::dump_header( input.input_filename.c_str() );
-					break;
+					case (Crypto_Method_e::CBC_V2):
+						ssc::cbc_v2::dump_header( input.input_filename.c_str() );
+						break;
 #endif
+				}
 			}
-		}
-		break;/* ! case( Mode_e::Dump_Fileheader ) */
+			break;/* ! case( Mode_e::Dump_Fileheader ) */
 	} /* ! switch ( mode ) */
 
 	return EXIT_SUCCESS;
