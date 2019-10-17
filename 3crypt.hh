@@ -20,7 +20,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include <ssc/general/integers.hh>      // Integer Type Aliases
 #include <ssc/crypto/operations.hh>     // Genericized Cryptographic Operations
 #include <ssc/crypto/threefish.hh>      // Threefish Tweakable Block Cipher
-#include <ssc/crypto/cipherblockchaining.hh>            // Cipher Block Chaining Mode for Threefish
+#include <ssc/crypto/cipher_block_chaining.hh>	// Cipher Block Chaining mode for Threefish
 #include <ssc/crypto/skein.hh>          // Skein hash function for its Message Authentication Code Functionality
 #include <ssc/crypto/sspkdf.hh>         // SSPKDF Key-Derivation Function
 #include <ssc/files/files.hh>           // Genericized File-Related Functions
