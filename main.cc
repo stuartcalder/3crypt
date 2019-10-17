@@ -11,8 +11,6 @@ the following disclaimer in the documentation and/or other materials provided wi
 
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
-#include "3crypt.hh"
-
 #include <cstdlib>
 #include <string>
 #include <utility>
@@ -21,6 +19,10 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include <ssc/general/integers.hh>
 #include <ssc/crypto/implementation/cbc_v2.hh>
 #include <ssc/crypto/implementation/determine_crypto_method.hh>
+
+#ifdef __OpenBSD__
+#	include <unistd.h>
+#endif
 
 enum class Mode_e {
 	None,
@@ -274,6 +276,28 @@ main	(int const argc, char const *argv[]) {
 				if (!remaining_args.empty())
 					die_unneeded_args( remaining_args );
 			}
+#ifdef __OpenBSD__
+			// Allow reading and executing everything under /usr.
+			if (unveil( "/usr", "r" ) != 0) {
+				std::fputs( "Error: Failed to unveil() /usr\n", stderr );
+				std::exit( EXIT_FAILURE );
+			}
+			// Allow reading the input file.
+			if (unveil( input.input_filename.c_str(), "r" ) != 0) {
+				std::fputs( "Error: Failed to unveil() the input file...\n", stderr );
+				std::exit( EXIT_FAILURE );
+			}
+			// Allow reading, writing, and creating the output file.
+			if (unveil( input.output_filename.c_str(), "rwc" ) != 0) {
+				std::fputs( "Error: Failed to unveil() the output file...\n", stderr );
+				std::exit( EXIT_FAILURE );
+			}
+			// Disable further unveil() calls.
+			if (unveil( nullptr, nullptr ) != 0) {
+				std::fputs( "Error: Failed to finalize unveil()\n", stderr );
+				std::exit( EXIT_FAILURE );
+			}
+#endif
 #ifdef __SSC_CBC_V2__
 			ssc::cbc_v2::encrypt( input );
 #else
@@ -300,6 +324,28 @@ main	(int const argc, char const *argv[]) {
 						std::exit( EXIT_FAILURE );
 #ifdef __SSC_CBC_V2__
 					case (Crypto_Method_e::CBC_V2):
+#ifdef __OpenBSD__
+						// Allow reading everything under /usr.
+						if (unveil( "/usr", "r" ) != 0) {
+							std::fputs( "Error: Failed to unveil() /usr\n", stderr );
+							std::exit( EXIT_FAILURE );
+						}
+						// Allow reading the input file.
+						if (unveil( input.input_filename.c_str(), "r" ) != 0) {
+							std::fputs( "Error: Failed to unveil() the input file...\n", stderr );
+							std::exit( EXIT_FAILURE );
+						}
+						// Allow reading, writing, and creating the output file.
+						if (unveil( input.output_filename.c_str(), "rwc" ) != 0) {
+							std::fputs( "Error: Failed to unveil() the output file...\n", stderr );
+							std::exit( EXIT_FAILURE );
+						}
+						// Disable further unveil() calls.
+						if (unveil( nullptr, nullptr ) != 0) {
+							std::fputs( "Error: Failed to finalize unveil()\n", stderr );
+							std::exit( EXIT_FAILURE );
+						}
+#endif
 						ssc::cbc_v2::decrypt( input.input_filename.c_str(), input.output_filename.c_str() );
 						break;
 #else
