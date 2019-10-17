@@ -17,6 +17,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 
 #include <ssc/general/parse_string.hh>
 #include <ssc/general/integers.hh>
+#include <ssc/general/arg_mapping.hh>
 #include <ssc/crypto/implementation/cbc_v2.hh>
 #include <ssc/crypto/implementation/determine_crypto_method.hh>
 
