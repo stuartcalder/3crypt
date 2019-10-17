@@ -277,7 +277,7 @@ main	(int const argc, char const *argv[]) {
 				if (!remaining_args.empty())
 					die_unneeded_args( remaining_args );
 			}
-#if 0 && defined(__OpenBSD__)
+#ifdef __OpenBSD__
 			// Allow reading and executing everything under /usr.
 			if (unveil( "/usr", "rx" ) != 0) {
 				std::fputs( "Error: Failed to unveil() /usr\n", stderr );
@@ -325,7 +325,7 @@ main	(int const argc, char const *argv[]) {
 						std::exit( EXIT_FAILURE );
 #ifdef __SSC_CBC_V2__
 					case (Crypto_Method_e::CBC_V2):
-#if 0 && defined(__OpenBSD__)
+#ifdef __OpenBSD__
 						// Allow reading everything under /usr.
 						if (unveil( "/usr", "rx" ) != 0) {
 							std::fputs( "Error: Failed to unveil() /usr\n", stderr );
