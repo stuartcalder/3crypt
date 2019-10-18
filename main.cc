@@ -363,6 +363,10 @@ main	(int const argc, char const *argv[]) {
 					std::fputs( "Error: Failed to unveil() input file before header dump...\n", stderr );
 					std::exit( EXIT_FAILURE );
 				}
+				if (unveil( nullptr, nullptr ) != 0) {
+					std::fputs( "Error: Failed to finalize unveil()\n", stderr );
+					std::exit( EXIT_FAILURE );
+				}
 #endif/*#ifdef __OpenBSD__*/
 				switch (method) {
 					default:
