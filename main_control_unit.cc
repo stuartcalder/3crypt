@@ -236,7 +236,7 @@ namespace _3crypt {
 			ssc::check_file_name_sanity( pair.second, 1 );
 			if (pair.first == "-i" || pair.first == "--input-file") {
 				input_filename = pair.second;
-				if (output_filename.empty() && (input_filename.size() <= 4) && (input_filename.substr( input_filename.size() - 3 ) == ".3c")) {
+				if (output_filename.empty() && (input_filename.size() >= 4) && (input_filename.substr( input_filename.size() - 3 ) == ".3c")) {
 					output_filename = input_filename.substr( 0, input_filename.size() - 3 );
 				}
 			} else if (pair.first == "-o" || pair.first == "--output-file") {
