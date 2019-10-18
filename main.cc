@@ -22,7 +22,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include <ssc/crypto/implementation/determine_crypto_method.hh>
 
 #ifdef __OpenBSD__
-#	include <unistd.h>
+#	include <unistd.h>	// Include unistd.h for unveil().
 #endif
 
 enum class Mode_e {
@@ -218,11 +218,6 @@ process_decrypt_arguments	(Arg_Map_t && opt_arg_pairs,
 	return extraneous_args;
 }/* process_decrypt_arguments */
 
-#if 0
-static Arg_Map_t
-process_dump_header_arguments	(Arg_Map_t && opt_arg_pairs,
-                                 threecrypt::Input_Abstraction & input_abstr) {
-#endif
 static Arg_Map_t
 process_dump_header_arguments (Arg_Map_t &&opt_arg_pairs, std::string &filename) {
 	using namespace std;
@@ -258,9 +253,6 @@ int
 main	(int const argc, char const *argv[]) {
 
 	auto mode = Mode_e::None;
-#if 0
-	threecrypt::Input_Abstraction input_abstr;
-#endif
 	Default_Input_t input;
 	ssc::Arg_Mapping args{ argc, argv };
 	auto mode_specific_arguments = process_mode_args( args.consume(), mode );
@@ -298,7 +290,7 @@ main	(int const argc, char const *argv[]) {
 				std::fputs( "Error: Failed to finalize unveil()\n", stderr );
 				std::exit( EXIT_FAILURE );
 			}
-#endif
+#endif/*#ifdef __OpenBSD__*/
 #ifdef __SSC_CBC_V2__
 			ssc::cbc_v2::encrypt( input );
 #else
@@ -313,6 +305,28 @@ main	(int const argc, char const *argv[]) {
 					die_unneeded_args( remaining_args );
 				ssc::enforce_file_existence( input.input_filename.c_str(), true );
 				auto const method = ssc::determine_crypto_method( input.input_filename.c_str() );
+#ifdef __OpenBSD__
+				// Allow reading everything under /usr.
+				if (unveil( "/usr", "rx" ) != 0) {
+					std::fputs( "Error: Failed to unveil() /usr\n", stderr );
+					std::exit( EXIT_FAILURE );
+				}
+				// Allow reading the input file.
+				if (unveil( input.input_filename.c_str(), "r" ) != 0) {
+					std::fputs( "Error: Failed to unveil() the input file...\n", stderr );
+					std::exit( EXIT_FAILURE );
+				}
+				// Allow reading, writing, and creating the output file.
+				if (unveil( input.output_filename.c_str(), "rwc" ) != 0) {
+					std::fputs( "Error: Failed to unveil() the output file...\n", stderr );
+					std::exit( EXIT_FAILURE );
+				}
+				// Disable further unveil() calls.
+				if (unveil( nullptr, nullptr ) != 0) {
+					std::fputs( "Error: Failed to finalize unveil()\n", stderr );
+					std::exit( EXIT_FAILURE );
+				}
+#endif/*#ifdef __OpenBSD__*/
 				switch (method) {
 					default:
 						std::fprintf( stderr, "Error: Invalid decrypt method ( %d ).\n", static_cast<int>(method) );
@@ -325,36 +339,14 @@ main	(int const argc, char const *argv[]) {
 						std::exit( EXIT_FAILURE );
 #ifdef __SSC_CBC_V2__
 					case (Crypto_Method_e::CBC_V2):
-#ifdef __OpenBSD__
-						// Allow reading everything under /usr.
-						if (unveil( "/usr", "rx" ) != 0) {
-							std::fputs( "Error: Failed to unveil() /usr\n", stderr );
-							std::exit( EXIT_FAILURE );
-						}
-						// Allow reading the input file.
-						if (unveil( input.input_filename.c_str(), "r" ) != 0) {
-							std::fputs( "Error: Failed to unveil() the input file...\n", stderr );
-							std::exit( EXIT_FAILURE );
-						}
-						// Allow reading, writing, and creating the output file.
-						if (unveil( input.output_filename.c_str(), "rwc" ) != 0) {
-							std::fputs( "Error: Failed to unveil() the output file...\n", stderr );
-							std::exit( EXIT_FAILURE );
-						}
-						// Disable further unveil() calls.
-						if (unveil( nullptr, nullptr ) != 0) {
-							std::fputs( "Error: Failed to finalize unveil()\n", stderr );
-							std::exit( EXIT_FAILURE );
-						}
-#endif
 						ssc::cbc_v2::decrypt( input.input_filename.c_str(), input.output_filename.c_str() );
 						break;
 #else
 #	error	"Currently, only CBC_V2 is supported, and it appears to not be present."
-#endif
-				}/* ! switch( method ) */
+#endif/*#ifdef __SSC_CBC_V2__*/
+				}/*switch(method)*/
 			}
-			break;/* ! case( Mode_e::Symmetric_Decrypt ) */
+			break;/*case(Mode_e::Symmetric_Decrypt)*/
 		case (Mode_e::Dump_Fileheader):
 			{
 				auto const remaining_args = process_dump_header_arguments( std::move( mode_specific_arguments ), input.input_filename );
@@ -362,6 +354,16 @@ main	(int const argc, char const *argv[]) {
 					die_unneeded_args( remaining_args );
 				ssc::enforce_file_existence( input.input_filename.c_str(), true );
 				auto const method = ssc::determine_crypto_method( input.input_filename.c_str() );
+#ifdef __OpenBSD__
+				if (unveil( "/usr", "rx" ) != 0) {
+					std::fputs( "Error: Failed to unveil() /usr before decrypt...\n", stderr );
+					std::exit( EXIT_FAILURE );
+				}
+				if (unveil( input.input_filename.c_str(), "r" ) != 0) {
+					std::fputs( "Error: Failed to unveil() input file before header dump...\n", stderr );
+					std::exit( EXIT_FAILURE );
+				}
+#endif/*#ifdef __OpenBSD__*/
 				switch (method) {
 					default:
 					case (Crypto_Method_e::None):
@@ -371,23 +373,13 @@ main	(int const argc, char const *argv[]) {
 						std::exit( EXIT_FAILURE );
 #ifdef __SSC_CBC_V2__
 					case (Crypto_Method_e::CBC_V2):
-#ifdef __OpenBSD__
-						if (unveil( "/usr", "rx" ) != 0) {
-							std::fputs( "Error: Failed to unveil() /usr before decrypt...\n", stderr );
-							std::exit( EXIT_FAILURE );
-						}
-						if (unveil( input.input_filename.c_str(), "r" ) != 0) {
-							std::fputs( "Error: Failed to unveil() input file before CBC_V2 header dump...\n", stderr );
-							std::exit( EXIT_FAILURE );
-						}
-#endif
 						ssc::cbc_v2::dump_header( input.input_filename.c_str() );
 						break;
-#endif
+#endif/*#ifdef __SSC_CBC_V2__*/
 				}
 			}
-			break;/* ! case( Mode_e::Dump_Fileheader ) */
-	} /* ! switch ( mode ) */
+			break;/*case(Mode_e::Dump_Fileheader)*/
+	} /*switch(mode)*/
 
 	return EXIT_SUCCESS;
 }
