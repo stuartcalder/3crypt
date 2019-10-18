@@ -125,7 +125,7 @@ namespace _3crypt {
 		Arg_Map_t extraneous_arguments;
 		static constexpr auto const &Mode_Already_Set = "Error: Program mode already set\n"
 								"(Only one mode switch (e.g. -e or -d) is allowed per invocation of 3crypt.\n";
-		for (int i = 1; i < in_map.size(); ++i) {
+		for (size_t i = 1; i < in_map.size(); ++i) {
 			if (in_map[ i ].first == "-e" || in_map[ i ].first == "--encrypt") {
 				if (mode != Mode_E::None) {
 					fputs( Mode_Already_Set, stderr );
@@ -221,6 +221,7 @@ namespace _3crypt {
 				extraneous_arguments.push_back( std::move( pair ) );
 			}
 		}/*for(auto&&:opt_arg_pairs)*/
+		return extraneous_arguments;
 	}/*process_encrypt_arguments_(Arg_Map_t&&,Default_Input_t&)*/
 
 	Arg_Map_t
