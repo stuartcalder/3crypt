@@ -371,6 +371,16 @@ main	(int const argc, char const *argv[]) {
 						std::exit( EXIT_FAILURE );
 #ifdef __SSC_CBC_V2__
 					case (Crypto_Method_e::CBC_V2):
+#ifdef __OpenBSD__
+						if (unveil( "/usr", "rx" ) != 0) {
+							std::fputs( "Error: Failed to unveil() /usr before decrypt...\n", stderr );
+							std::exit( EXIT_FAILURE );
+						}
+						if (unveil( input.input_filename.c_str(), "r" ) != 0) {
+							std::fputs( "Error: Failed to unveil() input file before CBC_V2 header dump...\n", stderr );
+							std::exit( EXIT_FAILURE );
+						}
+#endif
 						ssc::cbc_v2::dump_header( input.input_filename.c_str() );
 						break;
 #endif
