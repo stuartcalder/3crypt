@@ -79,7 +79,7 @@ namespace _3crypt {
 						std::exit( EXIT_FAILURE );
 					}
 					// Allow reading, writing, modifying the output file.
-					if (unveil( input.output_filename.c_str(), "rwx" ) != 0) {
+					if (unveil( input.output_filename.c_str(), "rwc" ) != 0) {
 						std::fputs( "Failed to unveil() the output file\n", stderr );
 						std::exit( EXIT_FAILURE );
 					}
