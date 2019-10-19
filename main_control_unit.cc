@@ -34,7 +34,7 @@ namespace _3crypt {
 						die_unneeded_arguments_( remaining_arguments );
 					}
 				}
-#ifdef __OpenBSD__
+#if 0 && defined(__OpenBSD__)
 				// Allow reading and executing everything under /usr.
 				if (unveil( "/usr", "rx" ) != 0) {
 					std::fputs( "Failed to unveil() /usr\n", stderr );
@@ -67,7 +67,7 @@ namespace _3crypt {
 					auto const remaining_arguments = process_decrypt_arguments_( std::move( mode_specific_arguments ), input.input_filename, input.output_filename );
 					if (!remaining_arguments.empty())
 						die_unneeded_arguments_( remaining_arguments );
-#ifdef __OpenBSD__
+#if 0 && defined(__OpenBSD__)
 					// Allow reading and executing everything under /usr.
 					if (unveil( "/usr", "rx" ) != 0) {
 						std::fputs( "Failed to unveil() /usr\n", stderr );
