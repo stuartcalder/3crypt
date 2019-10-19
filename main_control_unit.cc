@@ -20,6 +20,13 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 
 namespace _3crypt {
 	Main_Control_Unit::Main_Control_Unit (int const arg_count, char const *arg_vect[]) {
+#ifdef __OpenBSD__
+		// Allow reading and executing everything under /usr on OpenBSD.
+		if (unveil( "/usr", "rx" ) != 0) {
+			std::fputs( "Failed to unveil() /usr\n", stderr );
+			std::exit( EXIT_FAILURE );
+		}
+#endif
 		auto mode_specific_arguments = process_mode_arguments_( ssc::Arg_Mapping{ arg_count, arg_vect }.consume(), mode );
 		switch (mode) {
 			default:
@@ -35,11 +42,6 @@ namespace _3crypt {
 					}
 				}
 #ifdef __OpenBSD__
-				// Allow reading and executing everything under /usr.
-				if (unveil( "/usr", "rx" ) != 0) {
-					std::fputs( "Failed to unveil() /usr\n", stderr );
-					std::exit( EXIT_FAILURE );
-				}
 				// Allow reading the input file.
 				if (unveil( input.input_filename.c_str(), "r" ) != 0) {
 					std::fputs( "Failed to unveil() the input file\n", stderr );
@@ -68,11 +70,6 @@ namespace _3crypt {
 					if (!remaining_arguments.empty())
 						die_unneeded_arguments_( remaining_arguments );
 #ifdef __OpenBSD__
-					// Allow reading and executing everything under /usr.
-					if (unveil( "/usr", "rx" ) != 0) {
-						std::fputs( "Failed to unveil() /usr\n", stderr );
-						std::exit( EXIT_FAILURE );
-					}
 					// Allow reading the input file.
 					if (unveil( input.input_filename.c_str(), "r" ) != 0) {
 						std::fputs( "Failed to unveil() the input file\n", stderr );
