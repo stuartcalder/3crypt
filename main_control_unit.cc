@@ -113,6 +113,23 @@ namespace _3crypt {
 					auto const remaining_arguments = process_dump_header_arguments_( std::move( mode_specific_arguments ), input.input_filename );
 					if (!remaining_arguments.empty())
 						die_unneeded_arguments_( remaining_arguments );
+#ifdef __OpenBSD__
+					// Allow reading and executing everything under /usr.
+					if (unveil( "/usr", "rx" ) != 0) {
+						std::fputs( "Failed to unveil() /usr\n", stderr );
+						std::exit( EXIT_FAILURE );
+					}
+					// Allow reading the input file.
+					if (unveil( input.input_filename.c_str(), "r" ) != 0) {
+						std::fputs( "Failed to unveil() the input file\n", stderr );
+						std::exit( EXIT_FAILURE );
+					}
+					// Finalize the unveil calls.
+					if (unveil( nullptr, nullptr ) != 0) {
+						std::fputs( "Failed to finalize unveil()\n", stderr );
+						std::exit( EXIT_FAILURE );
+					}
+#endif/*#ifdef __OpenBSD__*/
 					ssc::enforce_file_existence( input.input_filename.c_str(), true );
 					auto const method = ssc::determine_crypto_method( input.input_filename.c_str() );
 					switch (method) {
