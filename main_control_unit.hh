@@ -23,7 +23,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 
 namespace _3crypt {
 
-	using Crypto_Method_e = typename ssc::Crypto_Method_e;
+	using Crypto_Method_E = typename ssc::Crypto_Method_E;
 	using Arg_Map_t       = typename ssc::Arg_Mapping::Arg_Map_t;
 	using namespace ssc::ints;
 

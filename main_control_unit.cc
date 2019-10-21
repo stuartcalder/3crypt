@@ -96,12 +96,12 @@ namespace _3crypt {
 							std::fprintf( stderr, "Error: Invalid decrypt method ( %d ).\n", static_cast<int>(crypt_method) );
 							std::fputs( Help_Suggestion, stderr );
 							std::exit( EXIT_FAILURE );
-						case (Crypto_Method_e::None):
+						case (Crypto_Method_E::None):
 							std::fprintf( stderr, "Error: The input file `%s` does not appear to be a valid 3crypt encrypted file.\n", input.input_filename.c_str() );
 							std::fputs( Help_Suggestion, stderr );
 							std::exit( EXIT_FAILURE );
 #ifdef __SSC_CBC_V2__
-						case (Crypto_Method_e::CBC_V2):
+						case (Crypto_Method_E::CBC_V2):
 							ssc::cbc_v2::decrypt( input.input_filename.c_str(), input.output_filename.c_str() );
 							break;
 #endif
@@ -134,12 +134,12 @@ namespace _3crypt {
 					auto const method = ssc::determine_crypto_method( input.input_filename.c_str() );
 					switch (method) {
 						default:
-						case (Crypto_Method_e::None):
+						case (Crypto_Method_E::None):
 							std::fprintf( stderr, "Error: The input file `%s` does not appear to be a valid 3crypt encrypted file.\n", input.input_filename.c_str() );
 							std::fputs( Help_Suggestion, stderr );
 							std::exit( EXIT_FAILURE );
 #ifdef __SSC_CBC_V2__
-						case (Crypto_Method_e::CBC_V2):
+						case (Crypto_Method_E::CBC_V2):
 							ssc::cbc_v2::dump_header( input.input_filename.c_str() );
 							break;
 #endif
