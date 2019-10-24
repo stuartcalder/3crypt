@@ -187,7 +187,7 @@ namespace _3crypt {
 			} else {
 				extraneous_arguments.push_back( std::move( in_map[ i ] ) );
 			}
-		}
+		}/*for(size_t i=1;i<in_map.size();++i)*/
 		return extraneous_arguments;
 	}/*process_mode_arguments_(Arg_Map_t&&,Mode_E&)*/
 
@@ -274,7 +274,7 @@ namespace _3crypt {
 			} else {
 				extraneous_arguments.push_back( std::move( pair ) );
 			}
-		}
+		}/*for(auto &&pair:opt_arg_pairs)*/
 		if (input_filename.empty()) {
 			fputs( "Error: the input filename was not specified (zero length filename disallowed)\n", stderr );
 			fputs( Help_Suggestion, stderr );
@@ -300,7 +300,7 @@ namespace _3crypt {
 				filename = pair.second;
 			else
 				extraneous_arguments.push_back( move( pair ) );
-		}
+		}/*for(auto &&pair:opt_arg_pairs)*/
 		if (filename.empty()) {
 			fputs( "Error: Input filename not specified for file-header dump.\n", stderr );
 			fputs( Help_Suggestion, stderr );
