@@ -35,21 +35,17 @@ namespace _3crypt {
 				}
 #ifdef __OpenBSD__
 				// Allow reading and executing everything under /usr.
-				if (unveil( "/usr", "rx" ) != 0) {
+				if (unveil( "/usr", "rx" ) != 0)
 					errx( "Failed to unveil() /usr\n" );
-				}
 				// Allow reading the input file.
-				if (unveil( input.input_filename.c_str(), "r" ) != 0) {
+				if (unveil( input.input_filename.c_str(), "r" ) != 0)
 					errx( "Failed to unveil() the input file\n" );
-				}
 				// Allow reading, writing, and creating the input file.
-				if (unveil( input.output_filename.c_str(), "rwc" ) != 0) {
+				if (unveil( input.output_filename.c_str(), "rwc" ) != 0)
 					errx( "Failed to unveil() the output file\n" );
-				}
 				// Finalize the unveil calls.
-				if (unveil( nullptr, nullptr ) != 0) {
+				if (unveil( nullptr, nullptr ) != 0)
 					errx( "Failed to finalize unveil()\n" );
-				}
 #endif/*#ifdef __OpenBSD__*/
 #ifdef __SSC_CBC_V2__
 				ssc::cbc_v2::encrypt( input );
@@ -64,21 +60,17 @@ namespace _3crypt {
 						die_unneeded_arguments_( remaining_arguments );
 #ifdef __OpenBSD__
 					// Allow reading and executing everything under /usr.
-					if (unveil( "/usr", "rx" ) != 0) {
+					if (unveil( "/usr", "rx" ) != 0)
 						errx( "Failed to unveil() /usr\n" );
-					}
 					// Allow reading the input file.
-					if (unveil( input.input_filename.c_str(), "r" ) != 0) {
+					if (unveil( input.input_filename.c_str(), "r" ) != 0)
 						errx( "Failed to unveil() the input file\n" );
-					}
 					// Allow reading, writing, modifying the output file.
-					if (unveil( input.output_filename.c_str(), "rwc" ) != 0) {
+					if (unveil( input.output_filename.c_str(), "rwc" ) != 0)
 						errx( "Failed to unveil() the output file\n" );
-					}
 					// Finalize the unveil calls.
-					if (unveil( nullptr, nullptr ) != 0) {
+					if (unveil( nullptr, nullptr ) != 0)
 						errx( "Failed to finalize unveil()\n" );
-					}
 #endif/*#ifdef __OpenBSD__*/
 					ssc::enforce_file_existence( input.input_filename.c_str(), true );
 					auto const crypt_method = ssc::determine_crypto_method( input.input_filename.c_str() );
@@ -102,17 +94,14 @@ namespace _3crypt {
 						die_unneeded_arguments_( remaining_arguments );
 #ifdef __OpenBSD__
 					// Allow reading and executing everything under /usr.
-					if (unveil( "/usr", "rx" ) != 0) {
+					if (unveil( "/usr", "rx" ) != 0)
 						errx( "Failed to unveil() /usr\n" );
-					}
 					// Allow reading the input file.
-					if (unveil( input.input_filename.c_str(), "r" ) != 0) {
+					if (unveil( input.input_filename.c_str(), "r" ) != 0)
 						errx( "Failed to unveil() the input file\n" );
-					}
 					// Finalize the unveil calls.
-					if (unveil( nullptr, nullptr ) != 0) {
+					if (unveil( nullptr, nullptr ) != 0)
 						errx( "Failed to finalize unveil()\n" );
-					}
 #endif/*#ifdef __OpenBSD__*/
 					ssc::enforce_file_existence( input.input_filename.c_str(), true );
 					auto const method = ssc::determine_crypto_method( input.input_filename.c_str() );
@@ -139,19 +128,16 @@ namespace _3crypt {
 								"(Only one mode switch (e.g. -e or -d) is allowed per invocation of 3crypt.\n";
 		for (size_t i = 1; i < in_map.size(); ++i) {
 			if (in_map[ i ].first == "-e" || in_map[ i ].first == "--encrypt") {
-				if (mode != Mode_E::None) {
+				if (mode != Mode_E::None)
 					errx( "%s\n%s\n", Mode_Already_Set, Help_Suggestion );
-				}
 				mode = Mode_E::Symmetric_Encrypt;
 			} else if (in_map[ i ].first == "-d" || in_map[ i ].first == "--decrypt") {
-				if (mode != Mode_E::None) {
+				if (mode != Mode_E::None)
 					errx( "%s\n%s\n", Mode_Already_Set, Help_Suggestion );
-				}
 				mode = Mode_E::Symmetric_Decrypt;
 			} else if (in_map[ i ].first == "--dump-header") {
-				if (mode != Mode_E::None) {
+				if (mode != Mode_E::None)
 					errx( "%s\n%s\n", Mode_Already_Set, Help_Suggestion );
-				}
 				mode = Mode_E::Dump_Fileheader;
 			} else if (in_map[ i ].first == "-h" || in_map[ i ].first == "--help") {
 				fputs( Help_String, stdout );
@@ -192,27 +178,23 @@ namespace _3crypt {
 			} else if (pair.first == "--iter-count") {
 				static constexpr decltype(pair.second.size()) const Max_Count_Chars = 10;
 				std::string count = std::move( pair.second );
-				if (count.size() > Max_Count_Chars) {
+				if (count.size() > Max_Count_Chars)
 					errx( "Error: The specified iteration count (%s) is too large.\n%s", count.c_str(), Help_Suggestion );
-				}
 				if (ssc::enforce_integer( count )) {
 					auto const num_iter = static_cast<u32_t>(atoi( count.c_str() ));
-					if (num_iter == 0) {
+					if (num_iter == 0)
 						errx( "Error: Number iterations specified is zero.\n" );
-					}
 					encr_input.number_iterations = num_iter;
 				}
 			} else if (pair.first == "--concat-count") {
 				static constexpr decltype(pair.second.size()) const Max_Count_Chars = 10;
 				std::string count = std::move( pair.second );
-				if (count.size() > Max_Count_Chars) {
+				if (count.size() > Max_Count_Chars)
 					errx( "Error: The specified concatenation count (%s) is too large.\n%s", count.c_str(), Help_Suggestion );
-				}
 				if (ssc::enforce_integer( count )) {
 					auto const num_concat = static_cast<u32_t>(atoi( count.c_str() ));
-					if (num_concat == 0) {
+					if (num_concat == 0)
 						errx( "Error: Number concatenations specified is zero.\n" );
-					}
 					encr_input.number_concatenations = num_concat;
 				}
 			} else {
@@ -243,12 +225,10 @@ namespace _3crypt {
 				extraneous_arguments.push_back( std::move( pair ) );
 			}
 		}/*for(auto &&pair:opt_arg_pairs)*/
-		if (input_filename.empty()) {
+		if (input_filename.empty())
 			errx( "Error: The input filename was not specified (zero length filenames disallowed)\n" );
-		}
-		if (output_filename.empty()) {
+		if (output_filename.empty())
 			errx( "Error: The output filename was not specified (zero length filenames disallowed)\n" );
-		}
 		return extraneous_arguments;
 	}/*process_decrypt_arguments_(Arg_Mapt_t&&,std::string&,std::string&)*/
 
@@ -265,9 +245,8 @@ namespace _3crypt {
 			else
 				extraneous_arguments.push_back( move( pair ) );
 		}/*for(auto &&pair:opt_arg_pairs)*/
-		if (filename.empty()) {
+		if (filename.empty())
 			errx( "Error: Input filename not specified for file-header dump.\n%s", Help_Suggestion );
-		}
 		return extraneous_arguments;
 	}/*process_dump_header_arguments_(Arg_Map_t&&,std::string&)*/
 
