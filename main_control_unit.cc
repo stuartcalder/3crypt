@@ -26,11 +26,6 @@ namespace _3crypt {
 			default:
 			case (Mode_E::None):
 				errx( "Error: No mode selected or invalid mode (%d)\n%s", static_cast<int>(mode), Help_Suggestion );
-#if 0
-				std::fprintf( stderr, "Error: No mode selected, or invalid mode: ( %d )\n", static_cast<int>(mode) );
-				std::fputs( Help_Suggestion, stderr );
-				std::exit( EXIT_FAILURE );
-#endif
 			case (Mode_E::Symmetric_Encrypt):
 				{
 					auto const remaining_arguments = process_encrypt_arguments_( std::move( mode_specific_arguments ), input );
@@ -42,34 +37,18 @@ namespace _3crypt {
 				// Allow reading and executing everything under /usr.
 				if (unveil( "/usr", "rx" ) != 0) {
 					errx( "Failed to unveil() /usr\n" );
-#if 0
-					std::fputs( "Failed to unveil() /usr\n", stderr );
-					std::exit( EXIT_FAILURE );
-#endif
 				}
 				// Allow reading the input file.
 				if (unveil( input.input_filename.c_str(), "r" ) != 0) {
 					errx( "Failed to unveil() the input file\n" );
-#if 0
-					std::fputs( "Failed to unveil() the input file\n", stderr );
-					std::exit( EXIT_FAILURE );
-#endif
 				}
 				// Allow reading, writing, and creating the input file.
 				if (unveil( input.output_filename.c_str(), "rwc" ) != 0) {
 					errx( "Failed to unveil() the output file\n" );
-#if 0
-					std::fputs( "Failed to unveil() the outputr file\n", stderr );
-					std::exit( EXIT_FAILURE );
-#endif
 				}
 				// Finalize the unveil calls.
 				if (unveil( nullptr, nullptr ) != 0) {
 					errx( "Failed to finalize unveil()\n" );
-#if 0
-					std::fputs( "Failed to finalize unveil()\n", stderr );
-					std::exit( EXIT_FAILURE );
-#endif
 				}
 #endif/*#ifdef __OpenBSD__*/
 #ifdef __SSC_CBC_V2__
@@ -87,34 +66,18 @@ namespace _3crypt {
 					// Allow reading and executing everything under /usr.
 					if (unveil( "/usr", "rx" ) != 0) {
 						errx( "Failed to unveil() /usr\n" );
-#if 0
-						std::fputs( "Failed to unveil() /usr\n", stderr );
-						std::exit( EXIT_FAILURE );
-#endif
 					}
 					// Allow reading the input file.
 					if (unveil( input.input_filename.c_str(), "r" ) != 0) {
 						errx( "Failed to unveil() the input file\n" );
-#if 0
-						std::fputs( "Failed to unveil() the input file\n", stderr );
-						std::exit( EXIT_FAILURE );
-#endif
 					}
 					// Allow reading, writing, modifying the output file.
 					if (unveil( input.output_filename.c_str(), "rwc" ) != 0) {
 						errx( "Failed to unveil() the output file\n" );
-#if 0
-						std::fputs( "Failed to unveil() the output file\n", stderr );
-						std::exit( EXIT_FAILURE );
-#endif
 					}
 					// Finalize the unveil calls.
 					if (unveil( nullptr, nullptr ) != 0) {
 						errx( "Failed to finalize unveil()\n" );
-#if 0
-						std::fputs( "Failed to finalize unveil()\n", stderr );
-						std::exit( EXIT_FAILURE );
-#endif
 					}
 #endif/*#ifdef __OpenBSD__*/
 					ssc::enforce_file_existence( input.input_filename.c_str(), true );
@@ -122,18 +85,8 @@ namespace _3crypt {
 					switch (crypt_method) {
 						default:
 							errx( "Error: Invalid decryption method (%d)\n", static_cast<int>(crypt_method) );
-#if 0
-							std::fprintf( stderr, "Error: Invalid decrypt method ( %d ).\n", static_cast<int>(crypt_method) );
-							std::fputs( Help_Suggestion, stderr );
-							std::exit( EXIT_FAILURE );
-#endif
 						case (Crypto_Method_E::None):
 							errx( "Error: The input file `%s` does not appear to be a valid 3crypt encrypted file.\n%s", input.input_filename.c_str(), Help_Suggestion );
-#if 0
-							std::fprintf( stderr, "Error: The input file `%s` does not appear to be a valid 3crypt encrypted file.\n", input.input_filename.c_str() );
-							std::fputs( Help_Suggestion, stderr );
-							std::exit( EXIT_FAILURE );
-#endif
 #ifdef __SSC_CBC_V2__
 						case (Crypto_Method_E::CBC_V2):
 							ssc::cbc_v2::decrypt( input.input_filename.c_str(), input.output_filename.c_str() );
@@ -151,26 +104,14 @@ namespace _3crypt {
 					// Allow reading and executing everything under /usr.
 					if (unveil( "/usr", "rx" ) != 0) {
 						errx( "Failed to unveil() /usr\n" );
-#if 0
-						std::fputs( "Failed to unveil() /usr\n", stderr );
-						std::exit( EXIT_FAILURE );
-#endif
 					}
 					// Allow reading the input file.
 					if (unveil( input.input_filename.c_str(), "r" ) != 0) {
 						errx( "Failed to unveil() the input file\n" );
-#if 0
-						std::fputs( "Failed to unveil() the input file\n", stderr );
-						std::exit( EXIT_FAILURE );
-#endif
 					}
 					// Finalize the unveil calls.
 					if (unveil( nullptr, nullptr ) != 0) {
 						errx( "Failed to finalize unveil()\n" );
-#if 0
-						std::fputs( "Failed to finalize unveil()\n", stderr );
-						std::exit( EXIT_FAILURE );
-#endif
 					}
 #endif/*#ifdef __OpenBSD__*/
 					ssc::enforce_file_existence( input.input_filename.c_str(), true );
@@ -179,11 +120,6 @@ namespace _3crypt {
 						default:
 						case (Crypto_Method_E::None):
 							errx( "Error: The input file `%s` does not appear to be a valid 3crypt encrypted file.\n%s", input.input_filename.c_str(), Help_Suggestion );
-#if 0
-							std::fprintf( stderr, "Error: The input file `%s` does not appear to be a valid 3crypt encrypted file.\n", input.input_filename.c_str() );
-							std::fputs( Help_Suggestion, stderr );
-							std::exit( EXIT_FAILURE );
-#endif
 #ifdef __SSC_CBC_V2__
 						case (Crypto_Method_E::CBC_V2):
 							ssc::cbc_v2::dump_header( input.input_filename.c_str() );
@@ -205,31 +141,16 @@ namespace _3crypt {
 			if (in_map[ i ].first == "-e" || in_map[ i ].first == "--encrypt") {
 				if (mode != Mode_E::None) {
 					errx( "%s\n%s\n", Mode_Already_Set, Help_Suggestion );
-#if 0
-					fputs( Mode_Already_Set, stderr );
-					fputs( Help_Suggestion, stderr );
-					exit( EXIT_FAILURE );
-#endif
 				}
 				mode = Mode_E::Symmetric_Encrypt;
 			} else if (in_map[ i ].first == "-d" || in_map[ i ].first == "--decrypt") {
 				if (mode != Mode_E::None) {
 					errx( "%s\n%s\n", Mode_Already_Set, Help_Suggestion );
-#if 0
-					fputs( Mode_Already_Set, stderr );
-					fputs( Help_Suggestion, stderr );
-					exit( EXIT_FAILURE );
-#endif
 				}
 				mode = Mode_E::Symmetric_Decrypt;
 			} else if (in_map[ i ].first == "--dump-header") {
 				if (mode != Mode_E::None) {
 					errx( "%s\n%s\n", Mode_Already_Set, Help_Suggestion );
-#if 0
-					fputs( Mode_Already_Set, stderr );
-					fputs( Help_Suggestion, stderr );
-					exit( EXIT_FAILURE );
-#endif
 				}
 				mode = Mode_E::Dump_Fileheader;
 			} else if (in_map[ i ].first == "-h" || in_map[ i ].first == "--help") {
@@ -237,11 +158,6 @@ namespace _3crypt {
 				exit( EXIT_SUCCESS );
 			} else if (in_map[ i ].first.empty() && !(in_map[ i ].second.empty())) {
 				errx( "Error: Floating arguments (%s) not allowed\n%s", in_map[ i ].second.c_str(), Help_Suggestion );
-#if 0
-				fprintf( stderr, "Error: Floating arguments ( %s ) not allowed\n", in_map[ i ].second.c_str() );
-				fputs( Help_Suggestion, stderr );
-				exit( EXIT_FAILURE );
-#endif
 			} else {
 				extraneous_arguments.push_back( std::move( in_map[ i ] ) );
 			}
@@ -278,20 +194,11 @@ namespace _3crypt {
 				std::string count = std::move( pair.second );
 				if (count.size() > Max_Count_Chars) {
 					errx( "Error: The specified iteration count (%s) is too large.\n%s", count.c_str(), Help_Suggestion );
-#if 0
-					std::fprintf( stderr, "Error: the specified iteration count (%s) is too large.\n", count.c_str() );
-					std::fputs( Help_Suggestion, stderr );
-					std::exit( EXIT_FAILURE );
-#endif
 				}
 				if (ssc::enforce_integer( count )) {
 					auto const num_iter = static_cast<u32_t>(atoi( count.c_str() ));
 					if (num_iter == 0) {
 						errx( "Error: Number iterations specified is zero.\n" );
-#if 0
-						std::fputs( "Error: Number iterations specified is zero.\n", stderr );
-						std::exit( EXIT_FAILURE );
-#endif
 					}
 					encr_input.number_iterations = num_iter;
 				}
@@ -300,20 +207,11 @@ namespace _3crypt {
 				std::string count = std::move( pair.second );
 				if (count.size() > Max_Count_Chars) {
 					errx( "Error: The specified concatenation count (%s) is too large.\n%s", count.c_str(), Help_Suggestion );
-#if 0
-					std::fprintf( stderr, "Error: The specified concatenation count (%s) is too large.\n", count.c_str() );
-					std::fputs( Help_Suggestion, stderr );
-					std::exit( EXIT_FAILURE );
-#endif
 				}
 				if (ssc::enforce_integer( count )) {
 					auto const num_concat = static_cast<u32_t>(atoi( count.c_str() ));
 					if (num_concat == 0) {
 						errx( "Error: Number concatenations specified is zero.\n" );
-#if 0
-						std::fputs( "Error: Number concatenations specified is zero.\n", stderr );
-						std::exit( EXIT_FAILURE );
-#endif
 					}
 					encr_input.number_concatenations = num_concat;
 				}
@@ -347,19 +245,9 @@ namespace _3crypt {
 		}/*for(auto &&pair:opt_arg_pairs)*/
 		if (input_filename.empty()) {
 			errx( "Error: The input filename was not specified (zero length filenames disallowed)\n" );
-#if 0
-			fputs( "Error: the input filename was not specified (zero length filename disallowed)\n", stderr );
-			fputs( Help_Suggestion, stderr );
-			exit( EXIT_FAILURE );
-#endif
 		}
 		if (output_filename.empty()) {
 			errx( "Error: The output filename was not specified (zero length filenames disallowed)\n" );
-#if 0
-			fputs( "Error: the output filename was not specified (zero length filename disallowed)\n", stderr );
-			fputs( Help_Suggestion, stderr );
-			exit( EXIT_FAILURE );
-#endif
 		}
 		return extraneous_arguments;
 	}/*process_decrypt_arguments_(Arg_Mapt_t&&,std::string&,std::string&)*/
@@ -379,11 +267,6 @@ namespace _3crypt {
 		}/*for(auto &&pair:opt_arg_pairs)*/
 		if (filename.empty()) {
 			errx( "Error: Input filename not specified for file-header dump.\n%s", Help_Suggestion );
-#if 0
-			fputs( "Error: Input filename not specified for file-header dump.\n", stderr );
-			fputs( Help_Suggestion, stderr );
-			exit( EXIT_FAILURE );
-#endif
 		}
 		return extraneous_arguments;
 	}/*process_dump_header_arguments_(Arg_Map_t&&,std::string&)*/
