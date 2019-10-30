@@ -44,12 +44,13 @@ namespace _3crypt {
 								   "Switches:\n"
 								   "-i, --input-file  Input file ; must be specified for symmetric encryption and decryption modes.\n"
 								   "-o, --output-file Output file; for symmetric encryption and decryption modes. Optional for encryption.\n"
-								   "--iter-count      Iteration Count for sspkdf (Default: 1,000,000)\n"
-								   "                          The more sspkdf iterations, the longer it will take to guess\n"
-								   "                          a password (linearly).\n"
-								   "--concat-count    Concatenation Count for sspkdf (Default: 1,000,000)\n"
-								   "                          The number of times to concatenation the password, salt, and index counter.\n"
-								   "                          The more concatenations, the more time it will take to guess a password.\n";
+								   "--iter-count          Iteration Count for sspkdf (Default: 1,000,000)\n"
+								   "                              The more sspkdf iterations, the longer it will take to guess\n"
+								   "                              a password (linearly).\n"
+								   "--concat-count        Concatenation Count for sspkdf (Default: 1,000,000)\n"
+								   "                              The number of times to concatenation the password, salt, and index counter.\n"
+								   "                              The more concatenations, the more time it will take to guess a password.\n"
+								   "--supplement-entropy  Provide random input characters to increase the entropy of the pseudorandom number generator.\n";
 			static constexpr auto const &Help_Suggestion = "( Use 3crypt --help for more information )\n";
 #ifdef __SSC_CBC_V2__
 			using Default_Input_t = typename ssc::cbc_v2::Encrypt_Input;

@@ -164,18 +164,21 @@ namespace _3crypt {
 		encr_input.output_filename.clear();
 		encr_input.number_iterations     = 1'000'000;
 		encr_input.number_concatenations = 1'000'000;
+		encr_input.supplement_os_entropy = false;
 
 		for (auto &&pair : opt_arg_pairs) {
-			ssc::check_file_name_sanity( pair.second, 1 );
 			// Get the input and output filenames.
 			if (pair.first == "-i" || pair.first == "--input-file") {
+				ssc::check_file_name_sanity( pair.second, 1 );
 				encr_input.input_filename = pair.second;
 				if (encr_input.output_filename.empty()) 
 					encr_input.output_filename = encr_input.input_filename + ".3c";
 			} else if (pair.first == "-o" || pair.first == "--output-file" ) {
+				ssc::check_file_name_sanity( pair.second, 1 );
 				encr_input.output_filename = pair.second;
 			} else if (pair.first == "--iter-count") {
 				static constexpr decltype(pair.second.size()) const Max_Count_Chars = 10;
+				ssc::check_file_name_sanity( pair.second, 1 );
 				std::string count = std::move( pair.second );
 				if (count.size() > Max_Count_Chars)
 					errx( "Error: The specified iteration count (%s) is too large.\n%s", count.c_str(), Help_Suggestion );
@@ -187,6 +190,7 @@ namespace _3crypt {
 				}
 			} else if (pair.first == "--concat-count") {
 				static constexpr decltype(pair.second.size()) const Max_Count_Chars = 10;
+				ssc::check_file_name_sanity( pair.second, 1 );
 				std::string count = std::move( pair.second );
 				if (count.size() > Max_Count_Chars)
 					errx( "Error: The specified concatenation count (%s) is too large.\n%s", count.c_str(), Help_Suggestion );
@@ -196,6 +200,8 @@ namespace _3crypt {
 						errx( "Error: Number concatenations specified is zero.\n" );
 					encr_input.number_concatenations = num_concat;
 				}
+			} else if (pair.first == "--supplement-entropy") {
+				encr_input.supplement_os_entropy = true;
 			} else {
 				extraneous_arguments.push_back( std::move( pair ) );
 			}
