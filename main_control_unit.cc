@@ -49,7 +49,7 @@ namespace _3crypt {
 #ifdef __SSC_CBC_V2__
 				ssc::cbc_v2::encrypt( input );
 #else
-#	error			"CBC_V2 is the only supported crypt method."
+#	error "CBC_V2 is the only supported crypt method."
 #endif/*#ifdef __SSC_CBC_V2__*/
 				break;
 			case (Mode_E::Symmetric_Decrypt):
@@ -158,7 +158,7 @@ namespace _3crypt {
 		// Check that `encr_input` describes a struct that takes input, output filenames, and number iterations and concatenations (u32_t each).
 		static_assert (std::is_same<Default_Input_t, ssc::cbc_v2::Encrypt_Input>::value);
 #else
-#	error	"Only CBC_V2 is supported now."
+#	error "Only CBC_V2 is supported now."
 #endif
 		encr_input.input_filename.clear();
 		encr_input.output_filename.clear();
