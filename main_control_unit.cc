@@ -244,7 +244,7 @@ namespace _3crypt {
 
 		for (auto &&pair : opt_arg_pairs) {
 			ssc::check_file_name_sanity( pair.second, 1 );
-			if (pair.first == "-i" || pair.second == "--input-file")
+			if (pair.first == "-i" || pair.first == "--input-file")
 				filename = pair.second;
 			else
 				extraneous_arguments.push_back( move( pair ) );
