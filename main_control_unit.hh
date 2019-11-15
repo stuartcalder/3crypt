@@ -23,12 +23,16 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 
 namespace _3crypt {
 
+	// Use the symmetric file encryption methods from ssc.
 	using Crypto_Method_E = typename ssc::Crypto_Method_E;
+	// Use the contained defined for containing arguments mappings.
 	using Arg_Map_t       = typename ssc::Arg_Mapping::Arg_Map_t;
+	// Use the integer aliases from ssc.
 	using namespace ssc::ints;
 
 	class Main_Control_Unit {
 		public:
+			// Support these main modes of operation for 3crypt.
 			enum class Mode_E {
 				None,
 				Symmetric_Encrypt,
@@ -53,6 +57,7 @@ namespace _3crypt {
 								   "--supplement-entropy  Provide random input characters to increase the entropy of the pseudorandom number generator.\n";
 			static constexpr auto const &Help_Suggestion = "( Use 3crypt --help for more information )\n";
 #ifdef __SSC_CBC_V2__
+			// Default to using CBC_V2 inputs.
 			using Default_Input_t = typename ssc::cbc_v2::Encrypt_Input;
 #else
 #	error		"CBC_V2 is (currently) the only supported decrypt method."
@@ -66,7 +71,7 @@ namespace _3crypt {
 			Main_Control_Unit (int const, char const * []);
 		private:
 			/* Private Data */
-			Mode_E             mode = Mode_E::None;
+			Mode_E             mode = Mode_E::None;	// Default the mode to be None, before it's specified.
 			Default_Input_t   input;
 			/* Private Functions */
 			static Arg_Map_t
