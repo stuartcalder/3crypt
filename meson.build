@@ -28,7 +28,7 @@ elif os == 'windows'
     ssc_inc_array     += include_directories('C:/include')
     executable('3crypt', sources: _3crypt_src, dependencies:
 		_3crypt_dep_array, include_directories: ssc_inc_array, install: true,
-		cpp_args: '/DIMPORT_STATIC')
+		cpp_args: '/D__IMPORT_STATIC')
 else
     assert(false)
 endif
