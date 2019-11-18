@@ -56,6 +56,9 @@ namespace _3crypt {
 								   "                              The more concatenations, the more time it will take to guess a password.\n"
 								   "--supplement-entropy  Provide random input characters to increase the entropy of the pseudorandom number generator.\n";
 			static constexpr auto const &Help_Suggestion = "( Use 3crypt --help for more information )\n";
+			// Arbitrarily use 1'000'000 as the default for the number of sspkdf iterations and concatenations.
+			static constexpr u32_t const Default_Iterations     = 1'000'000;
+			static constexpr u32_t const Default_Concatenations = 1'000'000;
 #ifdef __SSC_CBC_V2__
 			// Default to using CBC_V2 inputs.
 			using Default_Input_t = typename ssc::cbc_v2::Encrypt_Input;

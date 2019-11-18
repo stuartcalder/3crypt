@@ -45,7 +45,7 @@ namespace _3crypt {
 				// Allow reading the input file.
 				if (unveil( input.input_filename.c_str(), "r" ) != 0)
 					errx( "Failed to unveil() the input file\n" );
-				// Allow reading, writing, and creating the input file.
+				// Allow reading, writing, and creating the output file.
 				if (unveil( input.output_filename.c_str(), "rwc" ) != 0)
 					errx( "Failed to unveil() the output file\n" );
 				// Finalize the unveil calls.
@@ -195,9 +195,9 @@ namespace _3crypt {
 		// Clear the input and output file names.
 		encr_input.input_filename.clear();
 		encr_input.output_filename.clear();
-		// Default the number of sspkdf iterations and concatenations to 1mil each.
-		encr_input.number_iterations     = 1'000'000;
-		encr_input.number_concatenations = 1'000'000;
+		// Default the number of sspkdf iterations and concatenations to the header prescribed defaults.
+		encr_input.number_iterations     = Default_Iterations;
+		encr_input.number_concatenations = Default_Concatenations;
 		// By default, do not supplement OS provided entropy from the keyboard.
 		encr_input.supplement_os_entropy = false;
 
