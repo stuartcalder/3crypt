@@ -187,8 +187,12 @@ namespace _3crypt {
 		Arg_Map_t extraneous_arguments;
 
 #ifdef __SSC_CBC_V2__
-		// Check that `encr_input` describes a struct that takes input, output filenames, and number iterations and concatenations (u32_t each).
-		static_assert (std::is_same<Default_Input_t, ssc::cbc_v2::Encrypt_Input>::value);
+		{
+			// Check that `encr_input` describes a struct that takes input, output filenames, and number iterations and concatenations (u32_t each).
+			using namespace ssc::cbc_v2;
+			using namespace std;
+			static_assert (is_same<Default_Input_t, Encrypt_Input>::value);
+		}
 #else
 #	error "Only CBC_V2 is supported now."
 #endif
