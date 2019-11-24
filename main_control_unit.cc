@@ -252,7 +252,7 @@ namespace _3crypt {
 					// Set the number of time to concatenate to the integer we got from the command line.
 					encr_input.number_concatenations = num_concat;
 				}
-			// Get supplementary entropy from the keyboard to help seed the Skein-based PRNG.
+			// Get supplementary entropy from the keyboard to help seed the Skein-based CSPRNG.
 			} else if (pair.first == "--supplement-entropy") {
 				encr_input.supplement_os_entropy = true;
 			// Prepare to return all the unrelated arguments.
