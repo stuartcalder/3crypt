@@ -4,29 +4,45 @@ project('3crypt', 'cpp', default_options: ['cpp_std=c++17', 'strip=true', 'build
 #Get compiler
 cc = meson.get_compiler('cpp')
 os = host_machine.system()
+
+define_flag_prefix = '-D'
+if os == 'windows'
+	define_flag_prefix = '/D'
+endif
+
 #Determine what implementation files are needed
 _3crypt_src = ['main_control_unit.cc', 'main.cc']
 #Determine 3crypt library dependencies & header includes
 _3crypt_dep_array = []
 ssc_inc_array     = []
+extra_args	  = []
+
+if get_option('enable_experimental_features')
+	flag = define_flag_prefix + '__SSC_ENABLE_EXPERIMENTAL'
+	extra_args += flag
+endif
+
 if os == 'openbsd'
 	_3crypt_dep_array += cc.find_library('ncurses')
 	_3crypt_dep_array += cc.find_library('ssc', dirs: '/usr/local/lib')
 	ssc_inc_array     += include_directories('/usr/local/include')
 	executable('3crypt', sources: _3crypt_src, dependencies: _3crypt_dep_array,
-		   include_directories: ssc_inc_array, install: true)
+		   include_directories: ssc_inc_array, install: true,
+		   cpp_args: extra_args)
 elif os == 'linux'
 	_3crypt_dep_array += cc.find_library('ncurses')
 	_3crypt_dep_array += cc.find_library('ssc')
 	ssc_inc_array     += include_directories('/usr/include')
 	executable('3crypt', sources: _3crypt_src, dependencies: _3crypt_dep_array,
-		   include_directories: ssc_inc_array, install: true)
+		   include_directories: ssc_inc_array, install: true,
+		   cpp_args: extra_args)
 elif os == 'windows'
 	_3crypt_dep_array += cc.find_library('bcrypt')
 	_3crypt_dep_array += cc.find_library('ssc', static: true, dirs: 'C:/lib')
 	ssc_inc_array     += include_directories('C:/include')
+	extra_args        += '/D__IMPORT_STATIC'
 	executable('3crypt', sources: _3crypt_src, dependencies: _3crypt_dep_array,
-		   include_directories: ssc_inc_array, install: true, cpp_args: '/D__IMPORT_STATIC')
+		   include_directories: ssc_inc_array, install: true, cpp_args: extra_args)
 else
 	assert(false)
 endif

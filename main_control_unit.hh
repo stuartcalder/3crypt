@@ -19,7 +19,14 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include <ssc/general/integers.hh>
 #include <ssc/general/arg_mapping.hh>
 #include <ssc/crypto/implementation/cbc_v2.hh>
+#ifdef __SSC_ENABLE_EXPERIMENTAL
+#	include <ssc/crypto/implementation/ctr_v1.hh>
+#endif
 #include <ssc/crypto/implementation/determine_crypto_method.hh>
+
+#if   (!defined (__SSC_CTR_V1__) && !defined (__SSC_CBC_V2__))
+#	error "CTR_V1 or CBC_V2 must be enabled here."
+#endif
 
 namespace _3crypt {
 
@@ -59,11 +66,11 @@ namespace _3crypt {
 			// Arbitrarily use 1'000'000 as the default for the number of sspkdf iterations and concatenations.
 			static constexpr u32_t const Default_Iterations     = 1'000'000;
 			static constexpr u32_t const Default_Concatenations = 1'000'000;
-#ifdef __SSC_CBC_V2__
+#ifdef __SSC_CTR_V1__
+			using Default_Input_t = typename ssc::Input;
+#else
 			// Default to using CBC_V2 inputs.
 			using Default_Input_t = typename ssc::cbc_v2::Encrypt_Input;
-#else
-#	error		"CBC_V2 is (currently) the only supported decrypt method."
 #endif
 
 			// Disable unwanted constructors.

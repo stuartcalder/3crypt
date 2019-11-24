@@ -11,9 +11,16 @@ the following disclaimer in the documentation and/or other materials provided wi
 
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
-#include <type_traits>
+
 #include "main_control_unit.hh"
+
+#include <type_traits>
+
 #include <ssc/general/error_conditions.hh>
+
+#if    (!defined (__SSC_CTR_V1__) && !defined (__SSC_CBC_V2__))
+#	error "CTR_V1 or CBC_V2 must be defined here."
+#endif
 
 #ifdef __OpenBSD__
 // On OpenBSD, include unistd.h here for access to the unveil(2) filesystem sandboxing system-call.
@@ -52,12 +59,12 @@ namespace _3crypt {
 				if (unveil( nullptr, nullptr ) != 0)
 					errx( "Failed to finalize unveil()\n" );
 #endif/*#ifdef __OpenBSD__*/
-#ifdef __SSC_CBC_V2__
+#if    defined (__SSC_CTR_V1__)
+				ssc::ctr_v1::encrypt( input );
+#elif  defined (__SSC_CBC_V2__)
 				// CBC_V2 encrypt, according to the inputs of `input`.
 				ssc::cbc_v2::encrypt( input );
-#else
-#	error "CBC_V2 is the only supported crypt method."
-#endif/*#ifdef __SSC_CBC_V2__*/
+#endif/*#ifdef __SSC_CTR_V1__*/
 				break;
 			// Symmetric file decryption mode.
 			case (Mode_E::Symmetric_Decrypt):
@@ -96,6 +103,11 @@ namespace _3crypt {
 							ssc::cbc_v2::decrypt( input.input_filename.c_str(), input.output_filename.c_str() );
 							break;
 #endif
+#ifdef __SSC_CTR_V1__
+						case (Crypto_Method_E::CTR_V1):
+							ssc::ctr_v1::decrypt( input.input_filename.c_str(), input.output_filename.c_str() );
+							break;
+#endif
 					}/*switch (method)*/
 				}
 				break;
@@ -130,6 +142,11 @@ namespace _3crypt {
 						// CBC_V2 fileheader dump, according to the input std::string filename.
 						case (Crypto_Method_E::CBC_V2):
 							ssc::cbc_v2::dump_header( input.input_filename.c_str() );
+							break;
+#endif
+#ifdef __SSC_CTR_V1__
+						case (Crypto_Method_E::CTR_V1):
+							ssc::ctr_v1::dump_header( input.input_filename.c_str() );
 							break;
 #endif
 					}/*switch (method)*/
@@ -186,22 +203,26 @@ namespace _3crypt {
 		// Prepare to return unused arguments in `extraneous_arguments`.
 		Arg_Map_t extraneous_arguments;
 
-#ifdef __SSC_CBC_V2__
+#if    defined (__SSC_CTR_V1__)
+		{
+			using namespace ssc;
+			static_assert (std::is_same<Default_Input_t, Input>::value);
+		}
+#elif  defined (__SSC_CBC_V2__)
 		{
 			// Check that `encr_input` describes a struct that takes input, output filenames, and number iterations and concatenations (u32_t each).
-			using namespace ssc::cbc_v2;
-			using namespace std;
-			static_assert (is_same<Default_Input_t, Encrypt_Input>::value);
+			using namespace ssc;
+			static_assert (std::is_same<Default_Input_t, cbc_v2::Encrypt_Input>::value);
 		}
 #else
-#	error "Only CBC_V2 is supported now."
+#	error "Undefined"
 #endif
 		// Clear the input and output file names.
 		encr_input.input_filename.clear();
 		encr_input.output_filename.clear();
 		// Default the number of sspkdf iterations and concatenations to the header prescribed defaults.
-		encr_input.number_iterations     = Default_Iterations;
-		encr_input.number_concatenations = Default_Concatenations;
+		encr_input.number_sspkdf_iterations     = Default_Iterations;
+		encr_input.number_sspkdf_concatenations = Default_Concatenations;
 		// By default, do not supplement OS provided entropy from the keyboard.
 		encr_input.supplement_os_entropy = false;
 
@@ -234,7 +255,7 @@ namespace _3crypt {
 					if (num_iter == 0)
 						errx( "Error: Number iterations specified is zero.\n" );
 					// Set the number of times to iterate to the integer we got from the command line.
-					encr_input.number_iterations = num_iter;
+					encr_input.number_sspkdf_iterations = num_iter;
 				}
 			// Get the sspkdf concatenation count.
 			} else if (pair.first == "--concat-count") {
@@ -250,7 +271,7 @@ namespace _3crypt {
 					if (num_concat == 0)
 						errx( "Error: Number concatenations specified is zero.\n" );
 					// Set the number of time to concatenate to the integer we got from the command line.
-					encr_input.number_concatenations = num_concat;
+					encr_input.number_sspkdf_concatenations = num_concat;
 				}
 			// Get supplementary entropy from the keyboard to help seed the Skein-based CSPRNG.
 			} else if (pair.first == "--supplement-entropy") {
