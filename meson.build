@@ -13,7 +13,7 @@ endif
 #Determine what implementation files are needed
 _3crypt_src = ['main_control_unit.cc', 'main.cc']
 #Determine 3crypt library dependencies & header includes
-_3crypt_dep_array = []
+_3crypt_depends   = []
 ssc_inc_array     = []
 extra_args	  = []
 
@@ -23,25 +23,25 @@ if get_option('enable_experimental_features')
 endif
 
 if os == 'openbsd'
-	_3crypt_dep_array += cc.find_library('ncurses')
-	_3crypt_dep_array += cc.find_library('ssc', dirs: '/usr/local/lib')
-	ssc_inc_array     += include_directories('/usr/local/include')
-	executable('3crypt', sources: _3crypt_src, dependencies: _3crypt_dep_array,
+	_3crypt_depends += cc.find_library('ncurses')
+	_3crypt_depends += cc.find_library('ssc', dirs: '/usr/local/lib')
+	ssc_inc_array   += include_directories('/usr/local/include')
+	executable('3crypt', sources: _3crypt_src, dependencies: _3crypt_depends,
 		   include_directories: ssc_inc_array, install: true,
 		   cpp_args: extra_args)
 elif os == 'linux'
-	_3crypt_dep_array += cc.find_library('ncurses')
-	_3crypt_dep_array += cc.find_library('ssc')
-	ssc_inc_array     += include_directories('/usr/include')
-	executable('3crypt', sources: _3crypt_src, dependencies: _3crypt_dep_array,
+	_3crypt_depends += cc.find_library('ncurses')
+	_3crypt_depends += cc.find_library('ssc')
+	ssc_inc_array   += include_directories('/usr/include')
+	executable('3crypt', sources: _3crypt_src, dependencies: _3crypt_depends,
 		   include_directories: ssc_inc_array, install: true,
 		   cpp_args: extra_args)
 elif os == 'windows'
-	_3crypt_dep_array += cc.find_library('bcrypt')
-	_3crypt_dep_array += cc.find_library('ssc', static: true, dirs: 'C:/lib')
-	ssc_inc_array     += include_directories('C:/include')
-	extra_args        += '/D__IMPORT_STATIC'
-	executable('3crypt', sources: _3crypt_src, dependencies: _3crypt_dep_array,
+	_3crypt_depends += cc.find_library('bcrypt')
+	_3crypt_depends += cc.find_library('ssc', static: true, dirs: 'C:/lib')
+	ssc_inc_array   += include_directories('C:/include')
+	extra_args      += '/D__IMPORT_STATIC'
+	executable('3crypt', sources: _3crypt_src, dependencies: _3crypt_depends,
 		   include_directories: ssc_inc_array, install: true, cpp_args: extra_args)
 else
 	assert(false)
