@@ -1,6 +1,10 @@
 # 3crypt
 A simple C++17 command-line program for encrypting and decrypting files on OpenBSD, GNU/Linux, and Microsoft Windows, built upon the
 Threefish block cipher and the Skein cryptographic hash function. 3crypt provides 512 bits of symmetric security.
+
+![Alt text](/../screenshots/plaintext.png?raw=true "Before 3crypt Encryption")
+![Alt text](/../screenshots/ciphertext.png?raw=true "After 3crypt Encryption")
+
 ## Buildtime Dependencies
 ### (OpenBSD, GNU/Linux, and Microsoft Windows)
 -   [ssc](https://github.com/stuartcalder/ssc) header and library files.
