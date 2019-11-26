@@ -6,7 +6,6 @@ cc = meson.get_compiler('cpp')
 os = host_machine.system()
 source    = ['main_control_unit.cc', 'main.cc']
 include   = []
-install   = []
 lib       = []
 depends   = []
 cpp_flags = []
