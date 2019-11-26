@@ -68,17 +68,19 @@ sudo ninja install
 	- Make sure that __ssc.lib__ is in the __C:/lib__ directory.
 2. Create the directory __C:/bin__ if it does not exist.
 3. git clone [3crypt](https://github.com/stuartcalder/3crypt) anywhere.
-4. cd into the 3crypt project directory, and execute:
+4. Open a command-prompt, **specifically** you must open __"x64 Native Tools Command Prompt for VS 2019"__.
+	* If you open a regular cmd.exe console, you will not be able to build 3crypt.
+5. cd into the 3crypt project directory, and execute:
 ```
 meson --backend=ninja builddir
 ```
-5. cd into builddir, and execute:
+6. cd into builddir, and execute:
 ```
 ninja
 ```
-6. copy the output file, __3crypt.exe__ into the directory __C:/bin__.
-7. 3crypt should now be successfully installed on your 64-bit Windows system.
-8. For now, to invoke 3crypt for encryption as example:
+7. copy the output file, __3crypt.exe__ into the directory __C:/bin__.
+8. 3crypt should now be successfully installed on your 64-bit Windows system.
+9. Now you can [add 3crypt to your PATH](https://stackoverflow.com/questions/9546324/adding-directory-to-path-environment-variable-in-windows) environment variable, or invoke 3crypt directly:
 ```
 C:\bin\3crypt --encrypt --input-file plaintext --output-file ciphertext
 ```
