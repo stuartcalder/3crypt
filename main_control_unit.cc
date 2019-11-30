@@ -25,6 +25,29 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #ifdef __OpenBSD__
 // On OpenBSD, include unistd.h here for access to the unveil(2) filesystem sandboxing system-call.
 #	include <unistd.h>
+#	define OPENBSD_UNVEIL_IO(input,output) \
+	{ \
+		if (unveil( "/usr", "rx" ) != 0) \
+			errx( "Failed to unveil() /usr\n" ); \
+		if (unveil( input, "r" ) != 0) \
+			errx( "Failed to unveil() input\n" ); \
+		if (unveil( output, "rwc" ) != 0) \
+			errx( "Failed to unveil() output\n" ); \
+		if (unveil( nullptr, nullptr ) != 0) \
+			errx( "Failed to finalize unveil()\n" ); \
+	}
+#	define OPENBSD_UNVEIL_I(input) \
+	{ \
+		if (unveil( "/usr", "rx" ) != 0) \
+			errx( "Failed to unveil() /usr\n" ); \
+		if (unveil( input, "r" ) != 0) \
+			errx( "Failed to unveil() input\n" ); \
+		if (unveil( nullptr, nullptr ) != 0) \
+			errx( "Failed to finalize unveil()\n" ); \
+	}
+#else
+#	define OPENBSD_UNVEIL_IO(input,output)
+#	define OPENBSD_UNVEIL_I(input)
 #endif
 
 namespace _3crypt {
@@ -45,6 +68,10 @@ namespace _3crypt {
 					if (!remaining_arguments.empty())
 						die_unneeded_arguments_( remaining_arguments );
 				}
+
+				OPENBSD_UNVEIL_IO( input.input_filename.c_str(), input.output_filename.c_str() );
+
+#if 0
 #ifdef __OpenBSD__
 				// Allow reading and executing everything under /usr.
 				if (unveil( "/usr", "rx" ) != 0)
@@ -59,6 +86,7 @@ namespace _3crypt {
 				if (unveil( nullptr, nullptr ) != 0)
 					errx( "Failed to finalize unveil()\n" );
 #endif/*#ifdef __OpenBSD__*/
+#endif
 #if    defined (__SSC_CTR_V1__)
 				ssc::crypto_impl::ctr_v1::encrypt( input );
 #elif  defined (__SSC_CBC_V2__)
@@ -73,6 +101,10 @@ namespace _3crypt {
 					auto const remaining_arguments = process_decrypt_arguments_( std::move( mode_specific_arguments ), input.input_filename, input.output_filename );
 					if (!remaining_arguments.empty())
 						die_unneeded_arguments_( remaining_arguments );
+
+					OPENBSD_UNVEIL_IO( input.input_filename.c_str(), input.output_filename.c_str() );
+
+#if 0
 #ifdef __OpenBSD__
 					// Allow reading and executing everything under /usr.
 					if (unveil( "/usr", "rx" ) != 0)
@@ -87,6 +119,7 @@ namespace _3crypt {
 					if (unveil( nullptr, nullptr ) != 0)
 						errx( "Failed to finalize unveil()\n" );
 #endif/*#ifdef __OpenBSD__*/
+#endif
 					// Force the asked-for input file to exist. If it doesn't, error out.
 					ssc::enforce_file_existence( input.input_filename.c_str(), true );
 					// Determine the decryption method to be used from the header of the input file.
@@ -118,6 +151,10 @@ namespace _3crypt {
 					auto const remaining_arguments = process_dump_header_arguments_( std::move( mode_specific_arguments ), input.input_filename );
 					if (!remaining_arguments.empty())
 						die_unneeded_arguments_( remaining_arguments );
+
+					OPENBSD_UNVEIL_I( input.input_filename.c_str() );
+
+#if 0
 #ifdef __OpenBSD__
 					// Allow reading and executing everything under /usr.
 					if (unveil( "/usr", "rx" ) != 0)
@@ -129,6 +166,7 @@ namespace _3crypt {
 					if (unveil( nullptr, nullptr ) != 0)
 						errx( "Failed to finalize unveil()\n" );
 #endif/*#ifdef __OpenBSD__*/
+#endif
 					// Force the input file specified to exist. If it doesn't exist, error out.
 					ssc::enforce_file_existence( input.input_filename.c_str(), true );
 					// Determine the decryption method from the std::string input filename.
@@ -345,3 +383,6 @@ namespace _3crypt {
 		exit( EXIT_FAILURE );
 	}/*die_unneeded_arguments_(Arg_Map_t const &)*/
 }/*namespace _3crypt*/
+
+#undef OPENBSD_UNVEIL_IO
+#undef OPENBSD_UNVEIL_I
