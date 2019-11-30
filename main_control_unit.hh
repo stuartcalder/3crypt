@@ -31,7 +31,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 namespace _3crypt {
 
 	// Use the symmetric file encryption methods from ssc.
-	using Crypto_Method_E = typename ssc::Crypto_Method_E;
+	using Crypto_Method_E = typename ssc::crypto_impl::Crypto_Method_E;
 	// Use the contained defined for containing arguments mappings.
 	using Arg_Map_t       = typename ssc::Arg_Mapping::Arg_Map_t;
 	// Use the integer aliases from ssc.
@@ -66,12 +66,7 @@ namespace _3crypt {
 			// Arbitrarily use 1'000'000 as the default for the number of sspkdf iterations and concatenations.
 			static constexpr u32_t const Default_Iterations     = 1'000'000;
 			static constexpr u32_t const Default_Concatenations = 1'000'000;
-#ifdef __SSC_CTR_V1__
-			using Default_Input_t = typename ssc::Input;
-#else
-			// Default to using CBC_V2 inputs.
-			using Default_Input_t = typename ssc::cbc_v2::Encrypt_Input;
-#endif
+			using Default_Input_t = typename ssc::crypto_impl::Input;
 
 			// Disable unwanted constructors.
 			Main_Control_Unit (void)			= delete;

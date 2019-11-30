@@ -60,10 +60,10 @@ namespace _3crypt {
 					errx( "Failed to finalize unveil()\n" );
 #endif/*#ifdef __OpenBSD__*/
 #if    defined (__SSC_CTR_V1__)
-				ssc::ctr_v1::encrypt( input );
+				ssc::crypto_impl::ctr_v1::encrypt( input );
 #elif  defined (__SSC_CBC_V2__)
 				// CBC_V2 encrypt, according to the inputs of `input`.
-				ssc::cbc_v2::encrypt( input );
+				ssc::crypto_impl::cbc_v2::encrypt( input );
 #endif/*#ifdef __SSC_CTR_V1__*/
 				break;
 			// Symmetric file decryption mode.
@@ -90,7 +90,7 @@ namespace _3crypt {
 					// Force the asked-for input file to exist. If it doesn't, error out.
 					ssc::enforce_file_existence( input.input_filename.c_str(), true );
 					// Determine the decryption method to be used from the header of the input file.
-					auto const crypt_method = ssc::determine_crypto_method( input.input_filename.c_str() );
+					auto const crypt_method = ssc::crypto_impl::determine_crypto_method( input.input_filename.c_str() );
 					switch (crypt_method) {
 						// Disallow there to be no decryption method set.
 						default:
@@ -100,12 +100,12 @@ namespace _3crypt {
 #ifdef __SSC_CBC_V2__
 						// CBC_V2 decrypt, according to the input and output std::string filenames.
 						case (Crypto_Method_E::CBC_V2):
-							ssc::cbc_v2::decrypt( input.input_filename.c_str(), input.output_filename.c_str() );
+							ssc::crypto_impl::cbc_v2::decrypt( input.input_filename.c_str(), input.output_filename.c_str() );
 							break;
 #endif
 #ifdef __SSC_CTR_V1__
 						case (Crypto_Method_E::CTR_V1):
-							ssc::ctr_v1::decrypt( input.input_filename.c_str(), input.output_filename.c_str() );
+							ssc::crypto_impl::ctr_v1::decrypt( input.input_filename.c_str(), input.output_filename.c_str() );
 							break;
 #endif
 					}/*switch (method)*/
@@ -132,7 +132,7 @@ namespace _3crypt {
 					// Force the input file specified to exist. If it doesn't exist, error out.
 					ssc::enforce_file_existence( input.input_filename.c_str(), true );
 					// Determine the decryption method from the std::string input filename.
-					auto const method = ssc::determine_crypto_method( input.input_filename.c_str() );
+					auto const method = ssc::crypto_impl::determine_crypto_method( input.input_filename.c_str() );
 					switch (method) {
 						default:
 						// Disallow there to be no valid decryption method detected.
@@ -141,12 +141,12 @@ namespace _3crypt {
 #ifdef __SSC_CBC_V2__
 						// CBC_V2 fileheader dump, according to the input std::string filename.
 						case (Crypto_Method_E::CBC_V2):
-							ssc::cbc_v2::dump_header( input.input_filename.c_str() );
+							ssc::crypto_impl::cbc_v2::dump_header( input.input_filename.c_str() );
 							break;
 #endif
 #ifdef __SSC_CTR_V1__
 						case (Crypto_Method_E::CTR_V1):
-							ssc::ctr_v1::dump_header( input.input_filename.c_str() );
+							ssc::crypto_impl::ctr_v1::dump_header( input.input_filename.c_str() );
 							break;
 #endif
 					}/*switch (method)*/
@@ -203,20 +203,7 @@ namespace _3crypt {
 		// Prepare to return unused arguments in `extraneous_arguments`.
 		Arg_Map_t extraneous_arguments;
 
-#if    defined (__SSC_CTR_V1__)
-		{
-			using namespace ssc;
-			static_assert (std::is_same<Default_Input_t, Input>::value);
-		}
-#elif  defined (__SSC_CBC_V2__)
-		{
-			// Check that `encr_input` describes a struct that takes input, output filenames, and number iterations and concatenations (u32_t each).
-			using namespace ssc;
-			static_assert (std::is_same<Default_Input_t, cbc_v2::Encrypt_Input>::value);
-		}
-#else
-#	error "Undefined"
-#endif
+		static_assert (std::is_same<Default_Input_t, ssc::crypto_impl::Input>::value);
 		// Clear the input and output file names.
 		encr_input.input_filename.clear();
 		encr_input.output_filename.clear();
