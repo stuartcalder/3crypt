@@ -50,6 +50,12 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #	define OPENBSD_UNVEIL_I(input)
 #endif
 
+#if    defined (__SSC_CTR_V1__)
+#	define DEFAULT_IMPL_NS	ssc::crypto_impl::ctr_v1
+#elif  defined (__SSC_CBC_V2__)
+#	define DEFAULT_IMPL_NS	ssc::crypto_impl::cbc_v2
+#endif
+
 namespace _3crypt {
 	// The constructor of the main control unit is the entry point.
 	Main_Control_Unit::Main_Control_Unit (int const arg_count, char const *arg_vect[]) {
@@ -72,12 +78,8 @@ namespace _3crypt {
 				// On OpenBSD, restrict filesystem to what is needed.
 				OPENBSD_UNVEIL_IO( input.input_filename.c_str(), input.output_filename.c_str() );
 
-#if    defined (__SSC_CTR_V1__)
-				ssc::crypto_impl::ctr_v1::encrypt( input );
-#elif  defined (__SSC_CBC_V2__)
-				// CBC_V2 encrypt, according to the inputs of `input`.
-				ssc::crypto_impl::cbc_v2::encrypt( input );
-#endif/*#ifdef __SSC_CTR_V1__*/
+				DEFAULT_IMPL_NS::encrypt( input );
+
 				break;
 			// Symmetric file decryption mode.
 			case (Mode_E::Symmetric_Decrypt):
@@ -342,5 +344,6 @@ namespace _3crypt {
 	}/*die_unneeded_arguments_(Arg_Map_t const &)*/
 }/*namespace _3crypt*/
 
+#undef DEFAULT_IMPL_NS
 #undef OPENBSD_UNVEIL_IO
 #undef OPENBSD_UNVEIL_I
