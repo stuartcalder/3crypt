@@ -25,6 +25,9 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #ifdef __OpenBSD__
 // On OpenBSD, include unistd.h here for access to the unveil(2) filesystem sandboxing system-call.
 #	include <unistd.h>
+#	ifdef  OPENBSD_UNVEIL_IO
+#		error "Already defined"
+#	endif
 #	define OPENBSD_UNVEIL_IO(input,output) \
 	{ \
 		if (unveil( "/usr", "rx" ) != 0) \
@@ -36,6 +39,9 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 		if (unveil( nullptr, nullptr ) != 0) \
 			errx( "Failed to finalize unveil()\n" ); \
 	}
+#	ifdef  OPENBSD_UNVEIL_I
+#		error "Already defined"
+#	endif
 #	define OPENBSD_UNVEIL_I(input) \
 	{ \
 		if (unveil( "/usr", "rx" ) != 0) \
@@ -48,8 +54,11 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #else
 #	define OPENBSD_UNVEIL_IO(input,output)
 #	define OPENBSD_UNVEIL_I(input)
-#endif
+#endif/*#ifdef __OpenBSD__*/
 
+#ifdef DEFAULT_IMPL_NS
+#	error "Already defined"
+#endif
 #if    defined (__SSC_CTR_V1__)
 #	define DEFAULT_IMPL_NS	ssc::crypto_impl::ctr_v1
 #elif  defined (__SSC_CBC_V2__)
