@@ -28,6 +28,11 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #	error "CTR_V1 or CBC_V2 must be enabled here."
 #endif
 
+#ifndef CTIME_CONST
+#	define CTIME_CONST(type) static constexpr const type
+#else
+#	error "Already defined"
+#endif
 namespace _3crypt {
 
 	// Use the symmetric file encryption methods from ssc.
@@ -46,7 +51,7 @@ namespace _3crypt {
 				Symmetric_Decrypt,
 				Dump_Fileheader
 			};
-			static constexpr auto const &Help_String = "Usage: 3crypt Mode [Switches...]\n\n"
+			CTIME_CONST(auto &)	Help_String  =     "Usage: 3crypt Mode [Switches...]\n\n"
 								   "Arguments to switches MUST be in seperate words. (i.e. 3crypt -e -i file; NOT 3crypt -e -ifile)\n\n"
 								   "Modes:\n"
 								   "-e, --encrypt Symmetric encryption mode; encrypt a file using a passphrase.\n"
@@ -62,10 +67,10 @@ namespace _3crypt {
 								   "                              The number of times to concatenation the password, salt, and index counter.\n"
 								   "                              The more concatenations, the more time it will take to guess a password.\n"
 								   "--supplement-entropy  Provide random input characters to increase the entropy of the pseudorandom number generator.\n";
-			static constexpr auto const &Help_Suggestion = "( Use 3crypt --help for more information )\n";
+			CTIME_CONST(auto &)	Help_Suggestion = "(Use 3crypt --help for more information )\n";
 			// Arbitrarily use 1'000'000 as the default for the number of sspkdf iterations and concatenations.
-			static constexpr u32_t const Default_Iterations     = 1'000'000;
-			static constexpr u32_t const Default_Concatenations = 1'000'000;
+			CTIME_CONST(u32_t)	Default_Iterations = 5'000'000;
+			CTIME_CONST(u32_t)	Default_Concatenations = 500;
 			using Default_Input_t = typename ssc::crypto_impl::Input;
 
 			// Disable unwanted constructors.
@@ -95,3 +100,4 @@ namespace _3crypt {
 			die_unneeded_arguments_ (Arg_Map_t const &args);
 	};
 }/*namespace _3crypt*/
+#undef CTIME_CONST
