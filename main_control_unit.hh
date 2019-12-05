@@ -69,8 +69,8 @@ namespace _3crypt {
 								   "--supplement-entropy  Provide random input characters to increase the entropy of the pseudorandom number generator.\n";
 			CTIME_CONST(auto &)	Help_Suggestion = "(Use 3crypt --help for more information )\n";
 			// Arbitrarily use 1'000'000 as the default for the number of sspkdf iterations and concatenations.
-			CTIME_CONST(u32_t)	Default_Iterations = 5'000'000;
-			CTIME_CONST(u32_t)	Default_Concatenations = 500;
+			CTIME_CONST(u32_t)	Default_Iterations     = 1'000'000;
+			CTIME_CONST(u32_t)	Default_Concatenations = 1'000'000;
 			using Default_Input_t = typename ssc::crypto_impl::Input;
 
 			// Disable unwanted constructors.
