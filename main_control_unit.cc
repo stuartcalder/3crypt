@@ -22,12 +22,12 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #	error "CTR_V1 or CBC_V2 must be defined here."
 #endif
 
+#if    defined (OPENBSD_UNVEIL_IO) || defined (OPENBSD_UNVEIL_I)
+#	error "Already defined"
+#endif
 #ifdef __OpenBSD__
 // On OpenBSD, include unistd.h here for access to the unveil(2) filesystem sandboxing system-call.
 #	include <unistd.h>
-#	ifdef  OPENBSD_UNVEIL_IO
-#		error "Already defined"
-#	endif
 #	define OPENBSD_UNVEIL_IO(input,output) \
 	{ \
 		if (unveil( "/usr", "rx" ) != 0) \
@@ -39,9 +39,6 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 		if (unveil( nullptr, nullptr ) != 0) \
 			errx( "Failed to finalize unveil()\n" ); \
 	}
-#	ifdef  OPENBSD_UNVEIL_I
-#		error "Already defined"
-#	endif
 #	define OPENBSD_UNVEIL_I(input) \
 	{ \
 		if (unveil( "/usr", "rx" ) != 0) \
