@@ -28,26 +28,28 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #ifdef __OpenBSD__
 // On OpenBSD, include unistd.h here for access to the unveil(2) filesystem sandboxing system-call.
 #	include <unistd.h>
-#	define OPENBSD_UNVEIL_IO(input,output) \
-	{ \
-		if (unveil( "/usr", "rx" ) != 0) \
-			errx( "Failed to unveil() /usr\n" ); \
-		if (unveil( input, "r" ) != 0) \
-			errx( "Failed to unveil() input\n" ); \
-		if (unveil( output, "rwc" ) != 0) \
-			errx( "Failed to unveil() output\n" ); \
-		if (unveil( nullptr, nullptr ) != 0) \
-			errx( "Failed to finalize unveil()\n" ); \
-	}
-#	define OPENBSD_UNVEIL_I(input) \
-	{ \
-		if (unveil( "/usr", "rx" ) != 0) \
-			errx( "Failed to unveil() /usr\n" ); \
-		if (unveil( input, "r" ) != 0) \
-			errx( "Failed to unveil() input\n" ); \
-		if (unveil( nullptr, nullptr ) != 0) \
-			errx( "Failed to finalize unveil()\n" ); \
-	}
+static void
+openbsd_unveil_io (char const *__restrict input_filename, char const *__restrict output_filename) {
+	if (unveil( "/usr", "rx" ) != 0)
+		errx( "Failed to unveil() /usr\n" );
+	if (unveil( input_filename, "r" ) != 0)
+		errx( "Failed to unveil() input file\n" );
+	if (unveil( output_filename, "rwc" ) != 0)
+		errx( "Failed to unveil() output file\n" );
+	if (unveil( nullptr, nullptr ) != 0)
+		errx( "Failed to finalize unveil()\n" );
+}
+static void
+openbsd_unveil_i (char const *input_filename) {
+	if (unveil( "/usr", "rx" ) != 0)
+		errx( "Failed to unveil() /usr\n" );
+	if (unveil( input_filename, "r" ) != 0)
+		errx( "Failed to unveil() input file\n" );
+	if (unveil( nullptr, nullptr ) != 0)
+		errx( "Failed to finalize unveil()\n" );
+}
+#	define OPENBSD_UNVEIL_IO(input, output) openbsd_unveil_io( input, output )
+#	define OPENBSD_UNVEIL_I(input)		 openbsd_unveil_i( input )
 #else
 #	define OPENBSD_UNVEIL_IO(input,output)
 #	define OPENBSD_UNVEIL_I(input)
