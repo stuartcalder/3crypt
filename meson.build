@@ -15,7 +15,7 @@ if os == 'windows'
 	define_flag_prefix = '/D'
 endif
 
-if   os == 'openbsd'
+if   os == 'openbsd' or os == 'freebsd'
 	include += '/usr/local/include'
 	lib     += '/usr/local/lib'
 elif os == 'linux'
@@ -32,7 +32,7 @@ if get_option('enable_experimental_features')
 	cpp_flags += flag
 endif
 
-if os == 'openbsd'
+if os == 'openbsd' or os == 'freebsd'
 	depends += cc.find_library('ncurses')
 	depends += cc.find_library('ssc', dirs: lib)
 elif os == 'linux'
