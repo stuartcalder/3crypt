@@ -19,11 +19,11 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include <ssc/general/error_conditions.hh>
 
 #if    (!defined (__SSC_CTR_V1__) && !defined (__SSC_CBC_V2__))
-#	error "CTR_V1 or CBC_V2 must be defined here."
+#	error 'CTR_V1 or CBC_V2 must be defined here.'
 #endif
 
 #if    defined (OPENBSD_UNVEIL_IO) || defined (OPENBSD_UNVEIL_I)
-#	error "Already defined"
+#	error 'Already defined'
 #endif
 #ifdef __OpenBSD__
 // On OpenBSD, include unistd.h here for access to the unveil(2) filesystem sandboxing system-call.
@@ -56,7 +56,7 @@ openbsd_unveil_i (char const *input_filename) {
 #endif/*#ifdef __OpenBSD__*/
 
 #ifdef DEFAULT_IMPL_NS
-#	error "Already defined"
+#	error 'Already defined'
 #endif
 #if    defined (__SSC_CTR_V1__)
 #	define DEFAULT_IMPL_NS	ssc::crypto_impl::ctr_v1

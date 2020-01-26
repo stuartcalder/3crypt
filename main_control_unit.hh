@@ -25,13 +25,13 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include <ssc/crypto/implementation/determine_crypto_method.hh>
 
 #if   (!defined (__SSC_CTR_V1__) && !defined (__SSC_CBC_V2__))
-#	error "CTR_V1 or CBC_V2 must be enabled here."
+#	error 'CTR_V1 or CBC_V2 must be enabled here.'
 #endif
 
 #ifndef CTIME_CONST
 #	define CTIME_CONST(type) static constexpr const type
 #else
-#	error "Already defined"
+#	error 'Already defined'
 #endif
 namespace _3crypt {
 
