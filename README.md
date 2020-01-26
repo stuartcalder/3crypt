@@ -1,18 +1,18 @@
 # 3crypt
-A simple C++17 command-line program for encrypting and decrypting files on OpenBSD, GNU/Linux, and Microsoft Windows, built upon the
+A simple C++17 command-line program for encrypting and decrypting files on OpenBSD, FreeBSD, GNU/Linux, and Microsoft Windows, built upon the
 Threefish block cipher and the Skein cryptographic hash function. 3crypt provides 512 bits of symmetric security.
 
 ![Alt text](/../screenshots/plaintext.png?raw=true "Before 3crypt Encryption")
 ![Alt text](/../screenshots/ciphertext.png?raw=true "After 3crypt Encryption")
 
 ## Buildtime Dependencies
-### (OpenBSD, GNU/Linux, and Microsoft Windows)
+### (OpenBSD, FreeBSD, GNU/Linux, and Microsoft Windows)
 -   [ssc](https://github.com/stuartcalder/ssc) header and library files.
 -   __meson__ frontend build system.
 -   __ninja__ backend build system.
+-   __ncurses__ header and library files.
 ### (GNU/Linux only)
 -   __GCC 7+__ compiler.
--   __ncurses__ header and library files.
 ### (Microsoft Windows only)
 -   __Windows Vista/Server 2008__ or later.
 -   __Visual Studio 2019__ development suite.
@@ -33,7 +33,7 @@ or
 3crypt --decrypt --input-file $filename
 ```
 ## Building 3crypt with Meson
-### On OpenBSD systems
+### On OpenBSD and FreeBSD systems
 1. build and install [ssc](https://github.com/stuartcalder/ssc).
 	- Make sure the root of the project directory for [ssc](https://github.com/stuartcalder/ssc) is in the __/usr/local/include__ directory.
 2. git clone [3crypt](https://github.com/stuartcalder/3crypt) anywhere.
@@ -46,7 +46,7 @@ meson --backend=ninja builddir
 ninja
 doas ninja install
 ```
-5. 3crypt should now be successfully installed on your OpenBSD system.
+5. 3crypt should now be successfully installed on your BSD system.
 ### On GNU/Linux systems
 1. build and install [ssc](https://github.com/stuartcalder/ssc).
 	- Make sure the root of the project directory for [ssc](https://github.com/stuartcalder/ssc) is in the __/usr/include__ directory.
