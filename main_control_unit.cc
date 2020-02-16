@@ -18,43 +18,63 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 
 #include <ssc/general/error_conditions.hh>
 
+/* Enforce that a valid crypto method has been defined.
+ */
 #if    (!defined (__SSC_CTR_V1__) && !defined (__SSC_CBC_V2__))
 #	error 'CTR_V1 or CBC_V2 must be defined here.'
 #endif
 
+/* Enforce that neither OPENBSD_UNVEIL_IO nor OPENBSD_UNVEIL_I have been defined.
+ */
 #if    defined (OPENBSD_UNVEIL_IO) || defined (OPENBSD_UNVEIL_I)
 #	error 'Already defined'
 #endif
+/* Enable OpenBSD-specific security sandboxing functionalties
+ * Include unistd.h to facilitate this.
+ */
 #ifdef __OpenBSD__
-// On OpenBSD, include unistd.h here for access to the unveil(2) filesystem sandboxing system-call.
 #	include <unistd.h>
 static void
-openbsd_unveil_io (char const *__restrict input_filename, char const *__restrict output_filename) {
+openbsd_unveil_io (char const *input_filename, char const *output_filename) {
+	// Allow reading and executing anything under /usr.
 	if (unveil( "/usr", "rx" ) != 0)
 		errx( "Failed to unveil() /usr\n" );
+	// Allow reading the input file.
 	if (unveil( input_filename, "r" ) != 0)
 		errx( "Failed to unveil() input file\n" );
+	// Allow reading, writing, and creating the output file.
 	if (unveil( output_filename, "rwc" ) != 0)
 		errx( "Failed to unveil() output file\n" );
+	// Finalize unveil calls.
 	if (unveil( nullptr, nullptr ) != 0)
 		errx( "Failed to finalize unveil()\n" );
 }
 static void
 openbsd_unveil_i (char const *input_filename) {
+	// Allow reading and executing anything under /usr.
 	if (unveil( "/usr", "rx" ) != 0)
 		errx( "Failed to unveil() /usr\n" );
+	// Allow reading the input file.
 	if (unveil( input_filename, "r" ) != 0)
 		errx( "Failed to unveil() input file\n" );
+	// Finalize unveil calls.
 	if (unveil( nullptr, nullptr ) != 0)
 		errx( "Failed to finalize unveil()\n" );
 }
+/* On OpenBSD systems, the following macros call the above static functions.
+ */
 #	define OPENBSD_UNVEIL_IO(input, output) openbsd_unveil_io( input, output )
 #	define OPENBSD_UNVEIL_I(input)		 openbsd_unveil_i( input )
 #else
+/* On non-OpenBSD systems, the following macros will do nothing.
+ */
 #	define OPENBSD_UNVEIL_IO(input,output)
 #	define OPENBSD_UNVEIL_I(input)
 #endif/*#ifdef __OpenBSD__*/
 
+/* If __SSC_CTR_V1__ has been defined, make CTR_V1 the default crypto implementation,
+ * otherwise default to CBC_V2.
+ */
 #ifdef DEFAULT_IMPL_NS
 #	error 'Already defined'
 #endif
@@ -64,11 +84,18 @@ openbsd_unveil_i (char const *input_filename) {
 #	define DEFAULT_IMPL_NS	ssc::crypto_impl::cbc_v2
 #endif
 
+#ifndef CTIME_CONST
+#	define CTIME_CONST(type) static constexpr const type
+#else
+#	error 'Already defined'
+#endif
+
 namespace _3crypt {
 	// The constructor of the main control unit is the entry point.
 	Main_Control_Unit::Main_Control_Unit (int const arg_count, char const *arg_vect[]) {
 		// Process the arguments from the command line, pooling the remaining mode-specific arguments.
-		auto mode_specific_arguments = process_mode_arguments_( ssc::Arg_Mapping{ arg_count, arg_vect }.consume(), mode );
+		Arg_Map_t mode_specific_arguments = process_mode_arguments_( ssc::Arg_Mapping{ arg_count, arg_vect }.consume(), mode );
+		static_assert (std::is_same<decltype(mode), Mode_E>::value);
 		switch (mode) {
 			default:
 			// Disallow an unset mode.
@@ -78,12 +105,12 @@ namespace _3crypt {
 			case (Mode_E::Symmetric_Encrypt):
 				{
 					// Process the symmetric file encryption arguments. If there are more arguments left, error out.
-					auto const remaining_arguments = process_encrypt_arguments_( std::move( mode_specific_arguments ), input );
+					Arg_Map_t const remaining_arguments = process_encrypt_arguments_( std::move( mode_specific_arguments ), input );
 					if (!remaining_arguments.empty())
 						die_unneeded_arguments_( remaining_arguments );
 				}
 
-				// On OpenBSD, restrict filesystem to what is needed.
+				// On OpenBSD, restrict filesystem to what is needed. On all other systems this does nothing.
 				OPENBSD_UNVEIL_IO( input.input_filename.c_str(), input.output_filename.c_str() );
 
 				DEFAULT_IMPL_NS::encrypt( input );
@@ -93,23 +120,24 @@ namespace _3crypt {
 			case (Mode_E::Symmetric_Decrypt):
 				{
 					// Process the symmetric file decryption arguments. If there are more arguments left, error out.
-					auto const remaining_arguments = process_decrypt_arguments_( std::move( mode_specific_arguments ), input.input_filename, input.output_filename );
+					Arg_Map_t const remaining_arguments = process_decrypt_arguments_( std::move( mode_specific_arguments ), input.input_filename, input.output_filename );
 					if (!remaining_arguments.empty())
 						die_unneeded_arguments_( remaining_arguments );
 
-					// On OpenBSD, restrict filesystem to what is needed.
+					// On OpenBSD, restrict filesystem to what is needed. On all other systems this does nothing.
 					OPENBSD_UNVEIL_IO( input.input_filename.c_str(), input.output_filename.c_str() );
 
 					// Force the asked-for input file to exist. If it doesn't, error out.
 					ssc::enforce_file_existence( input.input_filename.c_str(), true );
 					// Determine the decryption method to be used from the header of the input file.
-					auto const crypt_method = ssc::crypto_impl::determine_crypto_method( input.input_filename.c_str() );
+					Crypto_Method_E const crypt_method = ssc::crypto_impl::determine_crypto_method( input.input_filename.c_str() );
 					switch (crypt_method) {
 						// Disallow there to be no decryption method set.
 						default:
 							errx( "Error: Invalid decryption method (%d)\n", static_cast<int>(crypt_method) );
 						case (Crypto_Method_E::None):
-							errx( "Error: The input file `%s` does not appear to be a valid 3crypt encrypted file.\n%s", input.input_filename.c_str(), Help_Suggestion );
+							errx( "Error: The input file `%s` does not appear to be a valid 3crypt encrypted file.\n%s",
+							      input.input_filename.c_str(), Help_Suggestion );
 #ifdef __SSC_CBC_V2__
 						// CBC_V2 decrypt, according to the input and output std::string filenames.
 						case (Crypto_Method_E::CBC_V2):
@@ -128,17 +156,17 @@ namespace _3crypt {
 			case (Mode_E::Dump_Fileheader):
 				{
 					// Process the "dump header" arguments. Error out if any arguments remain.
-					auto const remaining_arguments = process_dump_header_arguments_( std::move( mode_specific_arguments ), input.input_filename );
+					Arg_Map_t const remaining_arguments = process_dump_header_arguments_( std::move( mode_specific_arguments ), input.input_filename );
 					if (!remaining_arguments.empty())
 						die_unneeded_arguments_( remaining_arguments );
 
-					// On OpenBSD, restrict filesystem to what is needed.
+					// On OpenBSD, restrict filesystem to what is needed. On all other systems this does nothing.
 					OPENBSD_UNVEIL_I( input.input_filename.c_str() );
 
 					// Force the input file specified to exist. If it doesn't exist, error out.
 					ssc::enforce_file_existence( input.input_filename.c_str(), true );
 					// Determine the decryption method from the std::string input filename.
-					auto const method = ssc::crypto_impl::determine_crypto_method( input.input_filename.c_str() );
+					Crypto_Method_E const method = ssc::crypto_impl::determine_crypto_method( input.input_filename.c_str() );
 					switch (method) {
 						default:
 						// Disallow there to be no valid decryption method detected.
@@ -166,8 +194,8 @@ namespace _3crypt {
 		using std::fprintf, std::fputs, std::exit;
 		// Return arguments unrelated to determining the mode in `extraneous_arguments`.
 		Arg_Map_t extraneous_arguments;
-		static constexpr auto const &Mode_Already_Set = "Error: Program mode already set\n"
-								"(Only one mode switch (e.g. -e or -d) is allowed per invocation of 3crypt.\n";
+		CTIME_CONST(auto &) Mode_Already_Set = "Error: Program mode already set\n"
+						       "(Only one mode switch (e.g. -e or -d) is allowed per invocation of 3crypt.\n";
 		// For each argument after the first, which is the name of the 3crypt executable.
 		for (size_t i = 1; i < in_map.size(); ++i) {
 			// -e and --encrypt designate symmetric file encryption.
@@ -237,7 +265,7 @@ namespace _3crypt {
 			// Get the sspkdf iteration count.
 			} else if (pair.first == "--iter-count") {
 				// At maximum, allow there to be 10 string characters.
-				static constexpr decltype(pair.second.size()) const Max_Count_Chars = 10;
+				CTIME_CONST(decltype(pair.second.size())) Max_Count_Chars = 10;
 				ssc::check_file_name_sanity( pair.second, 1 );
 				std::string count = std::move( pair.second );
 				if (count.size() > Max_Count_Chars)
@@ -253,7 +281,7 @@ namespace _3crypt {
 			// Get the sspkdf concatenation count.
 			} else if (pair.first == "--concat-count") {
 				// At maximum, allow there to be 10 string characters.
-				static constexpr decltype(pair.second.size()) const Max_Count_Chars = 10;
+				CTIME_CONST(decltype(pair.second.size())) Max_Count_Chars = 10;
 				ssc::check_file_name_sanity( pair.second, 1 );
 				std::string count = std::move( pair.second );
 				if (count.size() > Max_Count_Chars)
@@ -355,3 +383,4 @@ namespace _3crypt {
 #undef DEFAULT_IMPL_NS
 #undef OPENBSD_UNVEIL_IO
 #undef OPENBSD_UNVEIL_I
+#undef CTIME_CONST

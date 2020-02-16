@@ -1,9 +1,11 @@
-#Define project
+# Define project.
 project('3crypt', 'cpp', default_options: ['cpp_std=c++17', 'strip=true', 'buildtype=release',
                                            'optimization=3', 'cpp_eh=none'])
-#Get compiler
+# Get C++ compiler.
 cc = meson.get_compiler('cpp')
+# Get the host's operating system.
 os = host_machine.system()
+# Default source files.
 source    = ['main_control_unit.cc', 'main.cc']
 include   = []
 lib       = []
@@ -11,15 +13,19 @@ depends   = []
 cpp_flags = []
 
 define_flag_prefix = '-D'
-if os == 'windows'
+# The define flag prefix is different on Windows with MSVC compiler.
+if os == 'windows' and cc.get_id() == 'msvc'
 	define_flag_prefix = '/D'
 endif
 
+# Handle BSD-specifics.
 if   os == 'openbsd' or os == 'freebsd'
 	include += '/usr/local/include'
 	lib     += '/usr/local/lib'
+# Handle GNU/Linux-specifics.
 elif os == 'linux'
 	include += '/usr/include'
+# Handle Windows-specifics.
 elif os == 'windows'
 	include += 'C:/include'
 	lib     += 'C:/lib'
@@ -46,6 +52,12 @@ else
 	assert(false)
 endif
 
-executable('3crypt', sources: source, dependencies: depends,
-	   include_directories: include, install: true,
-	   cpp_args: cpp_flags)
+if os != 'windows'
+	executable('3crypt', sources: source, dependencies: depends,
+		   include_directories: include, install: true,
+		   cpp_args: cpp_flags)
+else
+	executable('3crypt', sources: source, dependencies: depends,
+	           include_directories: include, install: true,
+		   cpp_args: cpp_flags, install_dir: 'C:/bin')
+endif
