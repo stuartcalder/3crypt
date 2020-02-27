@@ -60,7 +60,7 @@ namespace _3crypt {
 								   "--iter-count             : Iteration Count for sspkdf (Default: 1,000,000)\n"
 								   "                           The more sspkdf iterations, the longer it will take to guess a password.\n"
 								   "--concat-count           : Concatenation Count for sspkdf (Default: 1,000,000)\n"
-								   "                           The number of times to concatenation the password, salt, and index counter.\n"
+								   "                           The number of times to concatenate the password, salt, and index counter.\n"
 								   "                           The more concatenations, the more time it will take to guess a password.\n";
 			_CTIME_CONST(auto) 	Help_Suggestion = "(Use 3crypt --help for more information )\n";
 			// Arbitrarily use 1'000'000 as the default for the number of sspkdf iterations and concatenations.
