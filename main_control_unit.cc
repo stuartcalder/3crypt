@@ -211,7 +211,7 @@ namespace _3crypt {
 					errx( "%s\n%s\n", Mode_Already_Set, Help_Suggestion );
 				mode = Mode_E::Symmetric_Decrypt;
 			// --dump-header designates dumping the headers of a 3crypt encrypted file.
-			} else if (in_map[ i ].first == "--dump-header") {
+			} else if (in_map[ i ].first == "-D" || in_map[ i ].first == "--dump-header") {
 				// Disallow setting a mode after we've already set one.
 				if (mode != Mode_E::None)
 					errx( "%s\n%s\n", Mode_Already_Set, Help_Suggestion );
@@ -295,7 +295,7 @@ namespace _3crypt {
 					encr_input.number_sspkdf_concatenations = num_concat;
 				}
 			// Get supplementary entropy from the keyboard to help seed the Skein-based CSPRNG.
-			} else if (pair.first == "--supplement-entropy") {
+			} else if (pair.first == "-E" || pair.first == "--supplement-entropy") {
 				encr_input.supplement_os_entropy = true;
 			// Prepare to return all the unrelated arguments.
 			} else {

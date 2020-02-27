@@ -15,6 +15,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include <string>
 #include <utility>
 
+#include <ssc/general/macros.hh>
 #include <ssc/general/parse_string.hh>
 #include <ssc/general/integers.hh>
 #include <ssc/general/arg_mapping.hh>
@@ -28,11 +29,6 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #	error 'CTR_V1 or CBC_V2 must be enabled here.'
 #endif
 
-#ifndef CTIME_CONST
-#	define CTIME_CONST(type) static constexpr const type
-#else
-#	error 'Already defined'
-#endif
 namespace _3crypt {
 
 	// Use the symmetric file encryption methods from ssc.
@@ -51,26 +47,25 @@ namespace _3crypt {
 				Symmetric_Decrypt,
 				Dump_Fileheader
 			};
-			CTIME_CONST(auto &)	Help_String  =     "Usage: 3crypt Mode [Switches...]\n\n"
-								   "Arguments to switches MUST be in seperate words. (i.e. 3crypt -e -i file; NOT 3crypt -e -ifile)\n\n"
+			_CTIME_CONST(auto)	Help_String  =     "Usage: 3crypt Mode [Switches...]\n"
+								   "Arguments to switches MUST be in seperate words. (i.e. 3crypt -e -i file; NOT 3crypt -e -ifile)\n"
 								   "Modes:\n"
-								   "-e, --encrypt Symmetric encryption mode; encrypt a file using a passphrase.\n"
-								   "-d, --decrypt Symmetric decryption mode; decrypt a file using a passphrase.\n"
-								   "--dump-header Dump information on a 3crypt encrypted file; must specify an input-file.\n\n"
+								   "-e, --encrypt     : Symmetric encryption mode; encrypt a file using a passphrase.\n"
+								   "-d, --decrypt     : Symmetric decryption mode; decrypt a file using a passphrase.\n"
+								   "-D, --dump-header : Dump information on a 3crypt encrypted file; must specify an input-file.\n"
 								   "Switches:\n"
-								   "-i, --input-file  Input file ; must be specified for symmetric encryption and decryption modes.\n"
-								   "-o, --output-file Output file; for symmetric encryption and decryption modes. Optional for encryption.\n"
-								   "--iter-count          Iteration Count for sspkdf (Default: 1,000,000)\n"
-								   "                              The more sspkdf iterations, the longer it will take to guess\n"
-								   "                              a password (linearly).\n"
-								   "--concat-count        Concatenation Count for sspkdf (Default: 1,000,000)\n"
-								   "                              The number of times to concatenation the password, salt, and index counter.\n"
-								   "                              The more concatenations, the more time it will take to guess a password.\n"
-								   "--supplement-entropy  Provide random input characters to increase the entropy of the pseudorandom number generator.\n";
-			CTIME_CONST(auto &)	Help_Suggestion = "(Use 3crypt --help for more information )\n";
+								   "-i, --input-file         : Specifies the input file.\n"
+								   "-o, --output-file        : Specifies the output file. Only applies to encryption and decryption.\n"
+								   "-E, --supplement-entropy : Provide random input characters to increase the entropy of the pseudorandom number generator.\n"
+								   "--iter-count             : Iteration Count for sspkdf (Default: 1,000,000)\n"
+								   "                           The more sspkdf iterations, the longer it will take to guess a password.\n"
+								   "--concat-count           : Concatenation Count for sspkdf (Default: 1,000,000)\n"
+								   "                           The number of times to concatenation the password, salt, and index counter.\n"
+								   "                           The more concatenations, the more time it will take to guess a password.\n";
+			_CTIME_CONST(auto) 	Help_Suggestion = "(Use 3crypt --help for more information )\n";
 			// Arbitrarily use 1'000'000 as the default for the number of sspkdf iterations and concatenations.
-			CTIME_CONST(u32_t)	Default_Iterations     = 1'000'000;
-			CTIME_CONST(u32_t)	Default_Concatenations = 1'000'000;
+			_CTIME_CONST(u32_t)	Default_Iterations     = 1'000'000;
+			_CTIME_CONST(u32_t)	Default_Concatenations = 1'000'000;
 			using Default_Input_t = typename ssc::crypto_impl::Input;
 
 			// Disable unwanted constructors.
@@ -100,4 +95,3 @@ namespace _3crypt {
 			die_unneeded_arguments_ (Arg_Map_t const &args);
 	};
 }/*namespace _3crypt*/
-#undef CTIME_CONST
