@@ -12,10 +12,10 @@ lib       = []
 depends   = []
 cpp_flags = []
 
-define_flag_prefix = '-D'
+_Define_Flag_Prefix = '-D'
 # The define flag prefix is different on Windows with MSVC compiler.
 if os == 'windows' and cc.get_id() == 'msvc'
-	define_flag_prefix = '/D'
+	_Define_Flag_Prefix = '/D'
 endif
 
 # Handle BSD-specifics.
@@ -34,8 +34,8 @@ else
 endif
 
 if get_option('enable_experimental_features')
-	flag = define_flag_prefix + '__SSC_ENABLE_EXPERIMENTAL'
-	cpp_flags += flag
+	_flag = _Define_Flag_Prefix + '__SSC_ENABLE_EXPERIMENTAL'
+	cpp_flags += _flag
 endif
 
 if os == 'openbsd' or os == 'freebsd'
@@ -47,7 +47,8 @@ elif os == 'linux'
 elif os == 'windows'
 	depends += cc.find_library('bcrypt')
 	depends += cc.find_library('ssc', static: true, dirs: lib)
-	cpp_flags       += '/D__IMPORT_STATIC'
+	_flag = _Define_Flag_Prefix + '__IMPORT_STATIC'
+	cpp_flags += _flag
 else
 	assert(false)
 endif
