@@ -54,14 +54,14 @@ namespace _3crypt {
 								   "-d, --decrypt     : Symmetric decryption mode; decrypt a file using a passphrase.\n"
 								   "-D, --dump-header : Dump information on a 3crypt encrypted file; must specify an input-file.\n"
 								   "Switches:\n"
-								   "-i, --input-file         : Specifies the input file.\n"
-								   "-o, --output-file        : Specifies the output file. Only applies to encryption and decryption.\n"
-								   "-E, --supplement-entropy : Provide random input characters to increase the entropy of the pseudorandom number generator.\n"
-								   "--iter-count             : Iteration Count for sspkdf (Default: 1,000,000)\n"
-								   "                           The more sspkdf iterations, the longer it will take to guess a password.\n"
-								   "--concat-count           : Concatenation Count for sspkdf (Default: 1,000,000)\n"
-								   "                           The number of times to concatenate the password, salt, and index counter.\n"
-								   "                           The more concatenations, the more time it will take to guess a password.\n";
+								   "-i, --input-file  <filename> : Specifies the input file.\n"
+								   "-o, --output-file <filename> : Specifies the output file. Only applies to encryption and decryption.\n"
+								   "-E, --supplement-entropy     : Provide random input characters to increase the entropy of the pseudorandom number generator.\n"
+								   "--iter-count                 : Iteration Count for sspkdf (Default: 1,000,000)\n"
+								   "                               The more sspkdf iterations, the longer it will take to guess a password.\n"
+								   "--concat-count               : Concatenation Count for sspkdf (Default: 1,000,000)\n"
+								   "                               The number of times to concatenate the password, salt, and index counter.\n"
+								   "                               The more concatenations, the more time it will take to guess a password.\n";
 			_CTIME_CONST(auto) 	Help_Suggestion = "(Use 3crypt --help for more information )\n";
 			// Arbitrarily use 1'000'000 as the default for the number of sspkdf iterations and concatenations.
 			_CTIME_CONST(u32_t)	Default_Iterations     = 1'000'000;
