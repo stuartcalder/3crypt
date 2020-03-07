@@ -16,6 +16,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 
 #include <type_traits>
 
+#include <ssc/general/macros.hh>
 #include <ssc/general/error_conditions.hh>
 
 /* Enforce that a valid crypto method has been defined.
@@ -30,41 +31,25 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #	error 'Already defined'
 #endif
 /* Enable OpenBSD-specific security sandboxing functionalties
- * Include unistd.h to facilitate this.
  */
 #ifdef __OpenBSD__
-#	include <unistd.h>
 static void
 openbsd_unveil_io (char const *input_filename, char const *output_filename) {
-	// Allow reading and executing anything under /usr.
-	if (unveil( "/usr", "rx" ) != 0)
-		errx( "Failed to unveil() /usr\n" );
-	// Allow reading the input file.
-	if (unveil( input_filename, "r" ) != 0)
-		errx( "Failed to unveil() input file\n" );
-	// Allow reading, writing, and creating the output file.
-	if (unveil( output_filename, "rwc" ) != 0)
-		errx( "Failed to unveil() output file\n" );
-	// Finalize unveil calls.
-	if (unveil( nullptr, nullptr ) != 0)
-		errx( "Failed to finalize unveil()\n" );
+	_OPENBSD_UNVEIL( "/usr", "rx" ); // Allow reading and executing libssc.
+	_OPENBSD_UNVEIL( input_filename, "r" ); // Allow reading the input file.
+	_OPENBSD_UNVEIL( output_filename, "rwc" ); // Allow reading, writing, creating the output file.
+	_OPENBSD_UNVEIL( nullptr, nullptr ); // Finalize the unveil() calls.
 }
 static void
 openbsd_unveil_i (char const *input_filename) {
-	// Allow reading and executing anything under /usr.
-	if (unveil( "/usr", "rx" ) != 0)
-		errx( "Failed to unveil() /usr\n" );
-	// Allow reading the input file.
-	if (unveil( input_filename, "r" ) != 0)
-		errx( "Failed to unveil() input file\n" );
-	// Finalize unveil calls.
-	if (unveil( nullptr, nullptr ) != 0)
-		errx( "Failed to finalize unveil()\n" );
+	_OPENBSD_UNVEIL( "/usr", "rx" ); // Allow reading and executing libssc.
+	_OPENBSD_UNVEIL( input_filename, "r" ); // Allow reading the input file.
+	_OPENBSD_UNVEIL( nullptr, nullptr ); // Finalize the unveil() calls.
 }
 /* On OpenBSD systems, the following macros call the above static functions.
  */
-#	define OPENBSD_UNVEIL_IO(input, output) openbsd_unveil_io( input, output )
-#	define OPENBSD_UNVEIL_I(input)		 openbsd_unveil_i( input )
+#	define OPENBSD_UNVEIL_IO(input,output) openbsd_unveil_io( input, output )
+#	define OPENBSD_UNVEIL_I(input)          openbsd_unveil_i( input )
 #else
 /* On non-OpenBSD systems, the following macros will do nothing.
  */
@@ -82,12 +67,6 @@ openbsd_unveil_i (char const *input_filename) {
 #	define DEFAULT_IMPL_NS	ssc::crypto_impl::ctr_v1
 #elif  defined (__SSC_CBC_V2__)
 #	define DEFAULT_IMPL_NS	ssc::crypto_impl::cbc_v2
-#endif
-
-#ifndef CTIME_CONST
-#	define CTIME_CONST(type) static constexpr const type
-#else
-#	error 'Already defined'
 #endif
 
 namespace _3crypt {
@@ -110,7 +89,7 @@ namespace _3crypt {
 						die_unneeded_arguments_( remaining_arguments );
 				}
 
-				// On OpenBSD, restrict filesystem to what is needed. On all other systems this does nothing.
+ 				// On OpenBSD, restrict filesystem to what is needed. On all other systems this does nothing.
 				OPENBSD_UNVEIL_IO( input.input_filename.c_str(), input.output_filename.c_str() );
 
 				DEFAULT_IMPL_NS::encrypt( input );
@@ -194,8 +173,8 @@ namespace _3crypt {
 		using std::fprintf, std::fputs, std::exit;
 		// Return arguments unrelated to determining the mode in `extraneous_arguments`.
 		Arg_Map_t extraneous_arguments;
-		CTIME_CONST(auto &) Mode_Already_Set = "Error: Program mode already set\n"
-						       "(Only one mode switch (e.g. -e or -d) is allowed per invocation of 3crypt.\n";
+		_CTIME_CONST(auto) Mode_Already_Set = "Error: Program mode already set\n"
+		 		  	              "(Only one mode switch (e.g. -e or -d) is allowed per invocation of 3crypt.\n";
 		// For each argument after the first, which is the name of the 3crypt executable.
 		for (size_t i = 1; i < in_map.size(); ++i) {
 			// -e and --encrypt designate symmetric file encryption.
@@ -265,7 +244,7 @@ namespace _3crypt {
 			// Get the sspkdf iteration count.
 			} else if (pair.first == "--iter-count") {
 				// At maximum, allow there to be 10 string characters.
-				CTIME_CONST(decltype(pair.second.size())) Max_Count_Chars = 10;
+				_CTIME_CONST(decltype(pair.second.size())) Max_Count_Chars = 10;
 				ssc::check_file_name_sanity( pair.second, 1 );
 				std::string count = std::move( pair.second );
 				if (count.size() > Max_Count_Chars)
@@ -281,7 +260,7 @@ namespace _3crypt {
 			// Get the sspkdf concatenation count.
 			} else if (pair.first == "--concat-count") {
 				// At maximum, allow there to be 10 string characters.
-				CTIME_CONST(decltype(pair.second.size())) Max_Count_Chars = 10;
+				_CTIME_CONST(decltype(pair.second.size())) Max_Count_Chars = 10;
 				ssc::check_file_name_sanity( pair.second, 1 );
 				std::string count = std::move( pair.second );
 				if (count.size() > Max_Count_Chars)
@@ -383,4 +362,3 @@ namespace _3crypt {
 #undef DEFAULT_IMPL_NS
 #undef OPENBSD_UNVEIL_IO
 #undef OPENBSD_UNVEIL_I
-#undef CTIME_CONST
