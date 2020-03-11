@@ -35,23 +35,31 @@ or
 ```
 ## How To Build 3crypt With Meson
 ### BSD and Linux build instructions
+### BSD Build instructions
 1. build and install [ssc](https://github.com/stuartcalder/ssc).
 2. git clone [3crypt](https://github.com/stuartcalder/3crypt) anywhere.
 3. cd into the 3crypt project directory.
-	- On BSD systems execute the following...
 ```
 $ meson --backend=ninja builddir
-```
-	- On Linux systems execute the following...
-```
-$ meson --backend=ninja --prefix=/usr builddir
 ```
 4. cd into builddir, and execute the following...
 ```
 $ ninja
 # ninja install
 ```
-5. 3crypt should now be successfully installed on your system.
+5. 3crypt should now be successfully installed on your BSD system.
+### GNU/Linux build instructions
+1. build and install [ssc](https://github.com/stuartcalder/ssc).
+2. git clone [3crypt](https://github.com/stuartcalder/3crypt) anywhere.
+3. cd into the 3crypt project directory and execute the following...
+```
+$ meson --backend=ninja --prefix=/usr builddir
+```
+4. cd into builddir and execute the following...
+```
+$ ninja
+# ninja install
+```
 ### On Microsoft Windows systems
 1. Build and install [ssc](https://github.com/stuartcalder/ssc).
 2. git clone [3crypt](https://github.com/stuartcalder/3crypt) anywhere.
