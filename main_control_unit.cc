@@ -33,15 +33,15 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 /* Enable OpenBSD-specific security sandboxing functionalties
  */
 #ifdef __OpenBSD__
-static void
-openbsd_unveil_io (char const *input_filename, char const *output_filename) {
+static void openbsd_unveil_io (char const *input_filename, char const *output_filename)
+{
 	_OPENBSD_UNVEIL( "/usr", "rx" ); // Allow reading and executing libssc.
 	_OPENBSD_UNVEIL( input_filename, "r" ); // Allow reading the input file.
 	_OPENBSD_UNVEIL( output_filename, "rwc" ); // Allow reading, writing, creating the output file.
 	_OPENBSD_UNVEIL( nullptr, nullptr ); // Finalize the unveil() calls.
 }
-static void
-openbsd_unveil_i (char const *input_filename) {
+static void openbsd_unveil_i (char const *input_filename)
+{
 	_OPENBSD_UNVEIL( "/usr", "rx" ); // Allow reading and executing libssc.
 	_OPENBSD_UNVEIL( input_filename, "r" ); // Allow reading the input file.
 	_OPENBSD_UNVEIL( nullptr, nullptr ); // Finalize the unveil() calls.

@@ -50,6 +50,7 @@ namespace _3crypt {
 			_CTIME_CONST(auto)	Help_String  =     "Usage: 3crypt Mode [Switches...]\n"
 								   "Arguments to switches MUST be in seperate words. (i.e. 3crypt -e -i file; NOT 3crypt -e -ifile)\n"
 								   "Modes:\n"
+								   "-h, --help        : Print this help output."
 								   "-e, --encrypt     : Symmetric encryption mode; encrypt a file using a passphrase.\n"
 								   "-d, --decrypt     : Symmetric decryption mode; decrypt a file using a passphrase.\n"
 								   "-D, --dump-header : Dump information on a 3crypt encrypted file; must specify an input-file.\n"
