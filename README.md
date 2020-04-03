@@ -23,7 +23,7 @@ Threefish block cipher and the Skein cryptographic hash function, providing 512 
 ```
 or
 ```
-3crypt --encrypt --input-file $filename
+3crypt --encrypt --input $filename
 ```
 ## How To Decrypt Files
 ```
@@ -31,7 +31,7 @@ or
 ```
 or
 ```
-3crypt --decrypt --input-file $filename
+3crypt --decrypt --input $filename
 ```
 ## How To Build 3crypt With Meson
 ### BSD and Linux build instructions
@@ -76,5 +76,5 @@ ninja
 6. 3crypt should now be successfully installed on your Windows system.
 7. You may now [add 3crypt to your PATH](https://stackoverflow.com/questions/9546324/adding-directory-to-path-environment-variable-in-windows), or invoke it directly by executing the following...
 ```
-C:\bin\3crypt --encrypt --input-file plaintext --output-file ciphertext
+C:\bin\3crypt --encrypt --input plaintext --output ciphertext
 ```

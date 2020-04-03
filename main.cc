@@ -13,8 +13,8 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 */
 #include "main_control_unit.hh"
 
-int
-main (int const argc, char const *argv[]) {
+int main (int const argc, char const *argv[])
+{
 	_3crypt::Main_Control_Unit ctrl_unit{ argc, argv };
 	return EXIT_SUCCESS;
 }

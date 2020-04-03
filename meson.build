@@ -33,8 +33,12 @@ else
 	assert(false)
 endif
 
-if get_option('enable_experimental_features')
-	_flag = _Define_Flag_Prefix + '__SSC_ENABLE_EXPERIMENTAL'
+if get_option('enable_cbc_v2')
+	_flag = _Define_Flag_Prefix + '__3CRYPT_ENABLE_CBC_V2'
+	cpp_flags += _flag
+endif
+if get_option('enable_ctr_v1')
+	_flag = _Define_Flag_Prefix + '__3CRYPT_ENABLE_CTR_V1'
 	cpp_flags += _flag
 endif
 

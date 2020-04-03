@@ -35,20 +35,20 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #ifdef __OpenBSD__
 static void openbsd_unveil_io (char const *input_filename, char const *output_filename)
 {
-	_OPENBSD_UNVEIL( "/usr", "rx" ); // Allow reading and executing libssc.
-	_OPENBSD_UNVEIL( input_filename, "r" ); // Allow reading the input file.
-	_OPENBSD_UNVEIL( output_filename, "rwc" ); // Allow reading, writing, creating the output file.
-	_OPENBSD_UNVEIL( nullptr, nullptr ); // Finalize the unveil() calls.
+	_OPENBSD_UNVEIL ("/usr","rx"); // Allow reading and executing libssc.
+	_OPENBSD_UNVEIL (input_filename,"r"); // Allow reading the input file.
+	_OPENBSD_UNVEIL (output_filename,"rwc"); // Allow reading, writing, creating the output file.
+	_OPENBSD_UNVEIL (nullptr,nullptr); // Finalize the unveil() calls.
 }
 static void openbsd_unveil_i (char const *input_filename)
 {
-	_OPENBSD_UNVEIL( "/usr", "rx" ); // Allow reading and executing libssc.
-	_OPENBSD_UNVEIL( input_filename, "r" ); // Allow reading the input file.
-	_OPENBSD_UNVEIL( nullptr, nullptr ); // Finalize the unveil() calls.
+	_OPENBSD_UNVEIL ("/usr","rx"); // Allow reading and executing libssc.
+	_OPENBSD_UNVEIL (input_filename,"r"); // Allow reading the input file.
+	_OPENBSD_UNVEIL (nullptr,nullptr); // Finalize the unveil() calls.
 }
 /* On OpenBSD systems, the following macros call the above static functions.
  */
-#	define OPENBSD_UNVEIL_IO(input,output) openbsd_unveil_io( input, output )
+#	define OPENBSD_UNVEIL_IO(input,output)	openbsd_unveil_io( input, output )
 #	define OPENBSD_UNVEIL_I(input)          openbsd_unveil_i( input )
 #else
 /* On non-OpenBSD systems, the following macros will do nothing.
@@ -90,7 +90,7 @@ namespace _3crypt {
 				}
 
  				// On OpenBSD, restrict filesystem to what is needed. On all other systems this does nothing.
-				OPENBSD_UNVEIL_IO( input.input_filename.c_str(), input.output_filename.c_str() );
+				OPENBSD_UNVEIL_IO (input.input_filename.c_str(),input.output_filename.c_str());
 
 				DEFAULT_IMPL_NS::encrypt( input );
 
@@ -104,7 +104,7 @@ namespace _3crypt {
 						die_unneeded_arguments_( remaining_arguments );
 
 					// On OpenBSD, restrict filesystem to what is needed. On all other systems this does nothing.
-					OPENBSD_UNVEIL_IO( input.input_filename.c_str(), input.output_filename.c_str() );
+					OPENBSD_UNVEIL_IO (input.input_filename.c_str(),input.output_filename.c_str());
 
 					// Force the asked-for input file to exist. If it doesn't, error out.
 					ssc::enforce_file_existence( input.input_filename.c_str(), true );
@@ -140,7 +140,7 @@ namespace _3crypt {
 						die_unneeded_arguments_( remaining_arguments );
 
 					// On OpenBSD, restrict filesystem to what is needed. On all other systems this does nothing.
-					OPENBSD_UNVEIL_I( input.input_filename.c_str() );
+					OPENBSD_UNVEIL_I (input.input_filename.c_str());
 
 					// Force the input file specified to exist. If it doesn't exist, error out.
 					ssc::enforce_file_existence( input.input_filename.c_str(), true );
@@ -173,7 +173,7 @@ namespace _3crypt {
 		using std::fprintf, std::fputs, std::exit;
 		// Return arguments unrelated to determining the mode in `extraneous_arguments`.
 		Arg_Map_t extraneous_arguments;
-		_CTIME_CONST(auto) Mode_Already_Set = "Error: Program mode already set\n"
+		_CTIME_CONST (auto) Mode_Already_Set = "Error: Program mode already set\n"
 		 		  	              "(Only one mode switch (e.g. -e or -d) is allowed per invocation of 3crypt.\n";
 		// For each argument after the first, which is the name of the 3crypt executable.
 		for (size_t i = 1; i < in_map.size(); ++i) {
@@ -190,7 +190,7 @@ namespace _3crypt {
 					errx( "%s\n%s\n", Mode_Already_Set, Help_Suggestion );
 				mode = Mode_E::Symmetric_Decrypt;
 			// --dump-header designates dumping the headers of a 3crypt encrypted file.
-			} else if (in_map[ i ].first == "-D" || in_map[ i ].first == "--dump-header") {
+			} else if (in_map[ i ].first == "-D" || in_map[ i ].first == "--dump") {
 				// Disallow setting a mode after we've already set one.
 				if (mode != Mode_E::None)
 					errx( "%s\n%s\n", Mode_Already_Set, Help_Suggestion );
@@ -229,7 +229,7 @@ namespace _3crypt {
 		// For every argument pair in `opt_arg_pairs`
 		for (auto &&pair : opt_arg_pairs) {
 			// Get the input filename.
-			if (pair.first == "-i" || pair.first == "--input-file") {
+			if (pair.first == "-i" || pair.first == "--input") {
 				// Force the provided input file name to be valid.
 				ssc::check_file_name_sanity( pair.second, 1 );
 				encr_input.input_filename = pair.second;
@@ -237,14 +237,14 @@ namespace _3crypt {
 				if (encr_input.output_filename.empty()) 
 					encr_input.output_filename = encr_input.input_filename + ".3c";
 			// Get the output filename.
-			} else if (pair.first == "-o" || pair.first == "--output-file" ) {
+			} else if (pair.first == "-o" || pair.first == "--output" ) {
 				// Force the provided output file name to be valid.
 				ssc::check_file_name_sanity( pair.second, 1 );
 				encr_input.output_filename = pair.second;
 			// Get the sspkdf iteration count.
 			} else if (pair.first == "--iter-count") {
 				// At maximum, allow there to be 10 string characters.
-				_CTIME_CONST(decltype(pair.second.size())) Max_Count_Chars = 10;
+				_CTIME_CONST (decltype(pair.second.size())) Max_Count_Chars = 10;
 				ssc::check_file_name_sanity( pair.second, 1 );
 				std::string count = std::move( pair.second );
 				if (count.size() > Max_Count_Chars)
@@ -260,7 +260,7 @@ namespace _3crypt {
 			// Get the sspkdf concatenation count.
 			} else if (pair.first == "--concat-count") {
 				// At maximum, allow there to be 10 string characters.
-				_CTIME_CONST(decltype(pair.second.size())) Max_Count_Chars = 10;
+				_CTIME_CONST (decltype(pair.second.size())) Max_Count_Chars = 10;
 				ssc::check_file_name_sanity( pair.second, 1 );
 				std::string count = std::move( pair.second );
 				if (count.size() > Max_Count_Chars)
@@ -274,7 +274,7 @@ namespace _3crypt {
 					encr_input.number_sspkdf_concatenations = num_concat;
 				}
 			// Get supplementary entropy from the keyboard to help seed the Skein-based CSPRNG.
-			} else if (pair.first == "-E" || pair.first == "--supplement-entropy") {
+			} else if (pair.first == "-E" || pair.first == "--entropy") {
 				encr_input.supplement_os_entropy = true;
 			// Prepare to return all the unrelated arguments.
 			} else {
@@ -300,13 +300,13 @@ namespace _3crypt {
 			// Force the second std::string of every pair to be valid.
 			ssc::check_file_name_sanity( pair.second, 1 );
 			// Get the input file name.
-			if (pair.first == "-i" || pair.first == "--input-file") {
+			if (pair.first == "-i" || pair.first == "--input") {
 				input_filename = pair.second;
 				// If the input filename was postfixed with .3c and no output filename has yet been specified, assume the original without ".3c" postfixed.
 				if (output_filename.empty() && (input_filename.size() >= 4) && (input_filename.substr( input_filename.size() - 3 ) == ".3c"))
 					output_filename = input_filename.substr( 0, input_filename.size() - 3 );
 			// Get the output file name.
-			} else if (pair.first == "-o" || pair.first == "--output-file") {
+			} else if (pair.first == "-o" || pair.first == "--output") {
 				output_filename = pair.second;
 			// Prepare to return unrelated arguments.
 			} else {
@@ -334,7 +334,7 @@ namespace _3crypt {
 			// Force the second std::string of every pair to be valid.
 			ssc::check_file_name_sanity( pair.second, 1 );
 			// Get the name of the input file, or prepare to return the unrelated arguments.
-			if (pair.first == "-i" || pair.first == "--input-file")
+			if (pair.first == "-i" || pair.first == "--input")
 				filename = pair.second;
 			else
 				extraneous_arguments.push_back( move( pair ) );
