@@ -6,7 +6,8 @@ cc = meson.get_compiler('cpp')
 # Get the host's operating system.
 os = host_machine.system()
 # Default source files.
-source    = ['main_control_unit.cc', 'main.cc']
+###source    = ['main_control_unit.cc', 'main.cc']
+source    = ['main.cc','threecrypt.cc']
 include   = []
 lib       = []
 depends   = []
