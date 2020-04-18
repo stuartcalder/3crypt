@@ -1,17 +1,8 @@
 #include <ssc/files/os_map.hh>
 #include "threecrypt.hh"
 
-#if     defined (OPENBSD_UNVEIL_I) || defined (OPENBSD_UNVEIL_IO) || \
-	defined (DEFAULT_IMPL_NS)
+#if     defined (OPENBSD_UNVEIL_I) || defined (OPENBSD_UNVEIL_IO)
 #	error 'Some MACRO we need was already defined'
-#endif
-
-#if    defined (__SSC_CTR_V1__)
-#	define DEFAULT_IMPL_NS ctr_v1
-#elif  defined (__SSC_CBC_V2__)
-#	define DEFAULT_IMPL_NS cbc_v2
-#else
-#	error 'No supported crypto impl detected'
 #endif
 
 #ifdef __OpenBSD__
@@ -42,8 +33,8 @@ using namespace ssc::crypto_impl;
 using namespace ssc;
 
 struct Threecrypt_Data {
-#if    defined (__SSC_CTR_V1__)
-	/*TODO*/
+#if    defined (__SSC_DRAGONFLY_V1__)
+	Catena_Input catena_input;
 #elif  defined (__SSC_CBC_V2__)
 	SSPKDF_Input sspkdf_input;
 #else
@@ -86,8 +77,11 @@ void threecrypt (int const argc, char const *argv[])
 			OPENBSD_UNVEIL_IO (threecrypt.input_filename.c_str(),
 					   threecrypt.output_filename.c_str());
 			SETUP_MAPS (threecrypt_data,true,true);
-#if    defined (__SSC_CTR_V1__)
-			/*TODO*/
+#if    defined (__SSC_DRAGONFLY_V1__)
+			dragonfly_v1::encrypt( threecrypt_data.catena_input,
+					       threecrypt_data.input_map,
+					       threecrypt_data.output_map,
+					       threecrypt_data.output_filename.c_str() );
 #elif  defined (__SSC_CBC_V2__)
 			cbc_v2::encrypt( threecrypt_data.sspkdf_input,
 					 threecrypt_data.input_map,
@@ -124,8 +118,8 @@ void threecrypt (int const argc, char const *argv[])
 					errx( "Error: The input file `%s` does not appear to be a valid 3crypt encrypted file.\n%s",
 					      threecrypt_data.input_filename.c_str(), Help_Suggestion );
 				}
-#ifdef __SSC_CTR_V1__
-			case( Crypto_Method_E::CTR_V1 ):
+#ifdef __SSC_DRAGONFLY_V1__
+			case( Crypto_Method_E::Dragonfly_V1 ):
 				/*TODO*/
 				return;
 #endif
@@ -164,8 +158,8 @@ void threecrypt (int const argc, char const *argv[])
 					errx( "Error: The input file `%s` does not appear to be a valid 3crypt encrypted file.\n%s",
 					      threecrypt_data.input_filename.c_str(), Help_Suggestion );
 				}
-#ifdef __SSC_CTR_V1__
-			case( Crypto_Method_E::CTR_V1 ):
+#ifdef __SSC_DRAGONFLY_V1__
+			case( Crypto_Method_E::Dragonfly_V1 ):
 				/*TODO*/
 				return;
 #endif
@@ -229,7 +223,7 @@ void process_encrypt_arguments (Arg_Map_t &argument_map, Threecrypt_Data &tc_dat
 {
 	if( tc_data.output_filename.empty() )
 		tc_data.output_filename = tc_data.input_filename + ".3c";
-#if    defined (__SSC_CTR_V1__)
+#if    defined (__SSC_DRAGONFLY_V1__)
 	/*TODO*/
 #elif  defined (__SSC_CBC_V2__)
 	tc_data.sspkdf_input.number_iterations = 1'000'000;
@@ -239,7 +233,7 @@ void process_encrypt_arguments (Arg_Map_t &argument_map, Threecrypt_Data &tc_dat
 #	error 'No valid crypto method detected'
 #endif
 	Arg_Map_t extraneous_args;
-#if    defined (__SSC_CTR_V1__)
+#if    defined (__SSC_DRAGONFLY_V1__)
 		/*TODO*/
 #elif  defined (__SSC_CBC_V2__)
 	_CTIME_CONST (int) Max_Chars = 10;
@@ -296,4 +290,3 @@ void die_unneeded_arguments (Arg_Map_t const &arg_map)
 #undef SETUP_MAPS
 #undef OPENBSD_UNVEIL_IO
 #undef OPENBSD_UNVEIL_I
-#undef DEFAULT_IMPL_NS

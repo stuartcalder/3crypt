@@ -7,17 +7,17 @@
 #include <ssc/general/integers.hh>
 #include <ssc/general/arg_mapping.hh>
 
+#ifdef __3CRYPT_ENABLE_DRAGONFLY_V1
+#	include <ssc/crypto/implementation/dragonfly_v1.hh>
+#endif
 #ifdef __3CRYPT_ENABLE_CBC_V2
 #	include <ssc/crypto/implementation/cbc_v2_f.hh>
-#endif
-#ifdef __3CRYPT_ENABLE_CTR_V1
-#	include <ssc/crypto/implementation/ctr_v1.hh>
 #endif
 
 #include <ssc/crypto/implementation/determine_crypto_method.hh>
 
-#if   (!defined (__SSC_CTR_V1__) && !defined (__SSC_CBC_V2__))
-#	error 'CTR_V1 or CBC_V2 must be enabled here.'
+#if   (!defined (__SSC_DRAGONFLY_V1__) && !defined (__SSC_CBC_V2__))
+#	error 'DRAGONFLY_V1 or CBC_V2 must be enabled here.'
 #endif
 using namespace ssc::ints;
 
@@ -40,7 +40,7 @@ _CTIME_CONST (auto&) Help_String = "Usage: 3crypt <Mode> [Switches...]\n"
 			           "-i, --input   <filename>  : Specifies the input file.\n"
 			           "-o, --output  <filename>  : Specifies the output file. Only applies to encryption and decryption.\n"
 			           "-E, --entropy             : Provide random input characters to increase the entropy of the pseudorandom number generator.\n"
-#if    defined (__SSC_CTR_V1__)
+#if    defined (__SSC_DRAGONFLY_V1__)
 				   /*TODO*/
 #elif  defined (__SSC_CBC_V2__)
 				   "CBC_V2 Encryption Options:\n"

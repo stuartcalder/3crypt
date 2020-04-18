@@ -20,16 +20,16 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include <ssc/general/integers.hh>
 #include <ssc/general/arg_mapping.hh>
 
+#ifdef __3CRYPT_ENABLE_DRAGONFLY_V1
+#	include <ssc/crypto/implementation/dragonfly_v1.hh>
+#endif
 #ifdef __3CRYPT_ENABLE_CBC_V2
 #	include <ssc/crypto/implementation/cbc_v2.hh>
-#endif
-#ifdef __3CRYPT_ENABLE_CTR_V1
-#	include <ssc/crypto/implementation/ctr_v1.hh>
 #endif
 
 #include <ssc/crypto/implementation/determine_crypto_method.hh>
 
-#if   (!defined (__SSC_CTR_V1__) && !defined (__SSC_CBC_V2__))
+#if   (!defined (__SSC_DRAGONFLY_V1__) && !defined (__SSC_CBC_V2__))
 #	error 'CTR_V1 or CBC_V2 must be enabled here.'
 #endif
 

@@ -6,7 +6,6 @@ cc = meson.get_compiler('cpp')
 # Get the host's operating system.
 os = host_machine.system()
 # Default source files.
-###source    = ['main_control_unit.cc', 'main.cc']
 source    = ['main.cc','threecrypt.cc']
 include   = []
 lib       = []
@@ -34,12 +33,11 @@ else
 	assert(false)
 endif
 
+if get_option('enable_dragonfly_v1')
+	_flag = _Define_Flag_Prefix + '__3CRYPT_ENABLE_DRAGONFLY_V1'
+endif
 if get_option('enable_cbc_v2')
 	_flag = _Define_Flag_Prefix + '__3CRYPT_ENABLE_CBC_V2'
-	cpp_flags += _flag
-endif
-if get_option('enable_ctr_v1')
-	_flag = _Define_Flag_Prefix + '__3CRYPT_ENABLE_CTR_V1'
 	cpp_flags += _flag
 endif
 
