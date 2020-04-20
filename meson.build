@@ -35,10 +35,14 @@ endif
 
 if get_option('enable_dragonfly_v1')
 	_flag = _Define_Flag_Prefix + '__3CRYPT_ENABLE_DRAGONFLY_V1'
+	cpp_flags += _flag
 endif
 if get_option('enable_cbc_v2')
 	_flag = _Define_Flag_Prefix + '__3CRYPT_ENABLE_CBC_V2'
 	cpp_flags += _flag
+endif
+if get_option('enable_debugging_symbols') and cc.get_id() == 'gcc' or cc.get_id() == 'clang'
+	cpp_flags += '-g'
 endif
 
 if os == 'openbsd' or os == 'freebsd'

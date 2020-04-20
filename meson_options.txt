@@ -1,2 +1,7 @@
-option('enable_dragonfly_v1', type: 'boolean", value: true)
-option('enable_cbc_v2'      , type: 'boolean', value: true)
+# By default, enable Dragonfly_V1 crypto method.
+option('enable_dragonfly_v1', type: 'boolean', value: true)
+
+# By default, enable CBC_V2 crypto method.
+option('enable_cbc_v2', type: 'boolean', value: true)
+
+option('enable_debugging_symbols', type: 'boolean', value: false)

@@ -1,7 +1,10 @@
+#include <limits>
+#include <cctype>
 #include <ssc/files/os_map.hh>
 #include "threecrypt.hh"
 
-#if     defined (OPENBSD_UNVEIL_I) || defined (OPENBSD_UNVEIL_IO)
+#if     defined (OPENBSD_UNVEIL_I) || defined (OPENBSD_UNVEIL_IO) || defined (SETUP_MAPS) \
+     || defined (ENCRYPT_INPUT)
 #	error 'Some MACRO we need was already defined'
 #endif
 
@@ -29,8 +32,100 @@
 		if constexpr (setup_output_bool) \
 			tc_data.output_map.os_file = create_os_file( tc_data.output_filename.c_str() )
 
+#if    defined (__SSC_DRAGONFLY_V1__)
+#	define ENCRYPT_INPUT Catena_Input
+#elif  defined (__SSC_CBC_V2__)
+#	define ENCRYPT_INPUT SSPKDF_Input
+#else
+#	error 'No supported crypto method detected.'
+#endif
+
 using namespace ssc::crypto_impl;
 using namespace ssc;
+
+#ifdef __SSC_DRAGONFLY_V1__
+static inline u8_t dragonfly_parse_memory (std::string mem)
+{
+	u64_t requested_bytes = 0;
+	u64_t multiplier = 1;
+	for( char c : mem ) {
+		switch( std::toupper( static_cast<unsigned char>(c) ) ) {
+		case( 'K' ):
+			multiplier = (1'024 / 64);
+			goto Have_Mul_L;
+		case( 'M' ):
+			multiplier = (1'048'576 / 64);
+			goto Have_Mul_L;
+		case( 'G' ):
+			multiplier = (1'073'741'824 / 64);
+			goto Have_Mul_L;
+		}
+	}
+Have_Mul_L:
+	constexpr auto Max_Digits = [](u64_t m) constexpr -> int {
+		int num_digits = 0;
+		while( m > 0 ) {
+			m /= 10;
+			++num_digits;
+		}
+		return num_digits;
+	};
+	_CTIME_CONST (int)   B_Max_Digits = 1'000;
+	_CTIME_CONST (u64_t) K_Max = (std::numeric_limits<u64_t>::max)() / 1'024;         // 2^10
+	_CTIME_CONST (int)   K_Max_Digits = Max_Digits (K_Max);
+	_CTIME_CONST (u64_t) M_Max = (std::numeric_limits<u64_t>::max)() / 1'048'576;     // 2^20
+	_CTIME_CONST (int)   M_Max_Digits = Max_Digits (M_Max);
+	_CTIME_CONST (u64_t) G_Max = (std::numeric_limits<u64_t>::max)() / 1'073'741'824; // 2^30
+	_CTIME_CONST (int)   G_Max_Digits = Max_Digits (G_Max);
+	if( enforce_integer( mem ) ) {
+		switch( multiplier ) {
+		case( 1 ):
+			if( mem.size() > B_Max_Digits )
+				errx( "Error: Specified memory parameter is too large!\n" );
+			break;
+		case( 1'024 ):
+			if( mem.size() > K_Max_Digits )
+				errx( "Error: Specified memory parameter is too large!\n" );
+			break;
+		case( 1'048'576 ):
+			if( mem.size() > M_Max_Digits )
+				errx( "Error: Specified memory parameter is too large!\n" );
+			break;
+		case( 1'073'741'824 ):
+			if( mem.size() > G_Max_Digits )
+				errx( "Error: Specified memory parameter is too large!\n" );
+			break;
+		}
+	} else {
+		errx( "Error: No number supplied with memory-usage specification.\n" );
+	}
+	requested_bytes = std::strtoull( mem.c_str(), nullptr, 10 );
+	requested_bytes *= multiplier;
+	if( requested_bytes == 0 )
+		errx( "Error: Zero memory requested?\n" );
+	u64_t mask   = 0x80'00'00'00'00'00'00'00; // Leading 1 bit, the rest 0.
+	u8_t  garlic = 63;
+	while( !(mask & requested_bytes) ) {
+		mask >>= 1;
+		--garlic;
+	}
+	return garlic;
+
+}
+static inline u8_t dragonfly_parse_iterations (std::string mem)
+{
+	if( enforce_integer( mem ) ) {
+		if( mem.size() > 3 )
+			errx( "Error: Too many characters specifying the iteration count.\n" );
+		int it = std::atoi( mem.c_str() );
+		if( it < 1 || it > 255 )
+			errx( "Error: Invalid iteration count\n" );
+		return static_cast<u8_t>(it);
+	} else {
+		errx( "Error: Invalid iteration count\n" );
+	}
+}
+#endif /* ~ #ifdef __SSC_DRAGONFLY_V1__ */
 
 struct Threecrypt_Data {
 #if    defined (__SSC_DRAGONFLY_V1__)
@@ -66,31 +161,35 @@ void threecrypt (int const argc, char const *argv[])
 	switch( threecrypt_data.mode ) {
 	default:
 	case( Mode_E::None ):
-		{
-			errx( "Error: No mode selected or invalid mode (%d)\n%s", static_cast<int>(threecrypt_data.mode), Help_Suggestion );
-		}
+	{
+		errx( "Error: No mode selected or invalid mode (%d)\n%s", static_cast<int>(threecrypt_data.mode), Help_Suggestion );
+	}
 	case( Mode_E::Symmetric_Encrypt ):
-		{
-			process_encrypt_arguments( argument_state, threecrypt_data );
-			if( !argument_state.empty() )
-				die_unneeded_arguments( argument_state );
-			OPENBSD_UNVEIL_IO (threecrypt.input_filename.c_str(),
-					   threecrypt.output_filename.c_str());
-			SETUP_MAPS (threecrypt_data,true,true);
+	{
+		process_encrypt_arguments( argument_state, threecrypt_data );
+		if( !argument_state.empty() )
+			die_unneeded_arguments( argument_state );
+		OPENBSD_UNVEIL_IO (threecrypt.input_filename.c_str(),
+				   threecrypt.output_filename.c_str());
+		SETUP_MAPS (threecrypt_data,true,true);
 #if    defined (__SSC_DRAGONFLY_V1__)
-			dragonfly_v1::encrypt( threecrypt_data.catena_input,
-					       threecrypt_data.input_map,
-					       threecrypt_data.output_map,
-					       threecrypt_data.output_filename.c_str() );
+		if( threecrypt_data.catena_input.g_low > threecrypt_data.catena_input.g_high )
+			threecrypt_data.catena_input.g_high = threecrypt_data.catena_input.g_low;
+		if( threecrypt_data.catena_input.lambda == 0 )
+			threecrypt_data.catena_input.lambda = 1;
+		dragonfly_v1::encrypt( threecrypt_data.catena_input,
+				       threecrypt_data.input_map,
+				       threecrypt_data.output_map,
+				       threecrypt_data.output_filename.c_str() );
 #elif  defined (__SSC_CBC_V2__)
-			cbc_v2::encrypt( threecrypt_data.sspkdf_input,
-					 threecrypt_data.input_map,
-					 threecrypt_data.output_map );
+		cbc_v2::encrypt( threecrypt_data.sspkdf_input,
+				 threecrypt_data.input_map,
+				 threecrypt_data.output_map );
 #else
 #	error 'No supported method detected'
 #endif
-			return;
-		}
+		return;
+	}
 	case( Mode_E::Symmetric_Decrypt ):
 		{
 			process_decrypt_arguments( threecrypt_data );
@@ -120,8 +219,13 @@ void threecrypt (int const argc, char const *argv[])
 				}
 #ifdef __SSC_DRAGONFLY_V1__
 			case( Crypto_Method_E::Dragonfly_V1 ):
-				/*TODO*/
-				return;
+				{
+					threecrypt_data.output_map.os_file = create_os_file( threecrypt_data.output_filename.c_str() );
+					dragonfly_v1::decrypt( threecrypt_data.input_map,
+							       threecrypt_data.output_map,
+							       threecrypt_data.output_filename.c_str() );
+					return;
+				}
 #endif
 #ifdef __SSC_CBC_V2__
 			case( Crypto_Method_E::CBC_V2 ):
@@ -130,8 +234,8 @@ void threecrypt (int const argc, char const *argv[])
 					cbc_v2::decrypt( threecrypt_data.input_map,
 							 threecrypt_data.output_map,
 							 threecrypt_data.output_filename.c_str() );
+					return;
 				}
-				return;
 #endif
 			}
 			break;
@@ -160,13 +264,17 @@ void threecrypt (int const argc, char const *argv[])
 				}
 #ifdef __SSC_DRAGONFLY_V1__
 			case( Crypto_Method_E::Dragonfly_V1 ):
-				/*TODO*/
-				return;
+				{
+					dragonfly_v1::dump_header( threecrypt_data.input_map, threecrypt_data.input_filename.c_str() );
+					return;
+				}
 #endif
 #ifdef __SSC_CBC_V2__
 			case( Crypto_Method_E::CBC_V2 ):
-				cbc_v2::dump_header( threecrypt_data.input_map, threecrypt_data.input_filename.c_str() );
-				return;
+				{
+					cbc_v2::dump_header( threecrypt_data.input_map, threecrypt_data.input_filename.c_str() );
+					return;
+				}
 #endif
 			}
 
@@ -224,21 +332,43 @@ void process_encrypt_arguments (Arg_Map_t &argument_map, Threecrypt_Data &tc_dat
 	if( tc_data.output_filename.empty() )
 		tc_data.output_filename = tc_data.input_filename + ".3c";
 #if    defined (__SSC_DRAGONFLY_V1__)
-	/*TODO*/
+	// For now, initialize the numeric parameters to nonsense values, to overwrite later.
+	tc_data.catena_input.supplement_os_entropy = false;
+	tc_data.catena_input.g_low   = 20;
+	tc_data.catena_input.g_high  = 20;
+	tc_data.catena_input.lambda  = 1;
+	tc_data.catena_input.use_phi = 0;
 #elif  defined (__SSC_CBC_V2__)
-	tc_data.sspkdf_input.number_iterations = 1'000'000;
-	tc_data.sspkdf_input.number_concatenations = 1'000'000;
 	tc_data.sspkdf_input.supplement_os_entropy = false;
+	tc_data.sspkdf_input.number_iterations = 3'000'000;
+	tc_data.sspkdf_input.number_concatenations = 3'000'000;
+	_CTIME_CONST (int) Max_Chars = 10;
 #else
 #	error 'No valid crypto method detected'
 #endif
 	Arg_Map_t extraneous_args;
-#if    defined (__SSC_DRAGONFLY_V1__)
-		/*TODO*/
-#elif  defined (__SSC_CBC_V2__)
-	_CTIME_CONST (int) Max_Chars = 10;
 	for( auto &&pair : argument_map ) {
-		if( pair.first == "--iter-count" ) {
+		if( pair.first == "-E" || pair.first == "--entropy" ) {
+#if    defined (__SSC_DRAGONFLY_V1__)
+			tc_data.catena_input.supplement_os_entropy = true;
+#elif  defined (__SSC_CBC_V2__)
+			tc_data.sspkdf_input.supplement_os_entropy = true;
+#else
+#	error 'No supported crypto method detected.'
+#endif
+		}
+#if    defined (__SSC_DRAGONFLY_V1__)
+		else if( pair.first == "--min-memory" ) {
+			tc_data.catena_input.g_low  = dragonfly_parse_memory( std::move( pair.second ) );
+		} else if( pair.first == "--max-memory" ) {
+			tc_data.catena_input.g_high = dragonfly_parse_memory( std::move( pair.second ) );
+		} else if( pair.first == "--iterations" ) {
+			tc_data.catena_input.lambda = dragonfly_parse_iterations( std::move( pair.second ) );
+		} else if( pair.first == "-P" || pair.first == "--phi" ) {
+			tc_data.catena_input.use_phi = 1;
+		}
+#elif  defined (__SSC_CBC_V2__)
+		else if( pair.first == "--iter-count" ) {
 			check_file_name_sanity( pair.second, 1 );
 			std::string count = std::move( pair.second );
 			if( count.size() > Max_Chars )
@@ -260,16 +390,15 @@ void process_encrypt_arguments (Arg_Map_t &argument_map, Threecrypt_Data &tc_dat
 					errx( "Error: Number sspkdf concatenations specified is zero.\n" );
 				tc_data.sspkdf_input.number_concatenations = num_concat;
 			}
-		} else if( pair.first == "-E" || pair.first == "--entropy" ) {
-			tc_data.sspkdf_input.supplement_os_entropy = true;
-		} else {
+		}
+#else
+#	error 'No supported crypto method detected.'
+#endif
+		else {
 			extraneous_args.push_back( std::move( pair ) );
 		}
-	}
+	}/* ~ for (auto &&pair : argument_map) */
 	argument_map = extraneous_args;
-#else
-#	error 'No valid crypto method detected'
-#endif
 }
 void process_decrypt_arguments (Threecrypt_Data &tc_data)
 {
@@ -287,6 +416,7 @@ void die_unneeded_arguments (Arg_Map_t const &arg_map)
 	fputc( '\n', stderr );
 	errx( "%s\n", Help_Suggestion );
 }
+#undef ENCRYPT_INPUT
 #undef SETUP_MAPS
 #undef OPENBSD_UNVEIL_IO
 #undef OPENBSD_UNVEIL_I
