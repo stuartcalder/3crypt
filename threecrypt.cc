@@ -123,6 +123,17 @@ static inline u8_t dragonfly_parse_iterations (std::string mem)
 		return static_cast<u8_t>(it);
 	} else {
 		errx( "Error: Invalid iteration count\n" );
+		return static_cast<u8_t>(0); // Stop compiler complaining about no return value.
+	}
+}
+static inline u64_t dragonfly_parse_padding (std::string padding)
+{
+	if( enforce_integer( padding ) ) {
+		unsigned long long p = std::strtoull( padding.c_str(), nullptr, 10 );
+		return static_cast<u64_t>(p);
+	} else {
+		errx( "" );
+		return static_cast<u64_t>(0); // Stop compiler complaining about no return value.
 	}
 }
 #endif /* ~ #ifdef __SSC_DRAGONFLY_V1__ */
@@ -332,10 +343,10 @@ void process_encrypt_arguments (Arg_Map_t &argument_map, Threecrypt_Data &tc_dat
 	if( tc_data.output_filename.empty() )
 		tc_data.output_filename = tc_data.input_filename + ".3c";
 #if    defined (__SSC_DRAGONFLY_V1__)
-	// For now, initialize the numeric parameters to nonsense values, to overwrite later.
+	tc_data.catena_input.padding_bytes = 0;
 	tc_data.catena_input.supplement_os_entropy = false;
-	tc_data.catena_input.g_low   = 20;
-	tc_data.catena_input.g_high  = 20;
+	tc_data.catena_input.g_low   = 23; // Default to ~ 512MB of memory usage
+	tc_data.catena_input.g_high  = 23;
 	tc_data.catena_input.lambda  = 1;
 	tc_data.catena_input.use_phi = 0;
 #elif  defined (__SSC_CBC_V2__)
@@ -366,6 +377,8 @@ void process_encrypt_arguments (Arg_Map_t &argument_map, Threecrypt_Data &tc_dat
 			tc_data.catena_input.lambda = dragonfly_parse_iterations( std::move( pair.second ) );
 		} else if( pair.first == "-P" || pair.first == "--phi" ) {
 			tc_data.catena_input.use_phi = 1;
+		} else if( pair.first == "--pad" ) {
+			tc_data.catena_input.padding_bytes = dragonfly_parse_padding( std::move( pair.second ) );
 		}
 #elif  defined (__SSC_CBC_V2__)
 		else if( pair.first == "--iter-count" ) {
