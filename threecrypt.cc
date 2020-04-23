@@ -373,6 +373,9 @@ void process_encrypt_arguments (Arg_Map_t &argument_map, Threecrypt_Data &tc_dat
 			tc_data.catena_input.g_low  = dragonfly_parse_memory( std::move( pair.second ) );
 		} else if( pair.first == "--max-memory" ) {
 			tc_data.catena_input.g_high = dragonfly_parse_memory( std::move( pair.second ) );
+		} else if( pair.first == "--use-memory" ) {
+			tc_data.catena_input.g_high = dragonfly_parse_memory( std::move( pair.second ) );
+			tc_data.catena_input.g_low = tc_data.catena_input.g_high;
 		} else if( pair.first == "--iterations" ) {
 			tc_data.catena_input.lambda = dragonfly_parse_iterations( std::move( pair.second ) );
 		} else if( pair.first == "-P" || pair.first == "--phi" ) {
