@@ -41,7 +41,7 @@ _CTIME_CONST (auto&) Help_String = "Usage: 3crypt <Mode> [Switches...]\n"
 				   "--------\n"
 			           "-i, --input  <filename>\t\tSpecifies the input file.\n"
 			           "-o, --output <filename>\t\tSpecifies the output file. Only applies to encryption and decryption.\n"
-			           "-E, --entropy\t\tProvide random input characters to increase the entropy of the pseudorandom number generator.\n\n"
+			           "-E, --entropy\t\t\tProvide random input characters to increase the entropy of the pseudorandom number generator.\n\n"
 #if    defined (__SSC_DRAGONFLY_V1__)
 				   "Dragonfly_V1 Encryption Options\n"
 				   "-------------------------------\n"
