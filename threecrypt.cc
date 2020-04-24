@@ -177,12 +177,19 @@ void threecrypt (int const argc, char const *argv[])
 	}
 	case( Mode_E::Symmetric_Encrypt ):
 	{
+		if( threecrypt_data.output_filename.empty() )
+			threecrypt_data.output_filename = threecrypt_data.input_filename + ".3c";
+		OPENBSD_UNVEIL_IO (threecrypt.input_filename.c_str(),
+				   threecrypt.output_filename.c_str());
+		// Setup input map.
+		threecrypt_data.input_map.os_file = open_existing_os_file( threecrypt_data.input_filename.c_str(), true );
+		threecrypt_data.input_map.size = get_file_size( threecrypt_data.input_map.os_file );
+		map_file( threecrypt_data.input_map, true );
+		// Setup output map.
+		threecrypt_data.output_map.os_file = create_os_file( threecrypt_data.output_filename.c_str() );
 		process_encrypt_arguments( argument_state, threecrypt_data );
 		if( !argument_state.empty() )
 			die_unneeded_arguments( argument_state );
-		OPENBSD_UNVEIL_IO (threecrypt.input_filename.c_str(),
-				   threecrypt.output_filename.c_str());
-		SETUP_MAPS (threecrypt_data,true,true);
 #if    defined (__SSC_DRAGONFLY_V1__)
 		if( threecrypt_data.catena_input.g_low > threecrypt_data.catena_input.g_high )
 			threecrypt_data.catena_input.g_high = threecrypt_data.catena_input.g_low;
@@ -340,8 +347,6 @@ void process_mode_arguments (Arg_Map_t &argument_map, Threecrypt_Data &tc_data)
 }
 void process_encrypt_arguments (Arg_Map_t &argument_map, Threecrypt_Data &tc_data)
 {
-	if( tc_data.output_filename.empty() )
-		tc_data.output_filename = tc_data.input_filename + ".3c";
 #if    defined (__SSC_DRAGONFLY_V1__)
 	tc_data.catena_input.padding_bytes = 0;
 	tc_data.catena_input.supplement_os_entropy = false;
@@ -378,10 +383,31 @@ void process_encrypt_arguments (Arg_Map_t &argument_map, Threecrypt_Data &tc_dat
 			tc_data.catena_input.g_low = tc_data.catena_input.g_high;
 		} else if( pair.first == "--iterations" ) {
 			tc_data.catena_input.lambda = dragonfly_parse_iterations( std::move( pair.second ) );
-		} else if( pair.first == "-P" || pair.first == "--phi" ) {
+		} else if( pair.first == "--use-phi" ) {
 			tc_data.catena_input.use_phi = 1;
-		} else if( pair.first == "--pad" ) {
+		} else if( pair.first == "--pad-by" ) {
 			tc_data.catena_input.padding_bytes = dragonfly_parse_padding( std::move( pair.second ) );
+		} else if( pair.first == "--pad-to" ) {
+			u64_t target = dragonfly_parse_padding( std::move( pair.second ) );
+			if( target < ssc::crypto_impl::dragonfly_v1::Visible_Metadata_Bytes ) {
+				unmap_file( tc_data.input_map );
+				close_os_file( tc_data.output_map.os_file );
+				close_os_file( tc_data.input_map.os_file );
+				remove( tc_data.output_filename.c_str() );
+				errx( "Error: The --pad-to target (%" PRIu64 ") is way too small!\n", target );
+			}
+			if( (target - ssc::crypto_impl::dragonfly_v1::Visible_Metadata_Bytes) < tc_data.input_map.size ) {
+				unmap_file( tc_data.input_map );
+				close_os_file( tc_data.output_map.os_file );
+				close_os_file( tc_data.input_map.os_file );
+				remove( tc_data.output_filename.c_str() );
+				errx( "Error: The input map size (%" PRIu64 ") is too large to --pad-to %" PRIu64 "\n", tc_data.input_map.size, target );
+			}
+			else {
+				tc_data.catena_input.padding_bytes = target;
+				tc_data.catena_input.padding_bytes -= tc_data.input_map.size;
+				tc_data.catena_input.padding_bytes -= ssc::crypto_impl::dragonfly_v1::Visible_Metadata_Bytes;
+			}
 		}
 #elif  defined (__SSC_CBC_V2__)
 		else if( pair.first == "--iter-count" ) {

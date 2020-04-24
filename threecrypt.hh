@@ -1,3 +1,5 @@
+#define __STDC_FORMAT_MACROS
+#include <cinttypes>
 #include <cstdlib>
 #include <string>
 #include <utility>
@@ -52,8 +54,9 @@ _CTIME_CONST (auto&) Help_String = "Usage: 3crypt <Mode> [Switches...]\n"
 				   "    Setting only one of these memory parameters will set the other to the same value.\n"
 				   "    Memory minimums and maximums are rounded down to the closest power of 2.\n"
 				   "--iterations <number>\tThe number of times to iterate the memory-hard function during key-derivation. Time cost.\n"
-				   "--pad <number>\t\tThe number of padding bytes to add the to encrypted file, to obfuscate how large it is.\n"
-				   "-P, --phi\t\tWhether to enable the optional Phi-function or not.\n"
+				   "--pad-by <number>\tThe number of padding bytes to add the to encrypted file, to obfuscate how large it is.\n"
+				   "--pad-to <number>\tThe target number of bytes you want your encrypted file to be; will fail if it's not big enough to hold the original with a header.\n"
+				   "--use-phi\t\tWhether to enable the optional Phi-function or not.\n"
 				   "    WARNING: The optional phi function hardens the key-derivation function against\n"
 				   "    parallel adversaries, greatly increasing the work necessary to attack your\n"
 				   "    password, but introduces the potential for cache-timing attacks...\n"
