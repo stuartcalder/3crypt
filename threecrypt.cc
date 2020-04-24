@@ -128,11 +128,26 @@ static inline u8_t dragonfly_parse_iterations (std::string mem)
 }
 static inline u64_t dragonfly_parse_padding (std::string padding)
 {
+	u64_t multiplier = 1;
+	for( char c : padding ) {
+		switch( std::toupper( static_cast<unsigned char>(c) ) ) {
+		case( 'K' ):
+			multiplier = 1'024;
+			goto Have_Mul_L;
+		case( 'M' ):
+			multiplier = (1'024 * 1'024);
+			goto Have_Mul_L;
+		case( 'G' ):
+			multiplier = (1'024 * 1'024 * 1'024);
+			goto Have_Mul_L;
+		}
+	}
+Have_Mul_L:
 	if( enforce_integer( padding ) ) {
 		unsigned long long p = std::strtoull( padding.c_str(), nullptr, 10 );
-		return static_cast<u64_t>(p);
+		return static_cast<u64_t>(p) * multiplier;
 	} else {
-		errx( "" );
+		errx( "Error: Asked for padding, without providing a number of padding bytes.\n" );
 		return static_cast<u64_t>(0); // Stop compiler complaining about no return value.
 	}
 }
