@@ -19,7 +19,7 @@ if os == 'windows' and cc.get_id() == 'msvc'
 endif
 
 # Handle BSD-specifics.
-if   os == 'openbsd' or os == 'freebsd'
+if   os == 'openbsd' or os == 'freebsd' or os == 'darwin'
 	include += '/usr/local/include'
 	lib     += '/usr/local/lib'
 # Handle GNU/Linux-specifics.
@@ -58,6 +58,10 @@ elif os == 'windows'
 	cpp_flags += _flag
 else
 	assert(false)
+endif
+if os == 'darwin'
+	_flag = _Define_Flag_Prefix + '__STDC_WANT_LIB_EXT1__=1'
+	cpp_flags += _flag
 endif
 
 if os != 'windows'
