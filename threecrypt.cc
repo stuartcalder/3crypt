@@ -417,8 +417,7 @@ void process_encrypt_arguments (Arg_Map_t &argument_map, Threecrypt_Data &tc_dat
 				close_os_file( tc_data.input_map.os_file );
 				remove( tc_data.output_filename.c_str() );
 				errx( "Error: The input map size (%" PRIu64 ") is too large to --pad-to %" PRIu64 "\n", tc_data.input_map.size, target );
-			}
-			else {
+			} else {
 				tc_data.catena_input.padding_bytes = target;
 				tc_data.catena_input.padding_bytes -= tc_data.input_map.size;
 				tc_data.catena_input.padding_bytes -= ssc::crypto_impl::dragonfly_v1::Visible_Metadata_Bytes;

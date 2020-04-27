@@ -4,4 +4,5 @@ option('enable_dragonfly_v1', type: 'boolean', value: true)
 # By default, enable CBC_V2 crypto method.
 option('enable_cbc_v2', type: 'boolean', value: true)
 
+# By default, do not turn on debugging symbols.
 option('enable_debugging_symbols', type: 'boolean', value: false)

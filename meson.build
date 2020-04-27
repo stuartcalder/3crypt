@@ -33,24 +33,30 @@ else
 	assert(false)
 endif
 
+# Enable Dragonfly V1?
 if get_option('enable_dragonfly_v1')
 	_flag = _Define_Flag_Prefix + '__3CRYPT_ENABLE_DRAGONFLY_V1'
 	cpp_flags += _flag
 endif
+# Enable CBC_V2?
 if get_option('enable_cbc_v2')
 	_flag = _Define_Flag_Prefix + '__3CRYPT_ENABLE_CBC_V2'
 	cpp_flags += _flag
 endif
+# Include debugging symbols?
 if get_option('enable_debugging_symbols') and cc.get_id() == 'gcc' or cc.get_id() == 'clang'
 	cpp_flags += '-g'
 endif
 
-if os == 'openbsd' or os == 'freebsd'
+# Handle the BSD systems.
+if os == 'openbsd' or os == 'freebsd' or os == 'darwin'
 	depends += cc.find_library('ncurses')
 	depends += cc.find_library('ssc', dirs: lib)
+# Handle GNU/Linux.
 elif os == 'linux'
 	depends += cc.find_library('ncurses')
 	depends += cc.find_library('ssc')
+# Handle Win64.
 elif os == 'windows'
 	depends += cc.find_library('bcrypt')
 	depends += cc.find_library('ssc', static: true, dirs: lib)
@@ -59,6 +65,7 @@ elif os == 'windows'
 else
 	assert(false)
 endif
+# On OSX, this cpp flag is required for access to memset_s, which we use to securely destroy memory.
 if os == 'darwin'
 	_flag = _Define_Flag_Prefix + '__STDC_WANT_LIB_EXT1__=1'
 	cpp_flags += _flag
