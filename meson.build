@@ -1,10 +1,20 @@
 # Define project.
 project('3crypt', 'cpp', default_options: ['cpp_std=c++17', 'strip=true', 'buildtype=release',
                                            'optimization=3', 'cpp_eh=none'])
-# Get C++ compiler.
+# Determine the compiler and the operating system.
 cc = meson.get_compiler('cpp')
-# Get the host's operating system.
 os = host_machine.system()
+# Assert that we are building on a supported operating system with a supported compiler.
+assert (
+	os == 'openbsd' or os == 'freebsd' or os == 'darwin' or
+	os == 'linux' or
+	os == 'windows',
+	'You are trying to build 3crypt on an unsupported operating system!'
+)
+assert (
+	cc.get_id() == 'gcc' or cc.get_id() == 'clang' or cc.get_id() == 'msvc',
+	'You are trying to build 3crypt using an unsupported compiler!'
+)
 # Default source files.
 source    = ['main.cc','threecrypt.cc']
 include   = []
@@ -12,11 +22,14 @@ lib       = []
 depends   = []
 cpp_flags = []
 
-_Define_Flag_Prefix = '-D'
 # The define flag prefix is different on Windows with MSVC compiler.
 if os == 'windows' and cc.get_id() == 'msvc'
 	_Define_Flag_Prefix = '/D'
+else
+	_Define_Flag_Prefix = '-D'
 endif
+# Determine whether the compiler is compatible with gcc flags.
+is_gcc_compatible = (cc.get_id() == 'gcc' or cc.get_id() == 'clang')
 
 # Handle BSD-specifics.
 if   os == 'openbsd' or os == 'freebsd' or os == 'darwin'
@@ -29,8 +42,6 @@ elif os == 'linux'
 elif os == 'windows'
 	include += 'C:/include'
 	lib     += 'C:/lib'
-else
-	assert(false)
 endif
 
 # Enable Dragonfly V1?
@@ -44,10 +55,15 @@ if get_option('enable_cbc_v2')
 	cpp_flags += _flag
 endif
 # Include debugging symbols?
-if get_option('enable_debugging_symbols') and cc.get_id() == 'gcc' or cc.get_id() == 'clang'
+if is_gcc_compatible and get_option('enable_debugging_symbols')
 	cpp_flags += '-g'
 endif
 
+# On OSX, this cpp flag is required for access to memset_s, which we use to securely destroy memory.
+if os == 'darwin'
+	_flag = _Define_Flag_Prefix + '__STDC_WANT_LIB_EXT1__=1'
+	cpp_flags += _flag
+endif
 # Handle the BSD systems.
 if os == 'openbsd' or os == 'freebsd' or os == 'darwin'
 	depends += cc.find_library('ncurses')
@@ -61,13 +77,6 @@ elif os == 'windows'
 	depends += cc.find_library('bcrypt')
 	depends += cc.find_library('ssc', static: true, dirs: lib)
 	_flag = _Define_Flag_Prefix + '__IMPORT_STATIC'
-	cpp_flags += _flag
-else
-	assert(false)
-endif
-# On OSX, this cpp flag is required for access to memset_s, which we use to securely destroy memory.
-if os == 'darwin'
-	_flag = _Define_Flag_Prefix + '__STDC_WANT_LIB_EXT1__=1'
 	cpp_flags += _flag
 endif
 
