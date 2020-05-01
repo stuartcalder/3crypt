@@ -6,3 +6,5 @@ option('enable_cbc_v2', type: 'boolean', value: false)
 
 # By default, do not turn on debugging symbols.
 option('enable_debugging_symbols', type: 'boolean', value: false)
+
+option('default_garlic', type: 'integer', min: 0, max: 63, value: 23)

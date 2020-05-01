@@ -58,6 +58,12 @@ endif
 if is_gcc_compatible and get_option('enable_debugging_symbols')
 	cpp_flags += '-g'
 endif
+# Specify a default garlic?
+if get_option('default_garlic') != 23
+	_garlic = get_option('default_garlic').to_string()
+	_flag = _Define_Flag_Prefix + '__3CRYPT_DRAGONFLY_V1_DEFAULT_GARLIC=' + _garlic
+	cpp_flags += _flag
+endif
 
 # On OSX, this cpp flag is required for access to memset_s, which we use to securely destroy memory.
 if os == 'darwin'

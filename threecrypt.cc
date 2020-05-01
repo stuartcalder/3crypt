@@ -363,10 +363,20 @@ void process_mode_arguments (Arg_Map_t &argument_map, Threecrypt_Data &tc_data)
 void process_encrypt_arguments (Arg_Map_t &argument_map, Threecrypt_Data &tc_data)
 {
 #if    defined (__SSC_DRAGONFLY_V1__)
+#	ifdef __3CRYPT_DRAGONFLY_V1_DEFAULT_GARLIC
+	static_assert (std::is_same<decltype(__3CRYPT_DRAGONFLY_V1_DEFAULT_GARLIC),int>::value,
+		       "The macro __3CRYPT_DRAGONFLY_V1_DEFAULT_GARLIC must be an integer!");
+	static_assert (__3CRYPT_DRAGONFLY_V1_DEFAULT_GARLIC >  0);
+	static_assert (__3CRYPT_DRAGONFLY_V1_DEFAULT_GARLIC < 63);
+	_CTIME_CONST (u8_t) Default_Garlic = __3CRYPT_DRAGONFLY_V1_DEFAULT_GARLIC;
+#	else
+	// If we haven't gotten a default memory usage from the command-line, we'll use a garlic of 23. (512MB).
+	_CTIME_CONST (u8_t) Default_Garlic = 23;
+#	endif
 	tc_data.catena_input.padding_bytes = 0;
 	tc_data.catena_input.supplement_os_entropy = false;
-	tc_data.catena_input.g_low   = 23; // Default to ~ 512MB of memory usage
-	tc_data.catena_input.g_high  = 23;
+	tc_data.catena_input.g_low   = Default_Garlic;
+	tc_data.catena_input.g_high  = Default_Garlic;
 	tc_data.catena_input.lambda  = 1;
 	tc_data.catena_input.use_phi = 0;
 #elif  defined (__SSC_CBC_V2__)
