@@ -1,0 +1,71 @@
+.\" Copyright (c) 2020 Stuart Steven Calder
+.\" Permission to use, copy, modify, and/or distribute this software for any purpose with or without fee is hereby granted, provided that the above
+.\" copyright notice and this permission notice appear in all copies.
+.\" THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES
+.\" OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY
+.\" DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION,
+.\" ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+.\" Contact at technoglub@protonmail.com
+.TH 3crypt 1 "15 May 2020" "1.0" "3crypt"
+.SH NAME
+3crypt \- encrypt files using passwords
+.SH SYNOPSIS
+3crypt [ -i | --input  ] <input_filename> 
+       [ -o | --output ] <output_filename> 
+       [ -e | --encrypt] 
+       [ -d | --decrypt]
+       [ -D | --dump   ]
+       [ -E | --entropy]
+       [ --min-memory  ] <minimum_memory>[K,M,G]
+       [ --max-memory  ] <maximum_memory>[K,M,G]
+       [ --use-memory  ] <memory>[K,M,G]
+       [ --iterations  ] <number_iterations>
+       [ --pad-by      ] <number_bytes>[K,M,G]
+       [ --pad-to      ] <number_bytes>[K,M,G]
+       [ --use-phi     ]
+.\".B 3crypt
+.\".RB -i [input_filename]
+.\".RB [-o output_filename]
+.\".RB [|OPTIONS|]
+.SH DESCRIPTION
+3crypt uses passphrases to encrypt files data and metadata.
+
+Options overview:
+           [ -i | --input ] <input_filename>
+                      Specify an input file (i.e. an encrypted file we want to decrypt, a plaintext file we want to encrypt).
+           [ -o | --output] <output_filename>
+                      Sepcify an output file (i.e. the plaintext of a file we are decrypting, the ciphertext of a file we are encrypting).
+           [ -e | --encrypt]
+                      Specify we want to encrypt the <input_filename> and store the ciphertext in <output_filename>.
+           [ -d | --decrypt]
+                      Specify we want to decrypt the <input_filename> and store the plaintext in <output_filename>
+           [ -D | --dump]
+                      Specify we want to dump the 3crypt header specified by <input_filename> to stdout.
+           [ -E | --entropy]
+                      Specify we want to supplement the entropy of the pseudorandom number generator.
+                      Entropy from the operating system gets churned with entropy taken from the keyboard, and used to re-seed the RNG.
+           [ --min-memory ] <minimum_memory>[K,M,G]
+                      Set the lower bound of memory usage for computing keys to <minimum_memory> bytes.
+           [ --max-memory ] <maximum_memory>[K,M,G]
+                      Set the upper bound of memory usage for computing keys to <maximum_memory> bytes.
+           [ --use-memory ] <memory>[K,M,G]
+                      Set the lower and upper bounds of memory usage for computing keys to the same value (typical-case).
+           [ --iterations ] <number_iterations>
+                      Repeat the memory-hard key computations <number_iterations> times before returning keying material to encrypt/decrypt with.
+           [ --pad-by ] <number_bytes>[K,M,G]
+                      Add <number_bytes> of pseudorandom padding bytes to the output file during file encryption; hide the true size of the input file.
+           [ --pad-to ] <number_bytes>[K,M,G]
+                      Pad the input file to a size of <number_bytes> bytes of output file during file encryption; <number_bytes> must be greater than
+                      the size of the input file.
+           [ --use-phi ]
+                      WARNING: The Phi function adds sequential-memory-hardness to the computation of encryption and authentication keys.
+                      This greatly strengthens 3crypt-encrypted files against parallel attacks, but also makes possible cache-timing attacks.
+                      If you don't trust all the code running on your machine, DO NOT use this Phi function.
+.SH ALGORITHMS
+For encryption, we use the Threefish-512 tweakable block cipher in Counter mode.
+For authentication, we use the cryptographic hash function Skein-512's native MAC functionalities.
+For instances requiring pseudorandom data, we use Skein-512 as a pseudorandom number generator seeded with entropy by the operating system.
+The Skein hash function is built out of the usage of Threefish in a specialized compression function designed for tweakable block ciphers.
+According to the Skein paper's proof, Skein is a secure hash function modelable as a random oracle if Threefish is a secure tweakable block cipher.
+We use and implement the Catena password scrambling framework with Skein-512 to provide a memory-hard key-derivation function. Specifically,
+3crypt implements a modified variant of the proposed "DRAGONFLY" Catena variant.

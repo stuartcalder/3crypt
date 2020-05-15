@@ -38,6 +38,9 @@ if   os == 'openbsd' or os == 'freebsd' or os == 'darwin'
 # Handle GNU/Linux-specifics.
 elif os == 'linux'
 	include += '/usr/include'
+	if cc.get_id() == 'gcc'
+		cpp_flags += '-flto'
+	endif
 # Handle Windows-specifics.
 elif os == 'windows'
 	include += 'C:/include'
@@ -90,6 +93,8 @@ if os != 'windows'
 	executable('3crypt', sources: source, dependencies: depends,
 		   include_directories: include, install: true,
 		   cpp_args: cpp_flags)
+	install_man('3crypt.1')
+      
 else
 	executable('3crypt', sources: source, dependencies: depends,
 	           include_directories: include, install: true,
