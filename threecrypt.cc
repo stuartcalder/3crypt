@@ -207,6 +207,9 @@ void threecrypt (int const argc, char const *argv[])
 				tc_data.output_filename_size = output_filename_size;
 			}
 			/* Setup the input map. */
+			_OPENBSD_UNVEIL (tc_data.input_filename, "r");   // Allow reading the input file.
+			_OPENBSD_UNVEIL (tc_data.output_filename, "rwc");// Allow reading, writing, creating the output file.
+			_OPENBSD_UNVEIL (nullptr,nullptr);               // Finalize unveil() calls.
 			tc_data.input_map.os_file = open_existing_os_file( tc_data.input_filename, true );
 			tc_data.input_map.size    = get_file_size( tc_data.input_map.os_file );
 			map_file( tc_data.input_map, true );
@@ -253,6 +256,9 @@ void threecrypt (int const argc, char const *argv[])
 				tc_data.output_filename_size = size;
 			}
 
+			_OPENBSD_UNVEIL (tc_data.input_filename, "r");   // Allow reading the input file.
+			_OPENBSD_UNVEIL (tc_data.output_filename, "rwc");// Allow reading, writing, creating the output file.
+			_OPENBSD_UNVEIL (nullptr,nullptr);               // Finalize unveil() calls.
 			tc_data.input_map.os_file = open_existing_os_file( tc_data.input_filename, true );
 			tc_data.input_map.size    = get_file_size( tc_data.input_map.os_file );
 			map_file( tc_data.input_map, true );
@@ -301,6 +307,8 @@ void threecrypt (int const argc, char const *argv[])
 		{
 			if( !all_strings_are_consumed( c_arg_map.c_strings, c_arg_map.count ) )
 				errx( "Error: Unused, unnecessary command-line arguments.\n" );
+			_OPENBSD_UNVEIL (tc_data.input_filename, "r");
+			_OPENBSD_UNVEIL (nullptr,nullptr);
 			tc_data.input_map.os_file = open_existing_os_file( tc_data.input_filename, true );
 			tc_data.input_map.size    = get_file_size( tc_data.input_map.os_file );
 			map_file( tc_data.input_map, true );
