@@ -283,6 +283,16 @@ void threecrypt (int const argc, char const *argv[])
 					break;
 				}
 #endif
+#ifdef __SSC_CBC_V2__
+			case( Crypto_Method_E::CBC_V2 ):
+				{
+					tc_data.output_map.os_file = create_os_file( tc_data.output_filename );
+					cbc_v2::decrypt( tc_data.input_map,
+					                 tc_data.output_map,
+							 tc_data.output_filename );
+					break;
+				}
+#endif
 
 			}
 			break;
