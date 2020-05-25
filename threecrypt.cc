@@ -309,6 +309,7 @@ void threecrypt (int const argc, char const *argv[])
 				errx( "Error: Unused, unnecessary command-line arguments.\n" );
 			_OPENBSD_UNVEIL (tc_data.input_filename, "r");
 			_OPENBSD_UNVEIL (nullptr,nullptr);
+			_OPENBSD_PLEDGE ("stdio rpath tty",nullptr);
 			tc_data.input_map.os_file = open_existing_os_file( tc_data.input_filename, true );
 			tc_data.input_map.size    = get_file_size( tc_data.input_map.os_file );
 			map_file( tc_data.input_map, true );
