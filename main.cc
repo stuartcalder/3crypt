@@ -15,6 +15,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 
 int main (int const argc, char const *argv[])
 {
+	_OPENBSD_PLEDGE ("stdio unveil",nullptr);
 	_OPENBSD_UNVEIL ("/usr", "rx");
 	threecrypt( argc, argv );
 	return EXIT_SUCCESS;
