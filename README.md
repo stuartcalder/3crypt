@@ -1,6 +1,5 @@
 # 3crypt
-A simple command-line program for encrypting and decrypting files on OpenBSD, FreeBSD, GNU/Linux, and Microsoft Windows, built upon the
-Threefish block cipher and the Skein cryptographic hash function, providing 512 bits of symmetric security.
+CLI file encryption program aiming for 512 bits of symmetric security
 
 ![Alt text](/../screenshots/plaintext.png?raw=true "Before 3crypt Encryption")
 ![Alt text](/../screenshots/ciphertext.png?raw=true "After 3crypt Encryption")
@@ -10,7 +9,7 @@ Threefish block cipher and the Skein cryptographic hash function, providing 512 
 -   [ssc](https://github.com/stuartcalder/ssc) header and library files.
 -   __meson__ frontend build system.
 -   __ninja__ backend build system.
-### (Required on OpenBSD, FreeBSD, and GNU/Linux)
+### (Required on OpenBSD, FreeBSD, Mac OSX, and GNU/Linux)
 -   __ncurses__ header and library files.
 ### (Required on GNU/Linux only)
 -   __GCC 7+__ compiler.
@@ -34,8 +33,7 @@ or
 3crypt --decrypt --input $filename
 ```
 ## How To Build 3crypt With Meson
-### BSD and Linux build instructions
-### BSD Build instructions
+### Mac OSX and BSD Build instructions
 1. build and install [ssc](https://github.com/stuartcalder/ssc).
 2. git clone [3crypt](https://github.com/stuartcalder/3crypt) anywhere.
 3. cd into the 3crypt project directory.
