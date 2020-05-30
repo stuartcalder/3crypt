@@ -49,12 +49,12 @@ endif
 
 # Enable Dragonfly V1?
 if get_option('enable_dragonfly_v1')
-	_flag = _Define_Flag_Prefix + '__3CRYPT_ENABLE_DRAGONFLY_V1'
+	_flag = _Define_Flag_Prefix + 'THREECRYPT_EXT_ENABLE_DRAGONFLY_V1'
 	cpp_flags += _flag
 endif
 # Enable CBC_V2?
 if get_option('enable_cbc_v2')
-	_flag = _Define_Flag_Prefix + '__3CRYPT_ENABLE_CBC_V2'
+	_flag = _Define_Flag_Prefix + 'THREECRYPT_EXT_ENABLE_CBC_V2'
 	cpp_flags += _flag
 endif
 # Include debugging symbols?
@@ -64,7 +64,7 @@ endif
 # Specify a default garlic?
 if get_option('default_garlic') != 23
 	_garlic = get_option('default_garlic').to_string()
-	_flag = _Define_Flag_Prefix + '__3CRYPT_DRAGONFLY_V1_DEFAULT_GARLIC=' + _garlic
+	_flag = _Define_Flag_Prefix + 'THREECRYPT_EXT_DRAGONFLY_V1_DEFAULT_GARLIC=' + _garlic
 	cpp_flags += _flag
 endif
 
@@ -85,7 +85,7 @@ elif os == 'linux'
 elif os == 'windows'
 	depends += cc.find_library('bcrypt')
 	depends += cc.find_library('ssc', static: true, dirs: lib)
-	_flag = _Define_Flag_Prefix + '__IMPORT_STATIC'
+	_flag = _Define_Flag_Prefix + 'SSC_IMPORT_STATIC'
 	cpp_flags += _flag
 endif
 

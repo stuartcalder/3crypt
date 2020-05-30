@@ -15,8 +15,8 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 
 int main (int const argc, char const *argv[])
 {
-	_OPENBSD_PLEDGE ("stdio unveil rpath wpath cpath tty",nullptr);
-	_OPENBSD_UNVEIL ("/usr", "rx");
+	SSC_OPENBSD_PLEDGE ("stdio unveil rpath wpath cpath tty",nullptr);
+	SSC_OPENBSD_UNVEIL ("/usr", "rx");
 	threecrypt( argc, argv );
 	return EXIT_SUCCESS;
 }
