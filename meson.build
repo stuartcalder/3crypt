@@ -6,7 +6,7 @@ cc = meson.get_compiler('cpp')
 os = host_machine.system()
 # Assert that we are building on a supported operating system with a supported compiler.
 assert (
-	os == 'openbsd' or os == 'freebsd' or os == 'darwin' or
+	os == 'openbsd' or os == 'freebsd' or os == 'netbsd' or os == 'darwin' or
 	os == 'linux' or
 	os == 'windows',
 	'You are trying to build 3crypt on an unsupported operating system!'
@@ -35,6 +35,11 @@ is_gcc_compatible = (cc.get_id() == 'gcc' or cc.get_id() == 'clang')
 if   os == 'openbsd' or os == 'freebsd' or os == 'darwin'
 	include += '/usr/local/include'
 	lib     += '/usr/local/lib'
+elif os == 'netbsd'
+	include += '/usr/local/include/'
+	include += '/usr/pkg/include'
+	lib     += '/usr/local/lib'
+	lib     += '/usr/pkg/lib'
 # Handle GNU/Linux-specifics.
 elif os == 'linux'
 	include += '/usr/include'
@@ -77,6 +82,9 @@ endif
 if os == 'openbsd' or os == 'freebsd' or os == 'darwin'
 	depends += cc.find_library('ncurses')
 	depends += cc.find_library('ssc', dirs: lib)
+elif os == 'netbsd'
+	depends += cc.find_library('ncurses', dirs: '/usr/pkg/lib')
+	depends += cc.find_library('ssc', dirs: '/usr/local/lib')
 # Handle GNU/Linux.
 elif os == 'linux'
 	depends += cc.find_library('ncurses')
