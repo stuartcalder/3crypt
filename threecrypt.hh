@@ -3,9 +3,9 @@
 #include <cstdlib>
 #include <utility>
 
-#include <ssc/general/macros.hh>
+#include <shim/macros.h>
+
 #include <ssc/general/parse_string.hh>
-#include <ssc/general/integers.hh>
 #include <ssc/general/c_argument_map.hh>
 
 #ifdef THREECRYPT_EXT_ENABLE_DRAGONFLY_V1
@@ -20,7 +20,6 @@
 #if  (!defined (SSC_FEATURE_DRAGONFLY_V1) && !defined (SSC_FEATURE_CBC_V2))
 #	error 'No supported crypto method detected!'
 #endif
-using namespace ssc::ints;
 
 using Crypto_Method_E = typename ssc::crypto_impl::Crypto_Method_E;
 enum class Mode_E {
@@ -39,8 +38,8 @@ struct Threecrypt_Data
 #else
 #	error 'No valid crypto method detected'
 #endif
-	ssc::OS_Map input_map;
-	ssc::OS_Map output_map;
+	Shim_Map    input_map;
+	Shim_Map    output_map;
 	char const *input_filename;
 	char const *output_filename;
 	size_t input_filename_size;
@@ -95,23 +94,23 @@ static constexpr auto &Help_String = "Usage: 3crypt <Mode> [Switches...]\n"
 
 static constexpr auto &Help_Suggestion = "(Use 3crypt --help for more information )\n";
 
-void SSC_PUBLIC
+void SHIM_PUBLIC
 threecrypt (int const argc, char const *argv[]);
 
 #ifdef SSC_FEATURE_DRAGONFLY_V1
-u8_t
-dragonfly_parse_memory (SSC_RESTRICT (char const*) mem_c_str,
-		        SSC_RESTRICT (char*)       temp,
+uint8_t
+dragonfly_parse_memory (char const * SHIM_RESTRICT mem_c_str,
+		        char *       SHIM_RESTRICT temp,
 			int const                  size);
-u8_t
 
-dragonfly_parse_iterations (SSC_RESTRICT (char const*) iter_c_str,
-		            SSC_RESTRICT (char*)       temp,
+uint8_t
+dragonfly_parse_iterations (char const * SHIM_RESTRICT iter_c_str,
+		            char *       SHIM_RESTRICT temp,
 		            int const                  size);
 
-u64_t
-dragonfly_parse_padding (SSC_RESTRICT (char const*) pad_c_str,
-		         SSC_RESTRICT (char*)       temp,
+uint64_t
+dragonfly_parse_padding (char const * SHIM_RESTRICT pad_c_str,
+		         char *       SHIM_RESTRICT temp,
 			 int const                  size);
 #endif
 

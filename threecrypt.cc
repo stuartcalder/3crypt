@@ -2,8 +2,8 @@
 #include <type_traits>
 #include <cctype>
 #include <cstdlib>
-#include <ssc/files/os_map.hh>
-#include <ssc/general/error_conditions.hh>
+#include <shim/map.h>
+#include <shim/errors.h>
 #include "threecrypt.hh"
 using namespace ssc;
 using namespace ssc::crypto_impl;
@@ -15,13 +15,13 @@ static bool
 all_strings_are_consumed (char const **, int const);
 
 #ifdef SSC_FEATURE_DRAGONFLY_V1
-enum Multipliers : u64_t {
+enum Multipliers : uint64_t {
 	Kibibyte = 1'024,
 	Mebibyte = Kibibyte * 1'024,
 	Gibibyte = Mebibyte * 1'024
 };
 static constexpr int
-Get_Max_Digits (u64_t m)
+Get_Max_Digits (uint64_t m)
 {
 	int digits = 0;
 	while( m > 0 ) {
@@ -30,13 +30,13 @@ Get_Max_Digits (u64_t m)
 	}
 	return digits;
 }
-u8_t
-dragonfly_parse_memory (SSC_RESTRICT (char const*) mem_c_str,
-		        SSC_RESTRICT (char*)       temp,
+uint8_t
+dragonfly_parse_memory (char const * SHIM_RESTRICT mem_c_str,
+		        char *       SHIM_RESTRICT temp,
 			int const                  size)
 {
-	u64_t requested_bytes = 0;
-	u64_t multiplier = 1;
+	uint64_t requested_bytes = 0;
+	uint64_t multiplier = 1;
 	std::memcpy( temp, mem_c_str, (size + 1) );
 	for( int i = 0; i < size; ++i ) {
 		switch( std::toupper( static_cast<unsigned char>(mem_c_str[ i ]) ) ) {
@@ -54,8 +54,8 @@ dragonfly_parse_memory (SSC_RESTRICT (char const*) mem_c_str,
 Have_Mul_L:
 	int num_digits = shift_left_digits( temp, size );
 	if( num_digits == 0 )
-		errx( "Error: No number supplied with memory-usage specification!\n" );
-	static constexpr u64_t U64_Max = (std::numeric_limits<u64_t>::max)();
+		SHIM_ERRX ("Error: No number supplied with memory-usage specification!\n");
+	static constexpr uint64_t U64_Max = (std::numeric_limits<uint64_t>::max)();
 	enum Max_Digits : int {
 		Byte_Max = 1'000,
 		Kibibyte_Max = Get_Max_Digits (U64_Max / Kibibyte),
@@ -66,63 +66,63 @@ Have_Mul_L:
 	switch( multiplier ) {
 	case 1:
 		if( num_digits > Byte_Max )
-			errx( Invalid_Mem_Param );
+			SHIM_ERRX (Invalid_Mem_Param);
 		break;
 	case Kibibyte:
 		if( num_digits > Kibibyte_Max )
-			errx( Invalid_Mem_Param );
+			SHIM_ERRX (Invalid_Mem_Param);
 		break;
 	case Mebibyte:
 		if( num_digits > Mebibyte_Max )
-			errx( Invalid_Mem_Param );
+			SHIM_ERRX (Invalid_Mem_Param);
 		break;
 	case Gibibyte:
 		if( num_digits > Gibibyte_Max )
-			errx( Invalid_Mem_Param );
+			SHIM_ERRX (Invalid_Mem_Param);
 		break;
 	}
 	static_assert (
-		(std::is_same<u64_t,unsigned long int>::value ||
-		std::is_same<u64_t,unsigned long long int>::value),
-		"We require u64_t to be one of these."
+		(std::is_same<uint64_t,unsigned long      int>::value ||
+		 std::is_same<uint64_t,unsigned long long int>::value),
+		"We require uint64_t to be one of these."
 	);
-	if constexpr (std::is_same<u64_t,unsigned long int>::value) {
+	if constexpr (std::is_same<uint64_t,unsigned long int>::value) {
 		requested_bytes = std::strtoul( temp, nullptr, 10 );
-	} else if constexpr (std::is_same<u64_t,unsigned long long int>::value) {
+	} else if constexpr (std::is_same<uint64_t,unsigned long long int>::value) {
 		requested_bytes = std::strtoull( temp, nullptr, 10 );
 	}
 	requested_bytes *= multiplier;
 	if( requested_bytes == 0 )
-		errx( "Error: Zero memory requested?\n" );
-	u64_t mask = 0x80'00'00'00'00'00'00'00; // Leading 1 bit.
-	u8_t garlic = 63;
+		SHIM_ERRX ("Error: Zero memory requested?\n");
+	uint64_t mask = 0x80'00'00'00'00'00'00'00; // Leading 1 bit.
+	uint8_t garlic = 63;
 	while( !(mask & requested_bytes) ) {
 		mask >>= 1;
 		--garlic;
 	}
 	return garlic;
 }
-u8_t
-dragonfly_parse_iterations (SSC_RESTRICT (char const*) iter_c_str,
-		            SSC_RESTRICT (char*)       temp,
+uint8_t
+dragonfly_parse_iterations (char const * SHIM_RESTRICT iter_c_str,
+		            char *       SHIM_RESTRICT temp,
 			    int const                  size)
 {
 	std::memcpy( temp, iter_c_str, (size + 1) );
 	int num_digits = shift_left_digits( temp, size );
 	if( num_digits > 3 || num_digits == 0 )
-		errx( "Error: Invalid iteration count.\n" );
+		SHIM_ERRX ("Error: Invalid iteration count.\n");
 	int it = std::atoi( temp );
 	if( it < 1 || it > 255 )
-		errx( "Error: Invalid iteration count.\n" );
-	return static_cast<u8_t>(it);
+		SHIM_ERRX ("Error: Invalid iteration count.\n");
+	return static_cast<uint8_t>(it);
 }
-u64_t
-dragonfly_parse_padding (SSC_RESTRICT (char const*) padding_c_str,
-		         SSC_RESTRICT (char*)       temp,
+uint64_t
+dragonfly_parse_padding (char const * SHIM_RESTRICT padding_c_str,
+		         char *       SHIM_RESTRICT temp,
 			 int const                  size)
 {
 	std::memcpy( temp, padding_c_str, (size + 1) );
-	u64_t multiplier = 1;
+	uint64_t multiplier = 1;
 	for( int i = 0; i < size; ++i ) {
 		switch( std::toupper( static_cast<unsigned char>(padding_c_str[ i ]) ) ) {
 		case 'K':
@@ -139,17 +139,17 @@ dragonfly_parse_padding (SSC_RESTRICT (char const*) padding_c_str,
 Have_Mul_L:
 	int num_digits = shift_left_digits( temp, size );
 	if( num_digits == 0 )
-		errx( "Error: Asked for padding, without providing a number of padding bytes.\n" );
+		SHIM_ERRX ("Error: Asked for padding, without providing a number of padding bytes.\n");
 	static_assert (
-		(std::is_same<u64_t,unsigned long int>::value ||
-		std::is_same<u64_t,unsigned long long int>::value),
-		"We require u64_t to be one of these."
+		(std::is_same<uint64_t,unsigned long int>::value ||
+		 std::is_same<uint64_t,unsigned long long int>::value),
+		 "We require uint64_t to be one of these."
 	);
-	u64_t pad;
-	if constexpr (std::is_same<u64_t,unsigned long long int>::value) {
-		pad = static_cast<u64_t>(std::strtoull( temp, nullptr, 10 ));
-	} else if constexpr (std::is_same<u64_t,unsigned long int>::value) {
-		pad = static_cast<u64_t>(std::strtoul( temp, nullptr, 10 ));
+	uint64_t pad;
+	if constexpr (std::is_same<uint64_t,unsigned long long int>::value) {
+		pad = static_cast<uint64_t>(std::strtoull( temp, nullptr, 10 ));
+	} else if constexpr (std::is_same<uint64_t,unsigned long int>::value) {
+		pad = static_cast<uint64_t>(std::strtoul( temp, nullptr, 10 ));
 	}
 	return pad * multiplier;
 }
@@ -159,7 +159,7 @@ static void
 set_mode (Threecrypt_Data &tc_data, Mode_E mode)
 {
 	if( tc_data.mode != Mode_E::None )
-		errx( "%s\n%s\n", Mode_Already_Set, Help_Suggestion );
+		SHIM_ERRX ("%s\n%s\n", Mode_Already_Set, Help_Suggestion);
 	tc_data.mode = mode;
 }
 
@@ -190,26 +190,26 @@ threecrypt (int const argc, char const *argv[])
 	switch( tc_data.mode ) {
 	default:
 		{
-			errx( "Error: Invalid, unrecognized mode (%d)\n%s",
-			      static_cast<int>(tc_data.mode),
-			      Help_Suggestion );
+			SHIM_ERRX ("Error: Invalid, unrecognized mode (%d)\n%s",
+				   static_cast<int>(tc_data.mode),
+				   Help_Suggestion);
 			break;
 		}
 	case( Mode_E::None ):
 		{
-			errx( "Error: No mode selected.\n%s",
-			      Help_Suggestion );
+			SHIM_ERRX ("Error: No mode selected.\n%s",
+			           Help_Suggestion);
 			break;
 		}
 	case( Mode_E::Symmetric_Encrypt ):
 		{
 			if( tc_data.input_filename == nullptr )
-				errx( "Error: No input filename was specified\n" );
+				SHIM_ERRX ("Error: No input filename was specified\n");
 			else if( tc_data.output_filename == nullptr ) {
 				size_t const output_filename_size = tc_data.input_filename_size + sizeof(".3c"); // sizeof(".3c") includes a NULL terminator.
 				temp = static_cast<char*>(std::malloc( output_filename_size ));
 				if( temp == nullptr )
-					errx( Generic_Error::Alloc_Failure );
+					SHIM_ERRX (Generic_Error::Alloc_Failure);
 				char *p = temp;
 				std::memcpy( p, tc_data.input_filename, tc_data.input_filename_size );
 				p += tc_data.input_filename_size;
@@ -218,18 +218,22 @@ threecrypt (int const argc, char const *argv[])
 				tc_data.output_filename_size = output_filename_size;
 			}
 			/* Setup the input map. */
-			SSC_OPENBSD_UNVEIL (tc_data.input_filename, "r");   // Allow reading the input file.
-			SSC_OPENBSD_UNVEIL (tc_data.output_filename, "rwc");// Allow reading, writing, creating the output file.
-			SSC_OPENBSD_UNVEIL (nullptr,nullptr);               // Finalize unveil() calls.
-			tc_data.input_map.os_file = open_existing_os_file( tc_data.input_filename, true );
-			tc_data.input_map.size    = get_file_size( tc_data.input_map.os_file );
-			map_file( tc_data.input_map, true );
+			SHIM_OPENBSD_UNVEIL (tc_data.input_filename, "r");   // Allow reading the input file.
+			SHIM_OPENBSD_UNVEIL (tc_data.output_filename, "rwc");// Allow reading, writing, creating the output file.
+			SHIM_OPENBSD_UNVEIL (nullptr,nullptr);               // Finalize unveil() calls.
+			tc_data.input_map.shim_file = shim_open_existing_filepath( tc_data.input_filename, true );
+			//tc_data.input_map.os_file = open_existing_os_file( tc_data.input_filename, true );
+			tc_data.input_map.size = shim_file_size( tc_data.input_map.shim_file );
+			//tc_data.input_map.size    = get_file_size( tc_data.input_map.os_file );
+			shim_map_memory( &tc_data.input_map, true );
+			//map_file( tc_data.input_map, true );
 			/* Setup the output map. */
-			tc_data.output_map.os_file = create_os_file( tc_data.output_filename );
+			tc_data.output_map.shim_file = shim_create_filepath( tc_data.output_filename );
+			//tc_data.output_map.os_file = create_os_file( tc_data.output_filename );
 			/* Process the encrypt arguments. */
 			process_encrypt_arguments( tc_data, c_arg_map );
 			if( !all_strings_are_consumed( c_arg_map.c_strings, c_arg_map.count ) )
-				errx( "Error: Unused, unecessary command-line arguments.\n" );
+				SHIM_ERRX ("Error: Unused, unecessary command-line arguments.\n");
 #if    defined (SSC_FEATURE_DRAGONFLY_V1)
 			if( tc_data.input.g_low > tc_data.input.g_high )
 				tc_data.input.g_high = tc_data.input.g_low;
@@ -251,62 +255,81 @@ threecrypt (int const argc, char const *argv[])
 	case( Mode_E::Symmetric_Decrypt ):
 		{
 			if( !all_strings_are_consumed( c_arg_map.c_strings, c_arg_map.count ) )
-				errx( "Error: Unused, unnecessary command-line arguments.\n" );
+				SHIM_ERRX ("Error: Unused, unnecessary command-line arguments.\n");
 			else if( tc_data.input_filename == nullptr )
-				errx( "Error: No input filename was specified\n" );
+				SHIM_ERRX ("Error: No input filename was specified\n");
 			else if( (tc_data.output_filename == nullptr) && (tc_data.input_filename_size >= 4)
-			   && (std::strcmp( tc_data.input_filename + (tc_data.input_filename_size - 3), ".3c" ) == 0) )
+			   	  && (std::strcmp( tc_data.input_filename + (tc_data.input_filename_size - 3), ".3c" ) == 0) )
 			{
 				size_t const size = tc_data.input_filename_size - 3;
 				temp = static_cast<char*>(std::malloc( size + 1 ));
 				if( temp == nullptr )
-					errx( Generic_Error::Alloc_Failure );
+					SHIM_ERRX (Generic_Error::Alloc_Failure);
 				std::memcpy( temp, tc_data.input_filename, size );
 				temp[ size ] = '\0';
 				tc_data.output_filename = temp;
 				tc_data.output_filename_size = size;
 			}
 
-			SSC_OPENBSD_UNVEIL (tc_data.input_filename, "r");   // Allow reading the input file.
-			SSC_OPENBSD_UNVEIL (tc_data.output_filename, "rwc");// Allow reading, writing, creating the output file.
-			SSC_OPENBSD_UNVEIL (nullptr,nullptr);               // Finalize unveil() calls.
-			tc_data.input_map.os_file = open_existing_os_file( tc_data.input_filename, true );
-			tc_data.input_map.size    = get_file_size( tc_data.input_map.os_file );
-			map_file( tc_data.input_map, true );
+			SHIM_OPENBSD_UNVEIL (tc_data.input_filename, "r");   // Allow reading the input file.
+			SHIM_OPENBSD_UNVEIL (tc_data.output_filename, "rwc");// Allow reading, writing, creating the output file.
+			SHIM_OPENBSD_UNVEIL (nullptr,nullptr);               // Finalize unveil() calls.
+
+			//tc_data.input_map.os_file = open_existing_os_file( tc_data.input_filename, true );
+			tc_data.input_map.shim_file = shim_open_existing_filepath( tc_data.input_filename, true );
+			//tc_data.input_map.size    = get_file_size( tc_data.input_map.os_file );
+			tc_data.input_map.size = shim_file_size( tc_data.input_map.shim_file );
+			//map_file( tc_data.input_map, true );
+			shim_map_memory( &tc_data.input_map, true );
 			Crypto_Method_E method = determine_crypto_method( tc_data.input_map );
 			switch( method ) {
 			default:
 				{
-					unmap_file( tc_data.input_map );
-					close_os_file( tc_data.input_map.os_file );
-					errx( "Error: Invalid decryption method %d\n", static_cast<int>(method) );
+					shim_unmap_memory( &tc_data.input_map );
+					shim_close_file( tc_data.input_map.shim_file );
+					SHIM_ERRX ("Error: Invalid decryption method %d\n", static_cast<int>(method));
+					//unmap_file( tc_data.input_map );
+					//close_os_file( tc_data.input_map.os_file );
+					//errx( "Error: Invalid decryption method %d\n", static_cast<int>(method) );
 					break;
 				}
 			case( Crypto_Method_E::None ):
 				{
-					unmap_file( tc_data.input_map );
-					close_os_file( tc_data.input_map.os_file );
-					errx( "Error: The input file %s does not appear to be a valid 3crypt encrypted file.\n%s",
-					      tc_data.input_filename, Help_Suggestion );
+					shim_unmap_memory( &tc_data.input_map );
+					shim_close_file( tc_data.input_map.shim_file );
+					SHIM_ERRX ("Error: The input file %s does not appear to be a valid 3crypt encrypted file.\n%s",
+						   tc_data.input_filename, Help_Suggestion);
+					//unmap_file( tc_data.input_map );
+					//close_os_file( tc_data.input_map.os_file );
+					//errx( "Error: The input file %s does not appear to be a valid 3crypt encrypted file.\n%s",
+					 //     tc_data.input_filename, Help_Suggestion );
 					break;
 				}
 #ifdef SSC_FEATURE_DRAGONFLY_V1
 			case( Crypto_Method_E::Dragonfly_V1 ):
 				{
-					tc_data.output_map.os_file = create_os_file( tc_data.output_filename );
+					tc_data.output_map.shim_file = shim_create_filepath( tc_data.output_filename );
 					dragonfly_v1::decrypt( tc_data.input_map,
-						               tc_data.output_map,
+							       tc_data.output_map,
 							       tc_data.output_filename );
+					//tc_data.output_map.os_file = create_os_file( tc_data.output_filename );
+					//dragonfly_v1::decrypt( tc_data.input_map,
+					//	               tc_data.output_map,
+					//		       tc_data.output_filename );
 					break;
 				}
 #endif
 #ifdef SSC_FEATURE_CBC_V2
 			case( Crypto_Method_E::CBC_V2 ):
 				{
-					tc_data.output_map.os_file = create_os_file( tc_data.output_filename );
+					tc_data.output_map.shim_file = shim_create_filepath( tc_data.output_filename );
 					cbc_v2::decrypt( tc_data.input_map,
-					                 tc_data.output_map,
+							 tc_data.output_map,
 							 tc_data.output_filename );
+					//tc_data.output_map.os_file = create_os_file( tc_data.output_filename );
+					//cbc_v2::decrypt( tc_data.input_map,
+					 //                tc_data.output_map,
+					//		 tc_data.output_filename );
 					break;
 				}
 #endif
@@ -317,29 +340,40 @@ threecrypt (int const argc, char const *argv[])
 	case( Mode_E::Dump_Fileheader ):
 		{
 			if( !all_strings_are_consumed( c_arg_map.c_strings, c_arg_map.count ) )
-				errx( "Error: Unused, unnecessary command-line arguments.\n" );
-			SSC_OPENBSD_UNVEIL (tc_data.input_filename, "r");
-			SSC_OPENBSD_UNVEIL (nullptr,nullptr);
-			SSC_OPENBSD_PLEDGE ("stdio rpath tty",nullptr);
-			tc_data.input_map.os_file = open_existing_os_file( tc_data.input_filename, true );
-			tc_data.input_map.size    = get_file_size( tc_data.input_map.os_file );
-			map_file( tc_data.input_map, true );
+				SHIM_ERRX ("Error: Unused, unnecessary command-line arguments.\n");
+			SHIM_OPENBSD_UNVEIL (tc_data.input_filename, "r");
+			SHIM_OPENBSD_UNVEIL (nullptr,nullptr);
+			SHIM_OPENBSD_PLEDGE ("stdio rpath tty",nullptr);
+
+			tc_data.input_map.shim_file = shim_open_existing_filepath( tc_data.input_filename, true );
+			tc_data.input_map.size = shim_file_size( tc_data.input_map.shim_file );
+			shim_map_memory( &tc_data.input_map, true );
+			//tc_data.input_map.os_file = open_existing_os_file( tc_data.input_filename, true );
+			//tc_data.input_map.size    = get_file_size( tc_data.input_map.os_file );
+			//map_file( tc_data.input_map, true );
 			
 			Crypto_Method_E method = determine_crypto_method( tc_data.input_map );
 			switch( method ) {
 			default:
 				{
-					unmap_file( tc_data.input_map );
-					close_os_file( tc_data.input_map.os_file );
-					errx( "Error: Invalid decryption method (%d)\n", static_cast<int>(method) );
+					shim_unmap_memory( &tc_data.input_map );
+					shim_close_file( tc_data.input_map.shim_file );
+					SHIM_ERRX ("Error: Invalid decryption method (%d)\n", static_cast<int>(method));
+					//unmap_file( tc_data.input_map );
+					//close_os_file( tc_data.input_map.os_file );
+					//errx( "Error: Invalid decryption method (%d)\n", static_cast<int>(method) );
 					break;
 				}
 			case( Crypto_Method_E::None ):
 				{
-					unmap_file( tc_data.input_map );
-					close_os_file( tc_data.input_map.os_file );
-					errx( "Error: The input file %s does not appear to be a valid 3crypt encrypted file.\n%s",
-					      tc_data.input_filename, Help_Suggestion );
+					shim_unmap_memory( &tc_data.input_map );
+					shim_close_file( tc_data.input_map.shim_file );
+					SHIM_ERRX ("Error: The input file %s does not appear to be a valid 3crypt encrypted file.\n%s",
+						   tc_data.input_filename, Help_Suggestion);
+					//unmap_file( tc_data.input_map );
+					//close_os_file( tc_data.input_map.os_file );
+					//errx( "Error: The input file %s does not appear to be a valid 3crypt encrypted file.\n%s",
+					//      tc_data.input_filename, Help_Suggestion );
 					break;
 				}
 #ifdef SSC_FEATURE_DRAGONFLY_V1
@@ -378,7 +412,7 @@ process_io_arguments (Threecrypt_Data &tc_data, C_Argument_Map &c_arg_map)
 				c_arg_map.c_strings[ i ] = nullptr;
 				if( c_arg_map.next_string_is_valid( i ) ) {
 					if( c_arg_map.sizes[ i ] < 1 )
-						errx( Error_Too_Small, c_arg_map.c_strings[ i ] );
+						SHIM_ERRX (Error_Too_Small, c_arg_map.c_strings[ i ]);
 					tc_data.input_filename      = c_arg_map.c_strings[ ++i ];
 					tc_data.input_filename_size = c_arg_map.sizes[ i ];
 					c_arg_map.c_strings[ i ] = nullptr;
@@ -390,7 +424,7 @@ process_io_arguments (Threecrypt_Data &tc_data, C_Argument_Map &c_arg_map)
 				c_arg_map.c_strings[ i ] = nullptr;
 				if( c_arg_map.next_string_is_valid( i ) ) {
 					if( c_arg_map.sizes[ i ] < 1 )
-						errx( Error_Too_Small, c_arg_map.c_strings[ i ] );
+						SHIM_ERRX (Error_Too_Small, c_arg_map.c_strings[ i ]);
 					tc_data.output_filename = c_arg_map.c_strings[ ++i ];
 					tc_data.output_filename_size = c_arg_map.sizes[ i ];
 					c_arg_map.c_strings[ i ] = nullptr;
@@ -439,7 +473,7 @@ void process_encrypt_arguments (Threecrypt_Data &tc_data, C_Argument_Map &c_arg_
 	int const count = c_arg_map.count;
 	char * const temp = static_cast<char*>(std::malloc( c_arg_map.max_string_size + 1 ));
 	if( temp == nullptr )
-		errx( Generic_Error::Alloc_Failure ); 
+		SHIM_ERRX (Generic_Error::Alloc_Failure); 
 	tc_data.input.supplement_os_entropy = false;
 #if    defined (SSC_FEATURE_DRAGONFLY_V1)
 #	ifdef THREECRYPT_EXT_DRAGONFLY_V1_DEFAULT_GARLIC
@@ -524,19 +558,19 @@ void process_encrypt_arguments (Threecrypt_Data &tc_data, C_Argument_Map &c_arg_
 					u64_t target = dragonfly_parse_padding( c_arg_map.c_strings[ i ], temp, c_arg_map.sizes[ i ] );
 					c_arg_map.c_strings[ i ] = nullptr;
 					if( target < dragonfly_v1::Visible_Metadata_Bytes ) {
-						unmap_file( tc_data.input_map );
-						close_os_file( tc_data.input_map.os_file );
-						close_os_file( tc_data.output_map.os_file );
+						shim_unmap_memory( &tc_data.input_map );
+						shim_close_file( tc_data.input_map.shim_file );
+						shim_close_file( tc_data.output_map.shim_file );
 						remove( tc_data.output_filename );
-						errx( "Error: The --pad-to target (%" PRIu64 ") is way too small!\n", target );
+						SHIM_ERRX ("Error: The --pad-to target (%" PRIu64 ") is way too small!\n", target);
 					}
 					if( target - dragonfly_v1::Visible_Metadata_Bytes < tc_data.input_map.size ) {
-						unmap_file( tc_data.input_map );
-						close_os_file( tc_data.input_map.os_file );
-						close_os_file( tc_data.output_map.os_file );
+						shim_unmap_memory( &tc_data.input_map );
+						shim_close_file( tc_data.input_map.shim_file );
+						shim_close_file( tc_data.output_map.shim_file );
 						remove( tc_data.output_filename );
-						errx( "Error: The input map size (%" PRIu64 ") is too large to --pad-to %" PRIu64 "\n",
-						      tc_data.input_map.size, target );
+						SHIM_ERRX ("Error: The input map size (%" PRIu64 ") is too large to --pad-to %" PRIu64 "\n",
+						      	   tc_data.input_map.size, target);
 					} else {
 						tc_data.input.padding_bytes = target;
 						tc_data.input.padding_bytes -= tc_data.input_map.size;
@@ -554,11 +588,11 @@ void process_encrypt_arguments (Threecrypt_Data &tc_data, C_Argument_Map &c_arg_
 					c_arg_map.c_strings[ i ] = nullptr;
 					int const num_digits = shift_left_digits( temp, size );
 					if( num_digits > Max_Chars )
-						errx( "Error: The specified sspkdf iteration count (%s) is too large.\n%s",
-						      temp, Help_Suggestion );
-					u32_t const num_iter = static_cast<u32_t>(std::atoi( temp ));
+						SHIM_ERRX ("Error: The specified sspkdf iteration count (%s) is too large.\n%s",
+						           temp, Help_Suggestion);
+					uint32_t const num_iter = static_cast<uint32_t>(std::atoi( temp ));
 					if( num_iter == 0 )
-						errx( "Error: Number sspkdf iterations specified is zero.\n" );
+						SHIM_ERRX ("Error: Number sspkdf iterations specified is zero.\n");
 					tc_data.input.sspkdf_iterations = num_iter;
 				}
 			} else
@@ -571,9 +605,9 @@ void process_encrypt_arguments (Threecrypt_Data &tc_data, C_Argument_Map &c_arg_
 					c_arg_map.c_strings[ i ] = nullptr;
 					int const num_digits = shift_left_digits( temp, size );
 					if( num_digits > Max_Chars )
-						errx( "Error: The specified sspkdf concatenatio count (%s) is too large.\n%s",
-						      temp, Help_Suggestion );
-					u32_t const num_concat = static_cast<u32_t>(std::atoi( temp ));
+						SHIM_ERRX ("Error: The specified sspkdf concatenatio count (%s) is too large.\n%s",
+						           temp, Help_Suggestion);
+					uint32_t const num_concat = static_cast<uint32_t>(std::atoi( temp ));
 					if( num_concat == 0 )
 						errx( "Error: Number sspkdf concatenations specified is zero.\n" );
 					tc_data.input.sspkdf_concatenations = num_concat;
