@@ -1,110 +1,103 @@
-# Define project.
-project('3crypt', 'cpp', default_options: ['cpp_std=c++17', 'strip=true', 'buildtype=release',
-                                           'optimization=3', 'cpp_eh=none'])
-# Determine the compiler and the operating system.
-cc = meson.get_compiler('cpp')
+project('3crypt',
+	'c',
+	default_options: ['c_std=c18', 'optimization=3', 'buildtype=release', 'strip=true'])
+_PROJECT = '3crypt'
+_LANG    = 'c'
+_UNIXLIKE_OPERATING_SYSTEMS  = ['openbsd', 'freebsd', 'netbsd', 'darwin', 'linux']
+_SUPPORTED_OPERATING_SYSTEMS = _UNIXLIKE_OPERATING_SYSTEMS + ['windows']
+_GCC_COMPATIBLE_COMPILERS    = ['gcc', 'clang']
+_SUPPORTED_COMPILERS         = _GCC_COMPATIBLE_COMPILERS + ['msvc']
+
+compiler = meson.get_compiler(_LANG)
 os = host_machine.system()
-# Assert that we are building on a supported operating system with a supported compiler.
-assert (
-	os == 'openbsd' or os == 'freebsd' or os == 'netbsd' or os == 'darwin' or
-	os == 'linux' or
-	os == 'windows',
-	'You are trying to build 3crypt on an unsupported operating system!'
-)
-assert (
-	cc.get_id() == 'gcc' or cc.get_id() == 'clang' or cc.get_id() == 'msvc',
-	'You are trying to build 3crypt using an unsupported compiler!'
-)
-# Default source files.
-source    = ['main.cc','threecrypt.cc']
-include   = []
-lib       = []
-depends   = []
-cpp_flags = []
+assert (os in _SUPPORTED_OPERATING_SYSTEMS, 'You are trying to build 3crypt using an unsupported operating system!')
+assert (compiler.get_id() in _SUPPORTED_COMPILERS, 'You are trying to build 3crypt using an unsupported compiler!')
 
-# The define flag prefix is different on Windows with MSVC compiler.
-if os == 'windows' and cc.get_id() == 'msvc'
-	_Define_Flag_Prefix = '/D'
+if os == 'windows' and compiler.get_id() == 'msvc'
+  _D_PREFIX = '/D'
 else
-	_Define_Flag_Prefix = '-D'
+  _D_PREFIX = '-D'
 endif
-# Determine whether the compiler is compatible with gcc flags.
-is_gcc_compatible = (cc.get_id() == 'gcc' or cc.get_id() == 'clang')
-
-# Handle BSD-specifics.
-if   os == 'openbsd' or os == 'freebsd' or os == 'darwin'
-	include += '/usr/local/include'
-	lib     += '/usr/local/lib'
-elif os == 'netbsd'
-	include += '/usr/local/include/'
-	include += '/usr/pkg/include'
-	lib     += '/usr/local/lib'
-	lib     += '/usr/pkg/lib'
-# Handle GNU/Linux-specifics.
-elif os == 'linux'
-	include += '/usr/include'
-	if cc.get_id() == 'gcc'
-		cpp_flags += '-flto'
-	endif
-# Handle Windows-specifics.
-elif os == 'windows'
-	include += 'C:/include'
-	lib     += 'C:/lib'
+src = [
+  'threecrypt.c',
+  'term.c',
+  'main.c'
+  ]
+include = [
+  ]
+lib_dir = [
+  ]
+lib_depends = [
+  ]
+lang_flags = [
+  ]
+gcc_compatible_flags = [
+  '-fvisibility=hidden',
+  '-fstrict-aliasing',
+  '-Wall',
+  '-funroll-loops'
+  ]
+if os != 'netbsd' and compiler.get_id() != 'clang'
+  gcc_compatible_flags += '-flto'
 endif
-
-# Enable Dragonfly V1?
-if get_option('enable_dragonfly_v1')
-	_flag = _Define_Flag_Prefix + 'THREECRYPT_EXT_ENABLE_DRAGONFLY_V1'
-	cpp_flags += _flag
-endif
-# Enable CBC_V2?
-if get_option('enable_cbc_v2')
-	_flag = _Define_Flag_Prefix + 'THREECRYPT_EXT_ENABLE_CBC_V2'
-	cpp_flags += _flag
-endif
-# Include debugging symbols?
-if is_gcc_compatible and get_option('enable_debugging_symbols')
-	cpp_flags += '-g'
-endif
-# Specify a default garlic?
-if get_option('default_garlic') != 23
-	_garlic = get_option('default_garlic').to_string()
-	_flag = _Define_Flag_Prefix + 'THREECRYPT_EXT_DRAGONFLY_V1_DEFAULT_GARLIC=' + _garlic
-	cpp_flags += _flag
-endif
-
-# On OSX, this cpp flag is required for access to memset_s, which we use to securely destroy memory.
 if os == 'darwin'
-	_flag = _Define_Flag_Prefix + '__STDC_WANT_LIB_EXT1__=1'
-	cpp_flags += _flag
+  _flag = _D_PREFIX + '__STDC_WANT_LIB_EXT1__=1'
+  lang_flags += _flag
 endif
-# Handle the BSD systems.
+if os in _UNIXLIKE_OPERATING_SYSTEMS and compiler.get_id() in _GCC_COMPATIBLE_COMPILERS
+  lang_flags += gcc_compatible_flags
+endif
+is_gcc_compatible = (compiler.get_id() in _GCC_COMPATIBLE_COMPILERS)
 if os == 'openbsd' or os == 'freebsd' or os == 'darwin'
-	depends += cc.find_library('ncurses')
-	depends += cc.find_library('ssc', dirs: lib)
+  include += '/usr/local/include'
+  lib_dir += '/usr/local/lib'
 elif os == 'netbsd'
-	depends += cc.find_library('ncurses', dirs: '/usr/pkg/lib')
-	depends += cc.find_library('ssc', dirs: '/usr/local/lib')
-# Handle GNU/Linux.
+  include  += '/usr/local/include'
+  include  += '/usr/pkg/include'
+  lib_dir += '/usr/local/lib'
+  lib_dir += '/usr/pkg/lib'
 elif os == 'linux'
-	depends += cc.find_library('ncurses')
-	depends += cc.find_library('ssc')
-# Handle Win64.
+  include += '/usr/include'
+  if compiler.get_id() == 'gcc'
+    lang_flags += '-flto'
+  endif
 elif os == 'windows'
-	depends += cc.find_library('bcrypt')
-	depends += cc.find_library('ssc', static: true, dirs: lib)
-	_flag = _Define_Flag_Prefix + 'SSC_IMPORT_STATIC'
-	cpp_flags += _flag
+  include += 'C:/include'
+  lib_dir += 'C:/lib'
+endif
+if get_option('enable_dragonfly_v1')
+  _flag = _D_PREFIX + 'THREECRYPT_EXT_ENABLE_DRAGONFLY_V1'
+  lang_flags += _flag
+  if get_option('dragonfly_v1_default_garlic') != 23
+    _garlic = get_option('dragonfly_v1_default_garlic').to_string()
+    _flag   = _D_PREFIX + 'THREECRYPT_EXT_DRAGONFLY_V1_DEFAULT_GARLIC=' + _garlic
+    lang_flags += _flag
+  endif
+endif
+if compiler.get_id() in _GCC_COMPATIBLE_COMPILERS and get_option('use_debug_symbols')
+  lang_flags += '-g'
+endif
+if os == 'openbsd' or os == 'freebsd' or os == 'darwin'
+  lib_depends += compiler.find_library('ncurses')
+  lib_depends += compiler.find_library('symm', dirs: lib_dir)
+elif os == 'netbsd'
+  lib_depends += compiler.find_library('ncurses', dirs: '/usr/pkg/lib')
+  lib_depends += compiler.find_library('symm', dirs: lib_dir)
+elif os == 'linux'
+  lib_depends += compiler.find_library('ncurses')
+  lib_depends += compiler.find_library('tinfo')
+  lib_depends += compiler.find_library('symm')
+elif os == 'windows'
+  lib_depends += compiler.find_library('symm', static: true, dirs: lib_dir)
 endif
 
 if os != 'windows'
-	executable('3crypt', sources: source, dependencies: depends,
-		   include_directories: include, install: true,
-		   cpp_args: cpp_flags)
-	install_man('3crypt.1')
-      
+  executable('3crypt', sources: src, dependencies: lib_depends,
+	     include_directories: include, install: true,
+	     c_args: lang_flags)
+  install_man('3crypt.1')
 else
-	executable('3crypt', sources: source, dependencies: depends,
-	           include_directories: include, install: true,
-		   cpp_args: cpp_flags, install_dir: 'C:/bin')
+  executable('3crypt', sources: src, dependencies: lib_depends,
+	     include_directories: include, install: true,
+	     c_args: lang_flags, install_dir: 'C:/bin')
 endif
