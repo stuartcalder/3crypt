@@ -24,6 +24,8 @@
 #	else
 #		error "Critical error. Not unixlike or windows, as already detected."
 #	endif
+#else
+#	error "Unsupported OS."
 #endif /* ~ if defined (SHIM_OS_UNIXLIKE) || defined (SHIM_OS_WINDOWS) */
 #ifdef THREECRYPT_EXT_TERM_BUFFER_SIZE
 #	define THREECRYPT_TERM_BUFFER_SIZE	THREECRYPT_EXT_TERM_BUFFER_SIZE

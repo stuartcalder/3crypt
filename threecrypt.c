@@ -37,10 +37,6 @@ static char const * Help = "Usage: 3crypt <Mode> [Switches...]\n"
 			   "    password, but introduces the potential for cache-timing attacks...\n"
 			   "    Do NOT use this feature unless you understand the security implications!\n";
 
-#define STATIC_STR_CHARS_(str) \
-	(sizeof(str) - 1)
-
-
 SHIM_BEGIN_DECLS
 
 void SHIM_PUBLIC
@@ -89,12 +85,8 @@ static int
 determine_crypto_method_ (Shim_Map * shim_map);
 static void
 threecrypt_arg_map_init_ (Threecrypt_Arg_Map *, int const, char const *[]);
-static void
+static inline void
 threecrypt_arg_map_del_ (Threecrypt_Arg_Map *);
-#if 0
-static void
-threecrypt_arg_map_debugoutput (Threecrypt_Arg_Map *);
-#endif
 
 SHIM_END_DECLS
 
@@ -178,7 +170,7 @@ threecrypt (int const argc, char const *argv[])
 				"These are both Catena_Input structs, they should be the same size."
 			);
 			memcpy( &dragonfly_v1.secret.catena_input, &ctx.catena_input, sizeof(ctx.catena_input) );
-			memset( &ctx.catena_input, 0, sizeof(ctx.catena_input) );
+			shim_secure_zero( &ctx.catena_input, sizeof(ctx.catena_input) );
 			/* Get the password. */
 			{
 				threecrypt_term_init();
@@ -756,41 +748,6 @@ threecrypt_arg_map_del_ (Threecrypt_Arg_Map *arg_map)
 	free( arg_map->strings );
 	free( arg_map->sizes   );
 }
-
-#if 0
-void
-threecrypt_arg_map_debugoutput (Threecrypt_Arg_Map *arg_map)
-{
-#ifndef SHIM_OS_UNIXLIKE
-#	error "This will only work on a Unixlike."
-#endif
-	if( arg_map->strings )
-		printf( "Arg_Map strings ptr: %p\n", arg_map->strings );
-	else
-		puts( "Null Arg_Map strings ptr" );
-	if( arg_map->sizes )
-		printf( "Arg_map sizes ptr: %p\n", arg_map->sizes );
-	else
-		puts( "Null Arg_Map sizes ptr" );
-	printf( "Arg_Map max string size: %zu\n", arg_map->max_string_size );
-	printf( "Arg_Map count: %d\n", arg_map->count );
-#if 0
-	printf(  "Input file fd: %d\n", arg_map->input_map.shim_file );
-	printf( "Output file fd: %d\n", arg_map->output_map.shim_file );
-	if( arg_map->input_filename )
-		printf( "Input filename: %s\n", arg_map->input_filename );
-	else
-		puts( "Null input filename" );
-	if( arg_map->output_filename )
-		printf( "Output filename: %s\n", arg_map->output_filename );
-	else
-		puts( "Null output filename" );
-	printf( "Input filename size: %zu\n", arg_map->input_filename_size );
-	printf( "Output filename size: %zu\n", arg_map->output_filename_size );
-	printf( "Mode: %d\n", arg_map->mode );
-#endif
-}
-#endif
 
 
 
