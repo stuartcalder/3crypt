@@ -350,6 +350,9 @@ dragonfly_parse_memory_ (char const * SHIM_RESTRICT mem_string,
 		case ('G'):
 			multiplier = (GIBIBYTE_ / 64);
 			goto Have_Mul_Label;
+		default:
+			if( !isdigit( (unsigned char)mem_string[ i ] ) )
+				SHIM_ERRX ("Error: Invalid memory string.\n");
 		}
 	}
 Have_Mul_Label:

@@ -4,3 +4,4 @@ option('dragonfly_v1_default_garlic',
   type: 'integer', min: 0, max: 63, value: 23)
 # By default, do not turn on debugging symbols.
 option('use_debug_symbols', type: 'boolean', value: false)
+option('native_optimize', type: 'boolean', value: false)

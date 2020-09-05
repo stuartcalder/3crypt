@@ -74,20 +74,29 @@ if get_option('enable_dragonfly_v1')
     lang_flags += _flag
   endif
 endif
-if compiler.get_id() in _GCC_COMPATIBLE_COMPILERS and get_option('use_debug_symbols')
-  lang_flags += '-g'
+if compiler.get_id() in _GCC_COMPATIBLE_COMPILERS
+  if get_option('native_optimize')
+    lang_flags += '-march=native'
+  endif
+  if get_option('use_debug_symbols')
+    lang_flags += '-g'
+  endif
 endif
 if os == 'openbsd' or os == 'freebsd' or os == 'darwin'
   lib_depends += compiler.find_library('ncurses')
+  lib_depends += compiler.find_library('shim', dirs: lib_dir)
   lib_depends += compiler.find_library('symm', dirs: lib_dir)
 elif os == 'netbsd'
   lib_depends += compiler.find_library('ncurses', dirs: '/usr/pkg/lib')
+  lib_depends += compiler.find_library('shim', dirs: lib_dir)
   lib_depends += compiler.find_library('symm', dirs: lib_dir)
 elif os == 'linux'
   lib_depends += compiler.find_library('ncurses')
   lib_depends += compiler.find_library('tinfo')
+  lib_depends += compiler.find_library('shim')
   lib_depends += compiler.find_library('symm')
 elif os == 'windows'
+  lib_depends += compiler.find_library('shim', dirs: lib_dir)
   lib_depends += compiler.find_library('symm', static: true, dirs: lib_dir)
 endif
 

@@ -1,18 +1,17 @@
 # 3crypt
-CLI file encryption program aiming for 512 bits of symmetric security
+CLI file encryption program aiming for 512 bits of security.
 
 ![Alt text](/../screenshots/plaintext.png?raw=true "Before 3crypt Encryption")
 ![Alt text](/../screenshots/ciphertext.png?raw=true "After 3crypt Encryption")
 
 ## Buildtime Dependencies
 ### (Required on all supported systems)
--   [ssc](https://github.com/stuartcalder/ssc) header and library files.
+-   [shim](https://github.com/stuartcalder/shim) header and library files.
+-   [symm](https://github.com/stuartcalder/symm) header and library files.
 -   __meson__ frontend build system.
 -   __ninja__ backend build system.
 ### (Required on OpenBSD, FreeBSD, Mac OSX, and GNU/Linux)
 -   __ncurses__ header and library files.
-### (Required on GNU/Linux only)
--   __GCC 7+__ compiler.
 ### (Required on Microsoft Windows only)
 -   __Windows Vista/Server 2008__ or later.
 -   __Visual Studio 2019__ development suite.
@@ -34,45 +33,45 @@ or
 ```
 ## How To Build 3crypt With Meson
 ### Mac OSX and BSD Build instructions
-1. build and install [ssc](https://github.com/stuartcalder/ssc).
-2. git clone [3crypt](https://github.com/stuartcalder/3crypt) anywhere.
-3. cd into the 3crypt project directory.
+1. build and install [shim](https://github.com/stuartcalder/shim.git).
+2. buidl and install [symm](https://github.com/stuartcalder/symm.git).
+3. git clone [3crypt](https://github.com/stuartcalder/3crypt.git) anywhere.
+4. cd into the 3crypt project directory and execute the following:
 ```
 $ meson --backend=ninja builddir
 ```
-4. cd into builddir, and execute the following...
+5. cd into builddir, and execute the following:
 ```
 $ ninja
 # ninja install
 ```
-5. 3crypt should now be successfully installed on your BSD system.
+### Linux build instructions
 ### GNU/Linux build instructions
-1. build and install [ssc](https://github.com/stuartcalder/ssc).
-2. git clone [3crypt](https://github.com/stuartcalder/3crypt) anywhere.
-3. cd into the 3crypt project directory and execute the following...
+1. build and install [shim](https://github.com/stuartcalder/shim.git).
+2. build and install [symm](https://github.com/stuartcalder/symm.git).
+3. git clone [3crypt](https://github.com/stuartcalder/3crypt) anywhere.
+4. cd into the 3crypt project directory and execute the following:
 ```
 $ meson --backend=ninja --prefix=/usr builddir
 ```
-4. cd into builddir and execute the following...
+5. cd into builddir and execute the following:
 ```
 $ ninja
 # ninja install
 ```
 ### On Microsoft Windows systems
-1. Build and install [ssc](https://github.com/stuartcalder/ssc).
-2. git clone [3crypt](https://github.com/stuartcalder/3crypt) anywhere.
-3. Open a command-prompt, **specifically** you must open __"x64 Native Tools Command Prompt for VS 2019"__.
-	* If you open a regular cmd.exe console, you will not be able to build 3crypt.
-4. cd into the 3crypt project directory, and execute the following...
+1. Build and install [shim](https://github.com/stuartcalder/shim.git).
+2. Build and install [symm](https://github.com/stuartcalder/symm.git).
+3. git clone [3crypt](https://github.com/stuartcalder/3crypt.git) anywhere.
+4. Open a command-prompt, **specifically** you must open __"x64 Native Tools Command Prompt for VS 2019"__.
 ```
 meson --backend=ninja builddir
 ```
-5. cd into builddir, and execute the following...
+5. cd into builddir, and execute the following:
 ```
 ninja
 ```
-6. 3crypt should now be successfully installed on your Windows system.
-7. You may now [add 3crypt to your PATH](https://stackoverflow.com/questions/9546324/adding-directory-to-path-environment-variable-in-windows), or invoke it directly by executing the following...
+6. Optionally, you may now [add 3crypt to your PATH environment variable](https://stackoverflow.com/questions/9546324/adding-directory-to-path-environment-variable-in-windows), or invoke it directly by executing the following from a cmd window:
 ```
-C:\bin\3crypt --encrypt --input plaintext --output ciphertext
+C:\bin\3crypt --encrypt --input plaintext_file --output ciphertext_file
 ```
