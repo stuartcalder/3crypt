@@ -45,7 +45,6 @@ $ meson --backend=ninja builddir
 $ ninja
 # ninja install
 ```
-### Linux build instructions
 ### GNU/Linux build instructions
 1. build and install [shim](https://github.com/stuartcalder/shim.git).
 2. build and install [symm](https://github.com/stuartcalder/symm.git).
