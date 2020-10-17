@@ -1,6 +1,6 @@
 #include "threecrypt.h"
-#include "term.h"
 #include <shim/operations.h>
+#include <shim/term.h>
 #include <ctype.h>
 
 static char const * Mode_Already_Set = "Error: Programming mode already set\n(Only one mode switch (e.g. -e or -d) is allowed per invocation of 3crypt.\n";
@@ -173,37 +173,41 @@ threecrypt (int const argc, char const *argv[])
 			shim_secure_zero( &ctx.catena_input, sizeof(ctx.catena_input) );
 			/* Get the password. */
 			{
-				threecrypt_term_init();
+				shim_term_init();
 				memset( dragonfly_v1.secret.catena_input.password_buffer,
 					0,
 					sizeof(dragonfly_v1.secret.catena_input.password_buffer) );
 				memset( dragonfly_v1.secret.catena_input.check_buffer,
 					0,
 					sizeof(dragonfly_v1.secret.catena_input.check_buffer) );
-				int password_size = threecrypt_term_obtain_password_checked( dragonfly_v1.secret.catena_input.password_buffer,
-											     dragonfly_v1.secret.catena_input.check_buffer,
-											     SYMM_COMMON_PASSWORD_PROMPT,
-											     SYMM_COMMON_REENTRY_PROMPT,
-											     1,
-											     SYMM_COMMON_MAX_PASSWORD_BYTES );
+				SHIM_STATIC_ASSERT (SHIM_TERM_MAX_PW_SIZE >= SYMM_COMMON_MAX_PASSWORD_BYTES,
+						    "Buffer size mismatch.");
+				int password_size = shim_term_obtain_password_checked( dragonfly_v1.secret.catena_input.password_buffer,
+										       dragonfly_v1.secret.catena_input.check_buffer,
+										       SYMM_COMMON_PASSWORD_PROMPT,
+										       SYMM_COMMON_REENTRY_PROMPT,
+										       1,
+										       SHIM_TERM_MAX_PW_SIZE );
 				dragonfly_v1.secret.catena_input.password_size = password_size;
-				threecrypt_term_end();
+				shim_term_end();
 			}
 			/* Initialize the CSPRNG. */
 			{
 				Symm_CSPRNG *csprng_p = &dragonfly_v1.secret.catena_input.csprng;
 				symm_csprng_init( csprng_p );
 				if( dragonfly_v1.secret.catena_input.supplement_entropy ) {
-					threecrypt_term_init();
+					shim_term_init();
 
 					memset( dragonfly_v1.secret.catena_input.check_buffer,
 						0,
 						sizeof(dragonfly_v1.secret.catena_input.check_buffer) );
-					int password_size = threecrypt_term_obtain_password( dragonfly_v1.secret.catena_input.check_buffer,
-											     SYMM_COMMON_ENTROPY_PROMPT,
-											     1,
-											     SYMM_COMMON_MAX_ENTROPY_BYTES );
-					threecrypt_term_end();
+					SHIM_STATIC_ASSERT (SHIM_TERM_MAX_PW_SIZE >= SYMM_COMMON_MAX_ENTROPY_BYTES,
+							    "Buffer size mismatch.");
+					int password_size = shim_term_obtain_password( dragonfly_v1.secret.catena_input.check_buffer,
+										       SYMM_COMMON_ENTROPY_PROMPT,
+										       1,
+										       SYMM_COMMON_MAX_ENTROPY_BYTES );
+					shim_term_end();
 					symm_skein512_hash_native( &dragonfly_v1.secret.ubi512,
 								   dragonfly_v1.secret.hash_out,
 								   dragonfly_v1.secret.catena_input.check_buffer,
@@ -270,12 +274,14 @@ threecrypt (int const argc, char const *argv[])
 					Symm_Dragonfly_V1_Decrypt dfly_dcrypt;
 					memset( dfly_dcrypt.password, 0, sizeof(dfly_dcrypt.password) );
 					{
-						threecrypt_term_init();
-						dfly_dcrypt.password_size = threecrypt_term_obtain_password( dfly_dcrypt.password,
-													     SYMM_COMMON_PASSWORD_PROMPT,
-													     1,
-													     SYMM_COMMON_MAX_PASSWORD_BYTES );
-						threecrypt_term_end();
+						shim_term_init();
+						SHIM_STATIC_ASSERT (SHIM_TERM_MAX_PW_SIZE >= SYMM_COMMON_MAX_PASSWORD_BYTES,
+								    "Buffer size mismatch.");
+						dfly_dcrypt.password_size = shim_term_obtain_password( dfly_dcrypt.password,
+												       SYMM_COMMON_PASSWORD_PROMPT,
+												       1,
+												       SYMM_COMMON_MAX_PASSWORD_BYTES );
+						shim_term_end();
 					}
 					symm_dragonfly_v1_decrypt( &dfly_dcrypt,
 								   &ctx.input_map,
