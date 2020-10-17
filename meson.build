@@ -82,16 +82,12 @@ if compiler.get_id() in _GCC_COMPATIBLE_COMPILERS
   endif
 endif
 if os == 'openbsd' or os == 'freebsd' or os == 'darwin'
-  lib_depends += compiler.find_library('ncurses')
   lib_depends += compiler.find_library('shim', dirs: lib_dir)
   lib_depends += compiler.find_library('symm', dirs: lib_dir)
 elif os == 'netbsd'
-  lib_depends += compiler.find_library('ncurses', dirs: '/usr/pkg/lib')
   lib_depends += compiler.find_library('shim', dirs: lib_dir)
   lib_depends += compiler.find_library('symm', dirs: lib_dir)
 elif os == 'linux'
-  lib_depends += compiler.find_library('ncurses')
-  lib_depends += compiler.find_library('tinfo')
   lib_depends += compiler.find_library('shim')
   lib_depends += compiler.find_library('symm')
 elif os == 'windows'
