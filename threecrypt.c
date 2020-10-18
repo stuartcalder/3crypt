@@ -144,14 +144,14 @@ threecrypt (int const argc, char const *argv[])
 			SHIM_OPENBSD_UNVEIL (ctx.output_filename, "rwc");
 			SHIM_OPENBSD_UNVEIL (NULL, NULL);
 			/* Open the input file, and memory-map it readonly. */
-			ctx.input_map.shim_file = shim_open_existing_filepath( ctx.input_filename, true );
-			ctx.input_map.size = shim_file_size( ctx.input_map.shim_file );
+			ctx.input_map.file = shim_open_existing_filepath( ctx.input_filename, true );
+			ctx.input_map.size = shim_file_size( ctx.input_map.file );
 			shim_map_memory( &ctx.input_map, true );
 			/* Create an output file, then process the remaining symmetric encryption arguments. */
-			ctx.output_map.shim_file = shim_create_filepath( ctx.output_filename );
+			ctx.output_map.file = shim_create_filepath( ctx.output_filename );
 			process_enc_args_( &ctx, &arg_map );
 			if( !all_strings_are_consumed_( &arg_map ) ) {
-				shim_close_file( ctx.output_map.shim_file );
+				shim_close_file( ctx.output_map.file );
 				remove( ctx.output_filename );
 				threecrypt_arg_map_del_( &arg_map );
 				SHIM_ERRX ("Error: Unused, unnecessary command-line arguments.\n");
@@ -249,28 +249,28 @@ threecrypt (int const argc, char const *argv[])
 			SHIM_OPENBSD_UNVEIL (ctx.input_filename, "r");
 			SHIM_OPENBSD_UNVEIL (ctx.output_filename, "rwc");
 			SHIM_OPENBSD_UNVEIL (NULL, NULL);
-			ctx.input_map.shim_file = shim_open_existing_filepath( ctx.input_filename, true );
-			ctx.input_map.size = shim_file_size( ctx.input_map.shim_file );
+			ctx.input_map.file = shim_open_existing_filepath( ctx.input_filename, true );
+			ctx.input_map.size = shim_file_size( ctx.input_map.file );
 			shim_map_memory( &ctx.input_map, true );
 			int method = determine_crypto_method_( &ctx.input_map );
 			switch( method ) {
 			default:
 				{
 					shim_unmap_memory( &ctx.input_map );
-					shim_close_file( ctx.input_map.shim_file );
+					shim_close_file( ctx.input_map.file );
 					SHIM_ERRX ("Error: Invalid decryption method %d\n", method);
 				} break;
 			case THREECRYPT_METHOD_NONE:
 				{
 					shim_unmap_memory( &ctx.input_map );
-					shim_close_file( ctx.input_map.shim_file );
+					shim_close_file( ctx.input_map.file );
 					SHIM_ERRX ("Error: The input file %s does not appear to be a valid 3crypt encrypted file.\n%s",
 						   ctx.input_filename, Help_Suggestion);
 				} break;
 #ifdef THREECRYPT_METHOD_DRAGONFLY_V1
 			case THREECRYPT_METHOD_DRAGONFLY_V1:
 				{
-					ctx.output_map.shim_file = shim_create_filepath( ctx.output_filename );
+					ctx.output_map.file = shim_create_filepath( ctx.output_filename );
 					Symm_Dragonfly_V1_Decrypt dfly_dcrypt;
 					memset( dfly_dcrypt.password, 0, sizeof(dfly_dcrypt.password) );
 					{
@@ -301,21 +301,21 @@ threecrypt (int const argc, char const *argv[])
 			SHIM_OPENBSD_UNVEIL (NULL, NULL);
 			SHIM_OPENBSD_PLEDGE ("stdio rpath tty", NULL);
 			/* Setup the input map. */
-			ctx.input_map.shim_file = shim_open_existing_filepath( ctx.input_filename, true );
-			ctx.input_map.size = shim_file_size( ctx.input_map.shim_file );
+			ctx.input_map.file = shim_open_existing_filepath( ctx.input_filename, true );
+			ctx.input_map.size = shim_file_size( ctx.input_map.file );
 			shim_map_memory( &ctx.input_map, true );
 			int method = determine_crypto_method_( &ctx.input_map );
 			switch( method ) {
 			default:
 				{ /* Undefined method integer. */
 					shim_unmap_memory( &ctx.input_map );
-					shim_close_file( ctx.input_map.shim_file );
+					shim_close_file( ctx.input_map.file );
 					SHIM_ERRX ("Error: Invalid decryption method (%d)\n", method);
 				} break;
 			case THREECRYPT_METHOD_NONE:
 				{ /* No method specified. */
 					shim_unmap_memory( &ctx.input_map );
-					shim_close_file( ctx.input_map.shim_file );
+					shim_close_file( ctx.input_map.file );
 					SHIM_ERRX ("Error: The input file %s does not appear to be a valid 3crypt encrypted file.\n%s",
 						   ctx.input_filename, Help_Suggestion);
 				} break;
@@ -598,15 +598,15 @@ process_enc_args_ (Threecrypt *         tcrypt_ctx,
 					arg_map->strings[ i ] = NULL;
 					if( target < SYMM_DRAGONFLY_V1_VISIBLE_METADATA_BYTES ) {
 						shim_unmap_memory( &tcrypt_ctx->input_map );
-						shim_close_file( tcrypt_ctx->input_map.shim_file );
-						shim_close_file( tcrypt_ctx->output_map.shim_file );
+						shim_close_file( tcrypt_ctx->input_map.file );
+						shim_close_file( tcrypt_ctx->output_map.file );
 						remove( tcrypt_ctx->output_filename );
 						SHIM_ERRX ("Error: The --pad-to target (%" PRIu64 ") is way too small!\n", target);
 					}
 					if( target - SYMM_DRAGONFLY_V1_VISIBLE_METADATA_BYTES < tcrypt_ctx->input_map.size ) {
 						shim_unmap_memory( &tcrypt_ctx->input_map );
-						shim_close_file( tcrypt_ctx->input_map.shim_file );
-						shim_close_file( tcrypt_ctx->output_map.shim_file );
+						shim_close_file( tcrypt_ctx->input_map.file );
+						shim_close_file( tcrypt_ctx->output_map.file );
 						remove( tcrypt_ctx->output_filename );
 						SHIM_ERRX ("Error: The input map size (%" PRIu64 ") is too large to --pad-to %" PRIu64 "\n",
 							   tcrypt_ctx->input_map.size, target);
