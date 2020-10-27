@@ -20,7 +20,9 @@ else
 endif
 src = [
   'threecrypt.c',
-  'main.c'
+  'main.c',
+  'dragonfly_v1.c',
+  'args.c'
   ]
 include = [
   ]
