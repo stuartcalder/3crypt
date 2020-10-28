@@ -4,7 +4,6 @@
 #include <shim/term.h>
 #include <ctype.h>
 
-static char const * Mode_Already_Set = "Error: Programming mode already set\n(Only one mode switch (e.g. -e or -d) is allowed per invocation of 3crypt.\n";
 static char const * Help_Suggestion =  "(Use 3crypt --help for more information)\n";
 static char const * Help = "Usage: 3crypt <Mode> [Switches...]\n"
 			   "Arguments to switches MUST be in seperate words. (i.e. 3crypt -e -i file; NOT 3crypt -e -ifile)\n\n"
