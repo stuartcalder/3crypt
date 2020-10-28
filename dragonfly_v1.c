@@ -41,7 +41,7 @@ Have_Mul_Label:
 #define KIBIBYTE_MAX_	UINT64_C (17592186044416)
 #define MEBIBYTE_MAX_	UINT64_C (17179869184)
 #define GIBIBYTE_MAX_	UINT64_C (16777216)
-#define INVALID_MEM_PARAM_	"Dragonfly_V1 Error: Specified memory parameter (%" PRIu64 ")\n"
+#define INVALID_MEM_PARAM_	"Dragonfly_V1 Error: Specified memory parameter digits (%d)\n"
 	uint64_t digit_count_limit = 0;
 	switch( multiplier ) {
 		case 1: {
