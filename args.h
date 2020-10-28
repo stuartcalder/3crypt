@@ -3,6 +3,8 @@
 #include "threecrypt.h"
 #include <shim/args.h>
 
+SHIM_BEGIN_DECLS
+
 Shim_Arg_Handler_t *
 short_parser (char const *);
 
@@ -41,7 +43,9 @@ PROTOTYPE_HANDLER_ (pad_by);
 PROTOTYPE_HANDLER_ (pad_to);
 PROTOTYPE_HANDLER_ (use_phi);
 #endif /* ~ ifdef SYMM_DRAGONFLY_V1_H */
-
 #undef PROTOTYPE_EQUIVALENT_HANDLER_
 #undef PROTOTYPE_HANDLER_
+
+SHIM_END_DECLS
+
 #endif /* ~ THREECRYPT_ARGS_H */

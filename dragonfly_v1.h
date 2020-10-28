@@ -3,6 +3,8 @@
 #include <stdint.h>
 #include <shim/macros.h>
 
+SHIM_BEGIN_DECLS
+
 uint8_t
 dfly_v1_parse_memory (char const * SHIM_RESTRICT mem_str,
 		      int const                  size);
@@ -14,5 +16,7 @@ dfly_v1_parse_iterations (char const * SHIM_RESTRICT iter_str,
 uint64_t
 dfly_v1_parse_padding (char const * SHIM_RESTRICT pad_str,
 		       int const		  size);
+
+SHIM_END_DECLS
 
 #endif /* ~ THREECRYPT_DRAGONFLY_V1_H */

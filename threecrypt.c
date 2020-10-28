@@ -109,16 +109,14 @@ threecrypt (int argc, char ** argv)
 		case THREECRYPT_MODE_DUMP: {
 			SHIM_OPENBSD_UNVEIL (NULL, NULL);
 			SHIM_OPENBSD_PLEDGE ("stdio rpath tty", NULL);
-			threecrypt_dump_( &tcrypt ); //TODO
+			threecrypt_dump_( &tcrypt );
 		} break; /* THREECRYPT_MODE_DUMP */
 		default: {
 			SHIM_ERRX ("Error: Invalid, unrecognized mode (%d)\n%s", tcrypt.mode, Help_Suggestion);
 		} break;
 	} /* switch( tcrypt.mode ) */
-	if( tcrypt.input_filename )
-		free( tcrypt.input_filename );
-	if( tcrypt.output_filename )
-		free( tcrypt.output_filename );
+	free( tcrypt.input_filename );
+	free( tcrypt.output_filename );
 }
 
 int
@@ -261,9 +259,9 @@ threecrypt_dump_ (Threecrypt * ctx) {
 	int method = determine_crypto_method_( &ctx->input_map );
 	switch( method ) {
 #ifdef THREECRYPT_DRAGONFLY_V1_H
-		case THREECRYPT_METHOD_DRAGONFLY_V1: {
+		case THREECRYPT_METHOD_DRAGONFLY_V1:
 			symm_dragonfly_v1_dump_header( &ctx->input_map, ctx->input_filename );
-		} break;
+			break;
 #endif
 		case THREECRYPT_METHOD_NONE:
 			SHIM_ERRX ("Error: The input file %s does not appear to be a valid 3crypt encrypted file.\n%s",

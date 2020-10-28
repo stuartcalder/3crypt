@@ -4,7 +4,7 @@ Shim_Arg_Handler_t *
 short_parser (char const * str) {
 	size_t const str_size = strlen( str );
 	switch( str_size ) {
-		case 2:
+		case 2: {
 			switch( str[ 1 ] ) {
 				case 'h':
 					return h_handler;
@@ -20,12 +20,10 @@ short_parser (char const * str) {
 					return o_handler;
 				case 'E':
 					return E_handler;
-				default:
-					return NULL;
 			}
-		default:
-			return NULL;
+		} break;
 	}
+	return NULL;
 }
 
 #ifdef SYMM_DRAGONFLY_V1_H
@@ -38,17 +36,17 @@ Shim_Arg_Handler_t *
 long_parser (char const * str) {
 	size_t const str_size = strlen( str );
 	switch( str_size ) {
-		case 6:
+		case 6: {
 			if( strcmp( str, "--help" ) == 0 )
 				return help_handler;
 			if( strcmp( str, "--dump" ) == 0 )
 				return dump_handler;
-			return NULL;
-		case 7:
+		} break;
+		case 7: {
 			if( strcmp( str, "--input" ) == 0 )
 				return input_handler;
-			return NULL;
-		case 8:
+		} break;
+		case 8: {
 			if( strcmp( str, "--output" ) == 0 )
 				return output_handler;
 			DFLY1_ (
@@ -57,8 +55,8 @@ long_parser (char const * str) {
 			if( strcmp( str, "--pad-to" ) == 0 )
 				return pad_to_handler;
 			)
-			return NULL;
-		case 9:
+		} break;
+		case 9: {
 			if( strcmp( str, "--encrypt" ) == 0 )
 				return encrypt_handler;
 			if( strcmp( str, "--decrypt" ) == 0 )
@@ -69,9 +67,9 @@ long_parser (char const * str) {
 			if( strcmp( str, "--use-phi" ) == 0 )
 				return use_phi_handler;
 			)
-			return NULL;
+		} break;
 		DFLY1_ (
-		case 12:
+		case 12: {
 			if( strcmp( str, "--min-memory" ) == 0 )
 				return min_memory_handler;
 			if( strcmp( str, "--max-memory" ) == 0 )
@@ -80,11 +78,10 @@ long_parser (char const * str) {
 				return use_memory_handler;
 			if( strcmp( str, "--iterations" ) == 0 )
 				return iterations_handler;
-			return NULL;
+		} break;
 		)
-		default:
-			return NULL;
 	}
+	return NULL;
 }
 
 Shim_Arg_Parser_t *
@@ -95,9 +92,8 @@ arg_processor (char const * str, void * SHIM_RESTRICT v_ctx) {
 			return short_parser;
 		case SHIM_ARGTYPE_LONG:
 			return long_parser;
-		default:
-			return NULL;
 	}
+	return NULL;
 }
 
 #define HANDLER_(prefix) \
