@@ -5,3 +5,5 @@ option('dragonfly_v1_default_garlic',
 # By default, do not turn on debugging symbols.
 option('use_debug_symbols', type: 'boolean', value: false)
 option('native_optimize', type: 'boolean', value: false)
+# By default, disallow and die when receiving non-meaningful arguments.
+option('strict_arg_processing', type: 'boolean', value: true)

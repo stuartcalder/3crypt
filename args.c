@@ -23,6 +23,9 @@ short_parser (char const * str) {
 			}
 		} break;
 	}
+#ifdef THREECRYPT_EXT_STRICT_ARG_PROCESSING
+	SHIM_ERRX ("Error: Invalid argument: %s\n", str);
+#endif
 	return NULL;
 }
 
@@ -81,6 +84,9 @@ long_parser (char const * str) {
 		} break;
 		)
 	}
+#ifdef THREECRYPT_EXT_STRICT_ARG_PROCESSING
+	SHIM_ERRX ("Error: Invalid argument: %s\n", str);
+#endif
 	return NULL;
 }
 
@@ -93,6 +99,9 @@ arg_processor (char const * str, void * SHIM_RESTRICT v_ctx) {
 		case SHIM_ARGTYPE_LONG:
 			return long_parser;
 	}
+#ifdef THREECRYPT_EXT_STRICT_ARG_PROCESSING
+	SHIM_ERRX ("Error: Invalid argument: %s\n", str);
+#endif
 	return NULL;
 }
 

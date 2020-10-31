@@ -51,7 +51,7 @@ enum {
 #define THREECRYPT_MAX_ID_STRING_BYTES	sizeof(SYMM_DRAGONFLY_V1_ID)
 #define THREECRYPT_NUMBER_METHODS	1
 
-typedef struct SHIM_PUBLIC {
+typedef struct {
 	Symm_Catena_Input catena_input;
 	Shim_Map          input_map;
 	Shim_Map          output_map;
@@ -62,7 +62,7 @@ typedef struct SHIM_PUBLIC {
 	int               mode;
 } Threecrypt;
 
-typedef struct SHIM_PUBLIC {
+typedef struct {
 	char const ** strings;
 	size_t *      sizes;
 	size_t        max_string_size;
@@ -71,10 +71,10 @@ typedef struct SHIM_PUBLIC {
 
 SHIM_BEGIN_DECLS
 
-void SHIM_PUBLIC
+void
 print_help ();
 
-void SHIM_PUBLIC
+void
 threecrypt (int, char **);
 
 SHIM_END_DECLS

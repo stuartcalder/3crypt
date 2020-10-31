@@ -50,19 +50,19 @@ threecrypt_dump_ (Threecrypt *);
 
 SHIM_END_DECLS
 
-void SHIM_PUBLIC
+void
 threecrypt (int argc, char ** argv)
 {
 	Threecrypt tcrypt;
 	memset( &tcrypt, 0, sizeof(tcrypt) );
 	shim_process_args( argc, argv, arg_processor, &tcrypt );
 	if( tcrypt.mode == THREECRYPT_MODE_NONE )
-		SHIM_ERRX ("Error: No mode specified.\n");
+		SHIM_ERRX ("Error: No mode specified.\n%s", Help_Suggestion);
 	if( !tcrypt.input_filename )
-		SHIM_ERRX ("Error: Input file not specified.\n");
+		SHIM_ERRX ("Error: Input file not specified.\n%s", Help_Suggestion);
 	SHIM_OPENBSD_UNVEIL (tcrypt.input_filename, "r");
 	if( !shim_filepath_exists( tcrypt.input_filename ) )
-		SHIM_ERRX ("Error: The input file %s does not seem to exist.\n", tcrypt.input_filename);
+		SHIM_ERRX ("Error: The input file %s does not seem to exist.\n%s", tcrypt.input_filename, Help_Suggestion);
 	tcrypt.input_map.size = shim_filepath_size( tcrypt.input_filename );
 	switch( tcrypt.mode ) {
 		case THREECRYPT_MODE_SYMMETRIC_ENC: {
@@ -271,9 +271,7 @@ threecrypt_dump_ (Threecrypt * ctx) {
 			break;
 	} /* switch( method ) */
 }
-void SHIM_PUBLIC
+void
 print_help () {
 	puts( Help );
 }
-
-

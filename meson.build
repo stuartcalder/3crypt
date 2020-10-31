@@ -75,6 +75,10 @@ if get_option('enable_dragonfly_v1')
     lang_flags += _flag
   endif
 endif
+if get_option('strict_arg_processing')
+  _flag = _D_PREFIX + 'THREECRYPT_EXT_STRICT_ARG_PROCESSING'
+  lang_flags += _flag
+endif
 if compiler.get_id() in _GCC_COMPATIBLE_COMPILERS
   if get_option('native_optimize')
     lang_flags += '-march=native'
