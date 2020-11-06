@@ -219,7 +219,7 @@ void
 threecrypt_decrypt_ (Threecrypt * ctx) {
 	ctx->input_map.file = shim_open_existing_filepath( ctx->input_filename, true );
 	shim_map_memory( &ctx->input_map, true );
-	int method = determine_crypto_method_( &ctx->input_map );
+	int const method = determine_crypto_method_( &ctx->input_map );
 	switch( method ) {
 #ifdef THREECRYPT_DRAGONFLY_V1_H
 		case THREECRYPT_METHOD_DRAGONFLY_V1: {

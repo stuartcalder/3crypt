@@ -62,18 +62,10 @@ typedef struct {
 	int               mode;
 } Threecrypt;
 
-typedef struct {
-	char const ** strings;
-	size_t *      sizes;
-	size_t        max_string_size;
-	int           count;
-} Threecrypt_Arg_Map;
-
 SHIM_BEGIN_DECLS
 
 void
 print_help ();
-
 void
 threecrypt (int, char **);
 
