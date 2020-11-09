@@ -182,7 +182,8 @@ SHIM_STATIC_ASSERT (THREECRYPT_EXT_DRAGONFLY_V1_DEFAULT_GARLIC < 63, "Must be le
 								 SYMM_COMMON_PASSWORD_PROMPT,
 								 SYMM_COMMON_REENTRY_PROMPT,
 								 1,
-								 SHIM_TERM_MAX_PW_SIZE );
+								 SYMM_COMMON_MAX_PASSWORD_BYTES,
+								 (SYMM_COMMON_MAX_PASSWORD_BYTES + 1) );
 		dfly_v1.secret.catena_input.password_size = pw_size;
 		shim_term_end();
 	}
@@ -193,11 +194,11 @@ SHIM_STATIC_ASSERT (THREECRYPT_EXT_DRAGONFLY_V1_DEFAULT_GARLIC < 63, "Must be le
 			shim_term_init();
 			memset( dfly_v1.secret.catena_input.check_buffer, 0,
 				sizeof(dfly_v1.secret.catena_input.check_buffer) );
-			SHIM_STATIC_ASSERT (SHIM_TERM_MAX_PW_SIZE >= SYMM_COMMON_MAX_ENTROPY_BYTES, "Buffer size mismatch.");
 			int pw_size = shim_term_obtain_password( dfly_v1.secret.catena_input.check_buffer,
 								 SYMM_COMMON_ENTROPY_PROMPT,
 								 1,
-								 SYMM_COMMON_MAX_ENTROPY_BYTES );
+								 SYMM_COMMON_MAX_PASSWORD_BYTES,
+								 (SYMM_COMMON_MAX_PASSWORD_BYTES + 1) );
 			shim_term_end();
 			symm_skein512_hash_native( &dfly_v1.secret.ubi512,
 						   dfly_v1.secret.hash_out,
@@ -228,11 +229,11 @@ threecrypt_decrypt_ (Threecrypt * ctx) {
 			memset( dfly_dcrypt.password, 0, sizeof(dfly_dcrypt.password) );
 			{
 				shim_term_init();
-				SHIM_STATIC_ASSERT (SHIM_TERM_MAX_PW_SIZE >= SYMM_COMMON_MAX_PASSWORD_BYTES, "Buffer size mismatch.");
 				dfly_dcrypt.password_size = shim_term_obtain_password( dfly_dcrypt.password,
 										       SYMM_COMMON_PASSWORD_PROMPT,
 										       1,
-										       SYMM_COMMON_MAX_PASSWORD_BYTES );
+										       SYMM_COMMON_MAX_PASSWORD_BYTES,
+										       (SYMM_COMMON_MAX_PASSWORD_BYTES + 1) );
 				shim_term_end();
 			}
 			symm_dragonfly_v1_decrypt( &dfly_dcrypt,
