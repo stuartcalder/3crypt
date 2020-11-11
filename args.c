@@ -132,8 +132,11 @@ HANDLER_ (D) {
 static size_t
 get_fname_ (char ** SHIM_RESTRICT str_arr,
 	    char ** SHIM_RESTRICT target,
-	    int const count)
+	    int const count,
+	    char const * SHIM_RESTRICT error_str)
 {
+	if( *target )
+		SHIM_ERRX (error_str, *target);
 	if( *target )
 		SHIM_ERRX ("Error: Already specified input file as %s\n", *target);
 	if( count >= 2 ) {
@@ -150,11 +153,13 @@ get_fname_ (char ** SHIM_RESTRICT str_arr,
 }
 HANDLER_ (i) {
 	Threecrypt * ctx = (Threecrypt *)v_ctx;
-	ctx->input_filename_size = get_fname_( str_arr, &ctx->input_filename, count );
+	ctx->input_filename_size = get_fname_( str_arr, &ctx->input_filename, count,
+					       "Error: Already specified input file as %s\n" );
 }
 HANDLER_ (o) {
 	Threecrypt * ctx = (Threecrypt *)v_ctx;
-	ctx->output_filename_size = get_fname_( str_arr, &ctx->output_filename, count );
+	ctx->output_filename_size = get_fname_( str_arr, &ctx->output_filename, count,
+						"Error: Already specified output file as %s\n" );
 }
 HANDLER_ (E) {
 	((Threecrypt *)v_ctx)->catena_input.supplement_entropy = true;
