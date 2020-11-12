@@ -137,8 +137,6 @@ get_fname_ (char ** SHIM_RESTRICT str_arr,
 {
 	if( *target )
 		SHIM_ERRX (error_str, *target);
-	if( *target )
-		SHIM_ERRX ("Error: Already specified input file as %s\n", *target);
 	if( count >= 2 ) {
 		char const * fname = str_arr[ 1 ];
 		if( fname ) {
