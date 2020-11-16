@@ -63,12 +63,12 @@ threecrypt (int argc, char ** argv)
 	SHIM_OPENBSD_UNVEIL (tcrypt.input_filename, "r");
 	if( !shim_filepath_exists( tcrypt.input_filename ) )
 		SHIM_ERRX ("Error: The input file %s does not seem to exist.\n%s", tcrypt.input_filename, Help_Suggestion);
-	tcrypt.input_map.size = shim_filepath_size( tcrypt.input_filename );
+	tcrypt.input_map.size = shim_enforce_get_filepath_size( tcrypt.input_filename );
 	switch( tcrypt.mode ) {
 		case THREECRYPT_MODE_SYMMETRIC_ENC: {
 			if( !tcrypt.output_filename ) {
 				size_t const buf_size = tcrypt.input_filename_size + sizeof(".3c");
-				tcrypt.output_filename = (char *)shim_checked_malloc( buf_size );
+				tcrypt.output_filename = (char *)shim_enforce_malloc( buf_size );
 				tcrypt.output_filename_size = buf_size - 1;
 				memcpy( tcrypt.output_filename,
 					tcrypt.input_filename,
@@ -88,7 +88,7 @@ threecrypt (int argc, char ** argv)
 				if( tcrypt.input_filename_size < 4 )
 					SHIM_ERRX ("Error: No output file specified.\n");
 				tcrypt.output_filename_size = tcrypt.input_filename_size - 3;
-				tcrypt.output_filename = (char *)shim_checked_malloc( tcrypt.output_filename_size + 1 );
+				tcrypt.output_filename = (char *)shim_enforce_malloc( tcrypt.output_filename_size + 1 );
 				if( strcmp( tcrypt.input_filename + tcrypt.output_filename_size, ".3c" ) == 0 ) {
 					memcpy( tcrypt.output_filename,
 						tcrypt.input_filename,
@@ -150,12 +150,12 @@ threecrypt_encrypt_ (Threecrypt * ctx) {
 			ctx->catena_input.padding_mode = SYMM_COMMON_PAD_MODE_ADD;
 		} break;
 	}
-	ctx->input_map.file = shim_open_existing_filepath( ctx->input_filename, true );
-	shim_map_memory( &ctx->input_map, true );
-	ctx->output_map.file = shim_create_filepath( ctx->output_filename );
+	ctx->input_map.file = shim_enforce_open_filepath( ctx->input_filename, true );
+	shim_enforce_map_memory( &ctx->input_map, true );
+	ctx->output_map.file = shim_enforce_create_filepath( ctx->output_filename );
 #ifdef THREECRYPT_EXT_DRAGONFLY_V1_DEFAULT_GARLIC
-SHIM_STATIC_ASSERT (THREECRYPT_EXT_DRAGONFLY_V1_DEFAULT_GARLIC >  0, "Must be greater than 0");
-SHIM_STATIC_ASSERT (THREECRYPT_EXT_DRAGONFLY_V1_DEFAULT_GARLIC < 63, "Must be less than 63");
+	SHIM_STATIC_ASSERT (THREECRYPT_EXT_DRAGONFLY_V1_DEFAULT_GARLIC >  0, "Must be greater than 0");
+	SHIM_STATIC_ASSERT (THREECRYPT_EXT_DRAGONFLY_V1_DEFAULT_GARLIC < 63, "Must be less than 63");
 #	define DEFAULT_GARLIC_ UINT8_C (THREECRYPT_EXT_DRAGONFLY_V1_DEFAULT_GARLIC)
 #else
 #	define DEFAULT_GARLIC_ UINT8_C (23)
@@ -218,13 +218,13 @@ SHIM_STATIC_ASSERT (THREECRYPT_EXT_DRAGONFLY_V1_DEFAULT_GARLIC < 63, "Must be le
 }
 void
 threecrypt_decrypt_ (Threecrypt * ctx) {
-	ctx->input_map.file = shim_open_existing_filepath( ctx->input_filename, true );
-	shim_map_memory( &ctx->input_map, true );
+	ctx->input_map.file = shim_enforce_open_filepath( ctx->input_filename, true );
+	shim_enforce_map_memory( &ctx->input_map, true );
 	int const method = determine_crypto_method_( &ctx->input_map );
 	switch( method ) {
 #ifdef THREECRYPT_DRAGONFLY_V1_H
 		case THREECRYPT_METHOD_DRAGONFLY_V1: {
-			ctx->output_map.file = shim_create_filepath( ctx->output_filename );
+			ctx->output_map.file = shim_enforce_create_filepath( ctx->output_filename );
 			Symm_Dragonfly_V1_Decrypt dfly_dcrypt;
 			memset( dfly_dcrypt.password, 0, sizeof(dfly_dcrypt.password) );
 			{
@@ -254,8 +254,8 @@ threecrypt_decrypt_ (Threecrypt * ctx) {
 }
 void
 threecrypt_dump_ (Threecrypt * ctx) {
-	ctx->input_map.file = shim_open_existing_filepath( ctx->input_filename, true );
-	shim_map_memory( &ctx->input_map, true );
+	ctx->input_map.file = shim_enforce_open_filepath( ctx->input_filename, true );
+	shim_enforce_map_memory( &ctx->input_map, true );
 	int method = determine_crypto_method_( &ctx->input_map );
 	switch( method ) {
 #ifdef THREECRYPT_DRAGONFLY_V1_H

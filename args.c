@@ -141,7 +141,7 @@ get_fname_ (char ** SHIM_RESTRICT str_arr,
 		char const * fname = str_arr[ 1 ];
 		if( fname ) {
 			size_t fname_buf_size = strlen( fname ) + 1;
-			(*target) = (char *)shim_checked_malloc( fname_buf_size );
+			(*target) = (char *)shim_enforce_malloc( fname_buf_size );
 			memcpy( *target, fname, fname_buf_size );
 			str_arr[ 1 ] = NULL;
 			return fname_buf_size - 1;

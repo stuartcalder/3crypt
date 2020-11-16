@@ -15,7 +15,7 @@ dfly_v1_parse_memory (char const * SHIM_RESTRICT mem_str,
 	uint64_t requested_bytes = 0;
 	uint64_t multiplier = 1;
 	int num_digits;
-	char * const temp = (char *)shim_checked_malloc( size + 1 );
+	char * const temp = (char *)shim_enforce_malloc( size + 1 );
 	memcpy( temp, mem_str, (size + 1) );
 	for( int i = 0; i < size; ++i ) {
 		switch( toupper( (unsigned char)mem_str[ i ] ) ) {
@@ -78,7 +78,7 @@ dfly_v1_parse_iterations (char const * SHIM_RESTRICT iter_str,
 			  int const                  size)
 {
 #define INVALID_ITER_COUNT_ "Dragonfly_V1 Error: Invalid iteration count.\n"
-	char * const temp = (char *)shim_checked_malloc( size + 1 );
+	char * const temp = (char *)shim_enforce_malloc( size + 1 );
 	memcpy( temp, iter_str, (size + 1) );
 	int num_digits = shim_shift_left_digits( temp, size );
 	if( num_digits <= 0 || num_digits >= 4 )
@@ -94,7 +94,7 @@ uint64_t
 dfly_v1_parse_padding (char const * SHIM_RESTRICT pad_str,
 		       int const		  size)
 {
-	char * const temp = (char *)shim_checked_malloc( size + 1 );
+	char * const temp = (char *)shim_enforce_malloc( size + 1 );
 	memcpy( temp, pad_str, (size + 1) );
 	uint64_t multiplier = 1;
 	int num_digits;
