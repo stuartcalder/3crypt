@@ -61,6 +61,16 @@ typedef struct {
 	size_t            output_filename_size;
 	int               mode;
 } Threecrypt;
+#define THREECRYPT_NULL_INIT { \
+	.catena_input = SYMM_CATENA_INPUT_NULL_INIT, \
+	.input_map = SHIM_MAP_NULL_INIT, \
+	.output_map = SHIM_MAP_NULL_INIT, \
+	.input_filename = NULL, \
+	.output_filename = NULL, \
+	.input_filename_size = 0, \
+	.output_filename_size = 0, \
+	.mode = 0 \
+}
 
 SHIM_BEGIN_DECLS
 

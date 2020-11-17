@@ -53,8 +53,7 @@ SHIM_END_DECLS
 void
 threecrypt (int argc, char ** argv)
 {
-	Threecrypt tcrypt;
-	memset( &tcrypt, 0, sizeof(tcrypt) );
+	Threecrypt tcrypt = THREECRYPT_NULL_INIT;
 	shim_process_args( argc, argv, arg_processor, &tcrypt );
 	if( tcrypt.mode == THREECRYPT_MODE_NONE )
 		SHIM_ERRX ("Error: No mode specified.\n%s", Help_Suggestion);
