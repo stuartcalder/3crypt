@@ -61,7 +61,7 @@ long_parser (char const * str) {
 				return pad_by_handler;
 			if( strcmp( str, "--pad-to" ) == 0 )
 				return pad_to_handler;
-			)
+			) /* DFLY1_ */
 		} break;
 		case 9: {
 			if( strcmp( str, "--encrypt" ) == 0 )
@@ -73,8 +73,14 @@ long_parser (char const * str) {
 			DFLY1_ (
 			if( strcmp( str, "--use-phi" ) == 0 )
 				return use_phi_handler;
-			)
+			) /* DFLY1_ */
 		} break;
+		DFLY1_ (
+		case 11: {
+			if( strcmp( str, "--pad-as-if" ) == 0 )
+				return pad_as_if_handler;
+		} break;
+		) /* DFLY1_ */
 		DFLY1_ (
 		case 12: {
 			if( strcmp( str, "--min-memory" ) == 0 )
@@ -86,7 +92,7 @@ long_parser (char const * str) {
 			if( strcmp( str, "--iterations" ) == 0 )
 				return iterations_handler;
 		} break;
-		)
+		) /* DFLY1_ */
 	}
 	HANDLE_INVALID_ARG_ (str);
 	return NULL;
@@ -130,9 +136,9 @@ HANDLER_ (D) {
 	set_mode_( (Threecrypt *)v_ctx, THREECRYPT_MODE_DUMP );
 }
 static size_t
-get_fname_ (char ** SHIM_RESTRICT str_arr,
-	    char ** SHIM_RESTRICT target,
-	    int const count,
+get_fname_ (char **      SHIM_RESTRICT str_arr,
+	    char **      SHIM_RESTRICT target,
+	    int const                  count,
 	    char const * SHIM_RESTRICT error_str)
 {
 	if( *target )
@@ -222,6 +228,10 @@ HANDLER_ (pad_by) {
 HANDLER_ (pad_to) {
 	pad_by_handler( str_arr, count, v_ctx );
 	((Threecrypt *)v_ctx)->catena_input.padding_mode = SYMM_COMMON_PAD_MODE_TARGET;
+}
+HANDLER_ (pad_as_if) {
+	pad_by_handler( str_arr, count, v_ctx );
+	((Threecrypt *)v_ctx)->catena_input.padding_mode = SYMM_COMMON_PAD_MODE_ASIF;
 }
 HANDLER_ (use_phi) {
 	((Threecrypt *)v_ctx)->catena_input.use_phi = UINT8_C (0x01);

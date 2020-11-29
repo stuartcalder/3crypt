@@ -29,8 +29,9 @@ static char const * Help = "Usage: 3crypt <Mode> [Switches...]\n"
 			   "    The more memory we use for key-derivation, the harder it will be to attack your password.\n"
 			   "    Memory minimums and maximums are rounded down to the nearest power of 2.\n"
 			   "--iterations <number>\tThe number of times to iterate the memory-hard function during key-derivation. Time cost.\n"
-			   "--pad-by <number_bytes>[K|M|G]\tThe number of padding bytes to add to the encrypted file, to obfuscate its size.\n"
-			   "--pad-to <number_bytes>[K|M|G]\tThe target number of bytes you want your encrypted file to be; Will fail if it's not big enough.\n"
+			   "--pad-by    <number_bytes>[K|M|G]\tThe number of padding bytes to add to the encrypted file, to obfuscate its size.\n"
+			   "--pad-to    <number_bytes>[K|M|G]\tThe target number of bytes you want your encrypted file to be; Will fail if it's not big enough.\n"
+			   "--pad-as-if <number_bytes>[K|M|G]\tAdd padding such that the encrypted file is the same size as an unpadded encrypted file of this size.\n"
 			   "--use-phi\t\tWhether to enable the optional phi function.\n"
 			   "    WARNING: The optional phi function hardens the key-derivation function against\n"
 			   "    parallel adversaries, greatly increasing the work necessary to attack your\n"
@@ -53,7 +54,7 @@ SHIM_END_DECLS
 void
 threecrypt (int argc, char ** argv)
 {
-	Threecrypt tcrypt = THREECRYPT_NULL_INIT;
+	Threecrypt tcrypt = { 0 };
 	shim_process_args( argc, argv, arg_processor, &tcrypt );
 	if( tcrypt.mode == THREECRYPT_MODE_NONE )
 		SHIM_ERRX ("Error: No mode specified.\n%s", Help_Suggestion);
@@ -145,6 +146,17 @@ threecrypt_encrypt_ (Threecrypt * ctx) {
 					   ctx->input_map.size, target);
 			target -= ctx->input_map.size;
 			target -= SYMM_DRAGONFLY_V1_VISIBLE_METADATA_BYTES;
+			ctx->catena_input.padding_bytes = target;
+			ctx->catena_input.padding_mode = SYMM_COMMON_PAD_MODE_ADD;
+		} break;
+		case SYMM_COMMON_PAD_MODE_ASIF: {
+			uint64_t target = ctx->catena_input.padding_bytes;
+			if( target < 1 )
+				SHIM_ERRX ("Error: The --pad-as-if target (%" PRIu64 ") is too small!\n", target);
+			if( target < ctx->input_map.size )
+				SHIM_ERRX ("Error: The input file size (%" PRIu64 ") is too large to --pad-as-if %" PRIu64 "\n",
+					   ctx->input_map.size, target);
+			target -= ctx->input_map.size;
 			ctx->catena_input.padding_bytes = target;
 			ctx->catena_input.padding_mode = SYMM_COMMON_PAD_MODE_ADD;
 		} break;

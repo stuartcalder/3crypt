@@ -41,6 +41,7 @@ PROTOTYPE_HANDLER_ (use_memory);
 PROTOTYPE_HANDLER_ (iterations);
 PROTOTYPE_HANDLER_ (pad_by);
 PROTOTYPE_HANDLER_ (pad_to);
+PROTOTYPE_HANDLER_ (pad_as_if);
 PROTOTYPE_HANDLER_ (use_phi);
 #endif /* ~ ifdef SYMM_DRAGONFLY_V1_H */
 #undef PROTOTYPE_EQUIVALENT_HANDLER_
