@@ -10,6 +10,8 @@ _SUPPORTED_COMPILERS         = _GCC_COMPATIBLE_COMPILERS + ['msvc']
 
 compiler = meson.get_compiler(_LANG)
 os = host_machine.system()
+shim_static = get_option('shim_static')
+symm_static = get_option('symm_static')
 assert (os in _SUPPORTED_OPERATING_SYSTEMS, 'You are trying to build 3crypt using an unsupported operating system!')
 assert (compiler.get_id() in _SUPPORTED_COMPILERS, 'You are trying to build 3crypt using an unsupported compiler!')
 
@@ -38,6 +40,12 @@ gcc_compatible_flags = [
   '-Wall',
   '-funroll-loops'
   ]
+if shim_static
+  lang_flags += _D_PREFIX + 'SHIM_EXT_STATIC_LIB'
+endif
+if symm_static
+  lang_flags += _D_PREFIX + 'SYMM_EXT_STATIC_LIB'
+endif
 if os != 'netbsd' and compiler.get_id() != 'clang'
   gcc_compatible_flags += '-flto'
 endif
@@ -88,17 +96,27 @@ if compiler.get_id() in _GCC_COMPATIBLE_COMPILERS
   endif
 endif
 if os == 'openbsd' or os == 'freebsd' or os == 'darwin'
-  lib_depends += compiler.find_library('shim', dirs: lib_dir)
-  lib_depends += compiler.find_library('symm', dirs: lib_dir)
+  lib_depends += compiler.find_library('shim', dirs: lib_dir, static: shim_static)
+  lib_depends += compiler.find_library('symm', dirs: lib_dir, static: symm_static)
+  if shim_static
+    lib_depends += compiler.find_library('ncurses')
+  endif
 elif os == 'netbsd'
-  lib_depends += compiler.find_library('shim', dirs: lib_dir)
-  lib_depends += compiler.find_library('symm', dirs: lib_dir)
+  lib_depends += compiler.find_library('shim', dirs: lib_dir, static: shim_static)
+  lib_depends += compiler.find_library('symm', dirs: lib_dir, static: symm_static)
+  if shim_static
+    lib_depends += compiler.find_library('ncurses')
+  endif
 elif os == 'linux'
-  lib_depends += compiler.find_library('shim')
-  lib_depends += compiler.find_library('symm')
+  lib_depends += compiler.find_library('shim', static: shim_static)
+  lib_depends += compiler.find_library('symm', static: symm_static)
+  if shim_static
+    lib_depends += compiler.find_library('ncurses')
+    lib_depends += compiler.find_library('tinfo')
+  endif
 elif os == 'windows'
-  lib_depends += compiler.find_library('shim', dirs: lib_dir)
-  lib_depends += compiler.find_library('symm', static: true, dirs: lib_dir)
+  lib_depends += compiler.find_library('shim', dirs: lib_dir, static: shim_static)
+  lib_depends += compiler.find_library('symm', dirs: lib_dir, static: symm_static)
 endif
 
 if os != 'windows'

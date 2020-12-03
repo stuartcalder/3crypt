@@ -7,3 +7,5 @@ option('use_debug_symbols', type: 'boolean', value: false)
 option('native_optimize', type: 'boolean', value: false)
 # By default, disallow and die when receiving non-meaningful arguments.
 option('strict_arg_processing', type: 'boolean', value: true)
+option('shim_static', type: 'boolean', value: false)
+option('symm_static', type: 'boolean', value: false)

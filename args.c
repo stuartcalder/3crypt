@@ -114,6 +114,7 @@ arg_processor (char const * str, void * SHIM_RESTRICT v_ctx) {
 #define HANDLER_(prefix) \
 	void \
 	prefix##_handler (char ** str_arr, int const count, void * SHIM_RESTRICT v_ctx)
+#define CTX_ ((Threecrypt *)v_ctx)
 
 static void
 set_mode_ (Threecrypt * ctx, int mode) {
@@ -127,13 +128,13 @@ HANDLER_ (h) {
 	exit( EXIT_SUCCESS );
 }
 HANDLER_ (e) {
-	set_mode_( (Threecrypt *)v_ctx, THREECRYPT_MODE_SYMMETRIC_ENC );
+	set_mode_( CTX_, THREECRYPT_MODE_SYMMETRIC_ENC );
 }
 HANDLER_ (d) {
-	set_mode_( (Threecrypt *)v_ctx, THREECRYPT_MODE_SYMMETRIC_DEC );
+	set_mode_( CTX_, THREECRYPT_MODE_SYMMETRIC_DEC );
 }
 HANDLER_ (D) {
-	set_mode_( (Threecrypt *)v_ctx, THREECRYPT_MODE_DUMP );
+	set_mode_( CTX_, THREECRYPT_MODE_DUMP );
 }
 static size_t
 get_fname_ (char **      SHIM_RESTRICT str_arr,
@@ -156,17 +157,15 @@ get_fname_ (char **      SHIM_RESTRICT str_arr,
 	return 0;
 }
 HANDLER_ (i) {
-	Threecrypt * ctx = (Threecrypt *)v_ctx;
-	ctx->input_filename_size = get_fname_( str_arr, &ctx->input_filename, count,
-					       "Error: Already specified input file as %s\n" );
+	CTX_->input_filename_size = get_fname_( str_arr, &CTX_->input_filename, count,
+						"Error: Already specified input file as %s\n" );
 }
 HANDLER_ (o) {
-	Threecrypt * ctx = (Threecrypt *)v_ctx;
-	ctx->output_filename_size = get_fname_( str_arr, &ctx->output_filename, count,
-						"Error: Already specified output file as %s\n" );
+	CTX_->output_filename_size = get_fname_( str_arr, &CTX_->output_filename, count,
+						 "Error: Already specified output file as %s\n" );
 }
 HANDLER_ (E) {
-	((Threecrypt *)v_ctx)->catena_input.supplement_entropy = true;
+	CTX_->catena_input.supplement_entropy = true;
 }
 #ifdef THREECRYPT_DRAGONFLY_V1_H
 
@@ -189,24 +188,24 @@ get_dfly_v1_u8_param_ (char ** str_arr, int const count,
 HANDLER_ (min_memory) {
 	uint8_t memory = get_dfly_v1_u8_param_( str_arr, count, dfly_v1_parse_memory );
 	if( memory )
-		((Threecrypt *)v_ctx)->catena_input.g_low = memory;
+		CTX_->catena_input.g_low = memory;
 }
 HANDLER_ (max_memory) {
 	uint8_t memory = get_dfly_v1_u8_param_( str_arr, count, dfly_v1_parse_memory );
 	if( memory )
-		((Threecrypt *)v_ctx)->catena_input.g_high = memory;
+		CTX_->catena_input.g_high = memory;
 }
 HANDLER_ (use_memory) {
 	uint8_t memory = get_dfly_v1_u8_param_( str_arr, count, dfly_v1_parse_memory );
 	if( memory ) {
-		((Threecrypt *)v_ctx)->catena_input.g_low = memory;
-		((Threecrypt *)v_ctx)->catena_input.g_high = memory;
+		CTX_->catena_input.g_low  = memory;
+		CTX_->catena_input.g_high = memory;
 	}
 }
 HANDLER_ (iterations) {
 	uint8_t iterations = get_dfly_v1_u8_param_( str_arr, count, dfly_v1_parse_iterations );
 	if( iterations )
-		((Threecrypt *)v_ctx)->catena_input.lambda = iterations;
+		CTX_->catena_input.lambda = iterations;
 }
 static uint64_t
 get_dfly_v1_padding_ (char ** str_arr, int const count) {
@@ -223,17 +222,17 @@ get_dfly_v1_padding_ (char ** str_arr, int const count) {
 HANDLER_ (pad_by) {
 	uint64_t padding = get_dfly_v1_padding_( str_arr, count );
 	if( padding )
-		((Threecrypt *)v_ctx)->catena_input.padding_bytes = padding;
+		CTX_->catena_input.padding_bytes = padding;
 }
 HANDLER_ (pad_to) {
 	pad_by_handler( str_arr, count, v_ctx );
-	((Threecrypt *)v_ctx)->catena_input.padding_mode = SYMM_COMMON_PAD_MODE_TARGET;
+	CTX_->catena_input.padding_mode = SYMM_COMMON_PAD_MODE_TARGET;
 }
 HANDLER_ (pad_as_if) {
 	pad_by_handler( str_arr, count, v_ctx );
-	((Threecrypt *)v_ctx)->catena_input.padding_mode = SYMM_COMMON_PAD_MODE_ASIF;
+	CTX_->catena_input.padding_mode = SYMM_COMMON_PAD_MODE_ASIF;
 }
 HANDLER_ (use_phi) {
-	((Threecrypt *)v_ctx)->catena_input.use_phi = UINT8_C (0x01);
+	CTX_->catena_input.use_phi = UINT8_C (0x01);
 }
 #endif /* ifdef THREECRYPT_DRAGONFLY_V1_H */
