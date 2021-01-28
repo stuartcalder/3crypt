@@ -62,7 +62,7 @@ Have_Mul_Label:
 	requested_bytes = (uint64_t)strtoumax( temp, NULL, 10 );
 	free( temp );
 	requested_bytes *= multiplier;
-	if( requested_bytes == 0 )
+	if( !requested_bytes )
 		SHIM_ERRX ("Dragonfly_V1 Error: Zero memory requested?\n");
 	uint64_t mask = UINT64_C (0x8000000000000000);
 	uint8_t garlic = 63;
