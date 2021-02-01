@@ -54,18 +54,36 @@ SHIM_END_DECLS
 void
 threecrypt (int argc, char ** argv)
 {
+	/* Zero-Initialize the Threecrypt data
+	 * before processing the command-lind arguments.
+	 */
 	Threecrypt tcrypt = { 0 };
 	shim_process_args( argc, argv, arg_processor, &tcrypt );
+	/* Error: No mode specified. User may have supplied input/output filenames but
+	 * never specified whether to encrypt or decrypt.
+	 */
 	if( tcrypt.mode == THREECRYPT_MODE_NONE )
 		SHIM_ERRX ("Error: No mode specified.\n%s", Help_Suggestion);
+	/* Error: Input file not specified. Mode supplied, input file not supplied.
+	 */
 	if( !tcrypt.input_filename )
 		SHIM_ERRX ("Error: Input file not specified.\n%s", Help_Suggestion);
+	/* On OpenBSD, we call unveil with "r" so we're allowed to
+	 * read from the input file.
+	 */
 	SHIM_OPENBSD_UNVEIL (tcrypt.input_filename, "r");
+	/* If the input file does not seem to exist, error out.
+	 */
 	if( !shim_filepath_exists( tcrypt.input_filename ) )
 		SHIM_ERRX ("Error: The input file %s does not seem to exist.\n%s", tcrypt.input_filename, Help_Suggestion);
+	/* Get the size of the input file, and store it in the input_map.
+	 */
 	tcrypt.input_map.size = shim_enforce_get_filepath_size( tcrypt.input_filename );
 	switch( tcrypt.mode ) {
 		case THREECRYPT_MODE_SYMMETRIC_ENC: {
+			/* We're encrypting. During encryption output filename need not be specified.
+			 * If it isn't explicitly specified, it is assumed to be "<input_filename>.3c"
+			 */
 			if( !tcrypt.output_filename ) {
 				size_t const buf_size = tcrypt.input_filename_size + sizeof(".3c");
 				tcrypt.output_filename = (char *)shim_enforce_malloc( buf_size );
@@ -77,19 +95,36 @@ threecrypt (int argc, char ** argv)
 					".3c",
 					sizeof(".3c") );
 			}
-			SHIM_OPENBSD_UNVEIL (tcrypt.output_filename, "rwc");
-			SHIM_OPENBSD_UNVEIL (NULL, NULL);
+			/* On OpenBSD, we call unveil with "rwc" so we're allowed to
+			 * read/write/create the output file, then follow up with two
+			 * NULL pointers to prevent further calls to unveil.
+			 */
+#define OPENBSD_UNVEIL_OUTPUT_(output_filename_v) \
+	SHIM_OPENBSD_UNVEIL (output_filename_v, "rwc"); \
+	SHIM_OPENBSD_UNVEIL (NULL, NULL)
+			OPENBSD_UNVEIL_OUTPUT_ (tcrypt.output_filename);
+			/* If there is already a file with the specified output filename, error out.
+			 */
 			if( shim_filepath_exists( tcrypt.output_filename ) )
 				SHIM_ERRX ("Error: The output file %s already seems to exist.\n", tcrypt.output_filename );
 			threecrypt_encrypt_( &tcrypt );
 		} break; /* THREECRYPT_MODE_SYMMETRIC_ENC */
 		case THREECRYPT_MODE_SYMMETRIC_DEC: {
+			/* We're decrypting. Output filename need not be specified if the input filename
+			 * ends in ".3c".
+			 */
 			if( !tcrypt.output_filename ) {
+				/* Minimum size of filename is 1 char + ".3c", 4 characters.
+				 */
 				if( tcrypt.input_filename_size < 4 )
 					SHIM_ERRX ("Error: No output file specified.\n");
 				tcrypt.output_filename_size = tcrypt.input_filename_size - 3;
 				tcrypt.output_filename = (char *)shim_enforce_malloc( tcrypt.output_filename_size + 1 );
+				/* If the input file does end in ".3c"...
+				 */
 				if( strcmp( tcrypt.input_filename + tcrypt.output_filename_size, ".3c" ) == 0 ) {
+					/* 
+					 */
 					memcpy( tcrypt.output_filename,
 						tcrypt.input_filename,
 						tcrypt.output_filename_size );
@@ -99,8 +134,7 @@ threecrypt (int argc, char ** argv)
 				}
 
 			}
-			SHIM_OPENBSD_UNVEIL (tcrypt.output_filename, "rwc");
-			SHIM_OPENBSD_UNVEIL (NULL, NULL);
+			OPENBSD_UNVEIL_OUTPUT_ (tcrypt.output_filename);
 			if( shim_filepath_exists( tcrypt.output_filename ) )
 				SHIM_ERRX ("Error: The output file %s already seems to exist.\n", tcrypt.output_filename );
 			threecrypt_decrypt_( &tcrypt );
