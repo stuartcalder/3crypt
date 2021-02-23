@@ -6,7 +6,7 @@ _LANG    = 'c'
 _UNIXLIKE_OPERATING_SYSTEMS  = ['openbsd', 'freebsd', 'netbsd', 'darwin', 'linux']
 _SUPPORTED_OPERATING_SYSTEMS = _UNIXLIKE_OPERATING_SYSTEMS + ['windows']
 _GCC_COMPATIBLE_COMPILERS    = ['gcc', 'clang']
-_SUPPORTED_COMPILERS         = _GCC_COMPATIBLE_COMPILERS + 'msvc'
+_SUPPORTED_COMPILERS         = _GCC_COMPATIBLE_COMPILERS + ['msvc']
 
 compiler = meson.get_compiler(_LANG)
 os = host_machine.system()
