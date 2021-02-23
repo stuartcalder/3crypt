@@ -122,8 +122,9 @@ threecrypt (int argc, char ** argv)
 				tcrypt.output_filename = (char *)shim_enforce_malloc( tcrypt.output_filename_size + 1 );
 				/* If the input file does end in ".3c"...
 				 */
-				if( strcmp( tcrypt.input_filename + tcrypt.output_filename_size, ".3c" ) == 0 ) {
-					/* 
+				if( !strcmp( tcrypt.input_filename + tcrypt.output_filename_size, ".3c" ) ) {
+					/* The output filename will be the input filename with `.3c` removed
+					 * from the end.
 					 */
 					memcpy( tcrypt.output_filename,
 						tcrypt.input_filename,

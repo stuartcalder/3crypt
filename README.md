@@ -10,7 +10,7 @@ CLI file encryption program aiming for 512 bits of security.
 -   [symm](https://github.com/stuartcalder/symm) header and library files.
 -   __meson__ frontend build system.
 -   __ninja__ backend build system.
-### (Required on OpenBSD, FreeBSD, Mac OSX, and GNU/Linux)
+### (Required on OpenBSD, FreeBSD, MacOS, and GNU/Linux)
 -   __ncurses__ header and library files.
 ### (Required on Microsoft Windows only)
 -   __Windows Vista/Server 2008__ or later.
@@ -32,7 +32,7 @@ or
 3crypt --decrypt --input $filename
 ```
 ## How To Build 3crypt With Meson
-### Mac OSX and BSD Build instructions
+### MacOS and BSD Build instructions
 1. build and install [shim](https://github.com/stuartcalder/shim.git).
 2. buidl and install [symm](https://github.com/stuartcalder/symm.git).
 3. git clone [3crypt](https://github.com/stuartcalder/3crypt.git) anywhere.

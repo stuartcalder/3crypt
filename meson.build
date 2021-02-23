@@ -6,7 +6,7 @@ _LANG    = 'c'
 _UNIXLIKE_OPERATING_SYSTEMS  = ['openbsd', 'freebsd', 'netbsd', 'darwin', 'linux']
 _SUPPORTED_OPERATING_SYSTEMS = _UNIXLIKE_OPERATING_SYSTEMS + ['windows']
 _GCC_COMPATIBLE_COMPILERS    = ['gcc', 'clang']
-_SUPPORTED_COMPILERS         = _GCC_COMPATIBLE_COMPILERS + ['msvc']
+_SUPPORTED_COMPILERS         = _GCC_COMPATIBLE_COMPILERS + 'msvc'
 
 compiler = meson.get_compiler(_LANG)
 os = host_machine.system()
@@ -95,13 +95,7 @@ if compiler.get_id() in _GCC_COMPATIBLE_COMPILERS
     lang_flags += '-g'
   endif
 endif
-if os == 'openbsd' or os == 'freebsd' or os == 'darwin'
-  lib_depends += compiler.find_library('shim', dirs: lib_dir, static: shim_static)
-  lib_depends += compiler.find_library('symm', dirs: lib_dir, static: symm_static)
-  if shim_static
-    lib_depends += compiler.find_library('ncurses')
-  endif
-elif os == 'netbsd'
+if os in ['openbsd', 'freebsd', 'darwin', 'netbsd']
   lib_depends += compiler.find_library('shim', dirs: lib_dir, static: shim_static)
   lib_depends += compiler.find_library('symm', dirs: lib_dir, static: symm_static)
   if shim_static
