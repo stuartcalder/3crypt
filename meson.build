@@ -75,17 +75,14 @@ elif os == 'windows'
   lib_dir += 'C:/lib'
 endif
 if get_option('enable_dragonfly_v1')
-  _flag = _D_PREFIX + 'THREECRYPT_EXT_ENABLE_DRAGONFLY_V1'
-  lang_flags += _flag
+  lang_flags += _D_PREFIX + 'THREECRYPT_EXT_ENABLE_DRAGONFLY_V1'
   if get_option('dragonfly_v1_default_garlic') != 23
     _garlic = get_option('dragonfly_v1_default_garlic').to_string()
-    _flag   = _D_PREFIX + 'THREECRYPT_EXT_DRAGONFLY_V1_DEFAULT_GARLIC=' + _garlic
-    lang_flags += _flag
+    lang_flags += _D_PREFIX + 'THREECRYPT_EXT_DRAGONFLY_V1_DEFAULT_GARLIC' + _garlic
   endif
 endif
 if get_option('strict_arg_processing')
-  _flag = _D_PREFIX + 'THREECRYPT_EXT_STRICT_ARG_PROCESSING'
-  lang_flags += _flag
+  lang_flags += _D_PREFIX + 'THREECRYPT_EXT_STRICT_ARG_PROCESSING'
 endif
 if compiler.get_id() in _GCC_COMPATIBLE_COMPILERS
   if get_option('native_optimize')
@@ -111,6 +108,9 @@ elif os == 'linux'
 elif os == 'windows'
   lib_depends += compiler.find_library('shim', dirs: lib_dir, static: shim_static)
   lib_depends += compiler.find_library('symm', dirs: lib_dir, static: symm_static)
+  if shim_static
+    lib_depends += compiler.find_library('bcrypt') #FIXME
+  endif
 endif
 
 if os != 'windows'

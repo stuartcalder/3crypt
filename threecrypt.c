@@ -60,7 +60,7 @@ threecrypt (int argc, char ** argv)
 	Threecrypt tcrypt = { 0 };
 	shim_process_args( argc, argv, arg_processor, &tcrypt );
 	/* Error: No mode specified. User may have supplied input/output filenames but
-	 * never specified whether to encrypt or decrypt.
+	 * never specified what action to perform.
 	 */
 	if( tcrypt.mode == THREECRYPT_MODE_NONE )
 		SHIM_ERRX ("Error: No mode specified.\n%s", Help_Suggestion);

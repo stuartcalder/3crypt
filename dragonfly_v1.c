@@ -97,7 +97,6 @@ dfly_v1_parse_padding (char const * SHIM_RESTRICT pad_str,
 	char * const temp = (char *)shim_enforce_malloc( size + 1 );
 	memcpy( temp, pad_str, (size + 1) );
 	uint64_t multiplier = 1;
-	int num_digits;
 	for( int i = 0; i < size; ++i ) {
 		switch( toupper( (unsigned char)pad_str[ i ] ) ) {
 			case 'K':
@@ -111,6 +110,7 @@ dfly_v1_parse_padding (char const * SHIM_RESTRICT pad_str,
 				goto Have_Mul_L;
 		}
 	}
+	int num_digits;
 Have_Mul_L:
 	num_digits = shim_shift_left_digits( temp, size );
 	if( num_digits == 0 )

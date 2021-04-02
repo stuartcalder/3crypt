@@ -44,52 +44,52 @@ long_parser (char const * str) {
 	size_t const str_size = strlen( str );
 	switch( str_size ) {
 		case 6: {
-			if( strcmp( str, "--help" ) == 0 )
+			if( !strcmp( str, "--help" ) )
 				return help_handler;
-			if( strcmp( str, "--dump" ) == 0 )
+			if( !strcmp( str, "--dump" ) )
 				return dump_handler;
 		} break;
 		case 7: {
-			if( strcmp( str, "--input" ) == 0 )
+			if( !strcmp( str, "--input" ) )
 				return input_handler;
 		} break;
 		case 8: {
-			if( strcmp( str, "--output" ) == 0 )
+			if( !strcmp( str, "--output" ) )
 				return output_handler;
 			DFLY1_ (
-			if( strcmp( str, "--pad-by" ) == 0 )
+			if( !strcmp( str, "--pad-by" ) )
 				return pad_by_handler;
-			if( strcmp( str, "--pad-to" ) == 0 )
+			if( !strcmp( str, "--pad-to" ) )
 				return pad_to_handler;
 			) /* DFLY1_ */
 		} break;
 		case 9: {
-			if( strcmp( str, "--encrypt" ) == 0 )
+			if( !strcmp( str, "--encrypt" ) )
 				return encrypt_handler;
-			if( strcmp( str, "--decrypt" ) == 0 )
+			if( !strcmp( str, "--decrypt" ) )
 				return decrypt_handler;
-			if( strcmp( str, "--entropy" ) == 0 )
+			if( !strcmp( str, "--entropy" ) )
 				return entropy_handler;
 			DFLY1_ (
-			if( strcmp( str, "--use-phi" ) == 0 )
+			if( !strcmp( str, "--use-phi" ) )
 				return use_phi_handler;
 			) /* DFLY1_ */
 		} break;
 		DFLY1_ (
 		case 11: {
-			if( strcmp( str, "--pad-as-if" ) == 0 )
+			if( !strcmp( str, "--pad-as-if" ) )
 				return pad_as_if_handler;
 		} break;
 		) /* DFLY1_ */
 		DFLY1_ (
 		case 12: {
-			if( strcmp( str, "--min-memory" ) == 0 )
+			if( !strcmp( str, "--min-memory" ) )
 				return min_memory_handler;
-			if( strcmp( str, "--max-memory" ) == 0 )
+			if( !strcmp( str, "--max-memory" ) )
 				return max_memory_handler;
-			if( strcmp( str, "--use-memory" ) == 0 )
+			if( !strcmp( str, "--use-memory" ) )
 				return use_memory_handler;
-			if( strcmp( str, "--iterations" ) == 0 )
+			if( !strcmp( str, "--iterations" ) )
 				return iterations_handler;
 		} break;
 		) /* DFLY1_ */
