@@ -137,7 +137,7 @@ threecrypt (int argc, char ** argv)
 			}
 			OPENBSD_UNVEIL_OUTPUT_ (tcrypt.output_filename);
 			if( shim_filepath_exists( tcrypt.output_filename ) )
-				SHIM_ERRX ("Error: The output file %s already seems to exist.\n", tcrypt.output_filename );
+				SHIM_ERRX ("Error: The output file %s already seems to exist.\n", tcrypt.output_filename);
 			threecrypt_decrypt_( &tcrypt );
 		} break; /* THREECRYPT_MODE_SYMMETRIC_DEC */
 		case THREECRYPT_MODE_DUMP: {

@@ -1,6 +1,6 @@
 project('3crypt',
 	'c',
-	default_options: ['c_std=c18', 'optimization=3', 'buildtype=release', 'strip=true'])
+	default_options: ['c_std=c17', 'optimization=3', 'buildtype=release', 'strip=true'])
 _PROJECT = '3crypt'
 _LANG    = 'c'
 _UNIXLIKE_OPERATING_SYSTEMS  = ['openbsd', 'freebsd', 'netbsd', 'darwin', 'linux']
