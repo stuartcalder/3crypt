@@ -6,7 +6,7 @@
 #	define HANDLE_INVALID_ARG_(arg) /* Nil */
 #endif
 
-Shim_Arg_Handler_t *
+Shim_Arg_Handler_f *
 short_parser (char const * str) {
 	size_t const str_size = strlen( str );
 	switch( str_size ) {
@@ -39,7 +39,7 @@ short_parser (char const * str) {
 #	define DFLY1_(code) /*nil*/
 #endif
 
-Shim_Arg_Handler_t *
+Shim_Arg_Handler_f *
 long_parser (char const * str) {
 	size_t const str_size = strlen( str );
 	switch( str_size ) {
@@ -98,7 +98,7 @@ long_parser (char const * str) {
 	return NULL;
 }
 
-Shim_Arg_Parser_t *
+Shim_Arg_Parser_f *
 arg_processor (char const * str, void * SHIM_RESTRICT v_ctx) {
 	int type = shim_argtype( str );
 	switch( type ) {
@@ -169,11 +169,11 @@ HANDLER_ (E) {
 }
 #ifdef THREECRYPT_DRAGONFLY_V1_H
 
-typedef uint8_t  Dragonfly_V1_U8_Func_t  (char const * SHIM_RESTRICT, int const);
+typedef uint8_t  Dragonfly_V1_U8_f  (char const * SHIM_RESTRICT, int const);
 
 static uint8_t
 get_dfly_v1_u8_param_ (char ** str_arr, int const count,
-		       Dragonfly_V1_U8_Func_t * dfly_f)
+		       Dragonfly_V1_U8_f * dfly_f)
 {
 	uint8_t param = 0;
 	if( count >= 2 ) {
