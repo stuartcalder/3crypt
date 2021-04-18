@@ -30,13 +30,13 @@ dfly_v1_parse_memory (char const * SHIM_RESTRICT mem_str,
 				goto Have_Mul_Label;
 			default:
 				if( !isdigit( (unsigned char)mem_str[ i ] ) )
-					SHIM_ERRX ("Dragonfly_V1 Error: Invalid memory string.\n");
+					shim_errx("Dragonfly_V1 Error: Invalid memory string.\n");
 		}
 	}
 Have_Mul_Label:
 	num_digits = shim_shift_left_digits( temp, size );
 	if( num_digits == 0 )
-		SHIM_ERRX ("Dragonfly_V1 Error: No number supplied with memory-usage specification!\n");
+		shim_errx("Dragonfly_V1 Error: No number supplied with memory-usage specification!\n");
 #define BYTE_MAX_	UINT64_C (1000)
 #define KIBIBYTE_MAX_	UINT64_C (17592186044416)
 #define MEBIBYTE_MAX_	UINT64_C (17179869184)
@@ -58,12 +58,12 @@ Have_Mul_Label:
 		} break;
 	}
 	if( num_digits > digit_count_limit )
-		SHIM_ERRX (INVALID_MEM_PARAM_, num_digits);
+		shim_errx(INVALID_MEM_PARAM_, num_digits);
 	requested_bytes = (uint64_t)strtoumax( temp, NULL, 10 );
 	free( temp );
 	requested_bytes *= multiplier;
 	if( !requested_bytes )
-		SHIM_ERRX ("Dragonfly_V1 Error: Zero memory requested?\n");
+		shim_errx("Dragonfly_V1 Error: Zero memory requested?\n");
 	uint64_t mask = UINT64_C (0x8000000000000000);
 	uint8_t garlic = 63;
 	while( !(mask & requested_bytes) ) {
@@ -82,11 +82,11 @@ dfly_v1_parse_iterations (char const * SHIM_RESTRICT iter_str,
 	memcpy( temp, iter_str, (size + 1) );
 	int num_digits = shim_shift_left_digits( temp, size );
 	if( num_digits <= 0 || num_digits >= 4 )
-		SHIM_ERRX (INVALID_ITER_COUNT_);
+		shim_errx(INVALID_ITER_COUNT_);
 	int it = atoi( temp );
 	free( temp );
 	if( it < 1 || it > 255 )
-		SHIM_ERRX (INVALID_ITER_COUNT_);
+		shim_errx(INVALID_ITER_COUNT_);
 	return (uint8_t)it;
 }
 
@@ -114,7 +114,7 @@ dfly_v1_parse_padding (char const * SHIM_RESTRICT pad_str,
 Have_Mul_L:
 	num_digits = shim_shift_left_digits( temp, size );
 	if( num_digits == 0 )
-		SHIM_ERRX( "Dragonfly_V1 Error: Asked for padding, without providing a random number of padding bytes.\n");
+		shim_errx("Dragonfly_V1 Error: Asked for padding, without providing a random number of padding bytes.\n");
 	uintmax_t pad = strtoumax( temp, NULL, 10 );
 	free( temp );
 	return ((uint64_t)pad) * multiplier;

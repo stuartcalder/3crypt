@@ -1,17 +1,17 @@
 #include "args.h"
 
 #ifdef THREECRYPT_EXT_STRICT_ARG_PROCESSING
-#	define HANDLE_INVALID_ARG_(arg) SHIM_ERRX ("Error: Invalid argument: %s\n", arg)
+#	define HANDLE_INVALID_ARG_(arg) shim_errx("Error: Invalid argument: %s\n", arg)
 #else
 #	define HANDLE_INVALID_ARG_(arg) /* Nil */
 #endif
 
 Shim_Arg_Handler_f *
 short_parser (char const * str) {
-	size_t const str_size = strlen( str );
-	switch( str_size ) {
+	size_t const str_size = strlen(str);
+	switch (str_size) {
 		case 2: {
-			switch( str[ 1 ] ) {
+			switch (str[1]) {
 				case 'h':
 					return h_handler;
 				case 'e':
@@ -29,7 +29,7 @@ short_parser (char const * str) {
 			}
 		} break;
 	}
-	HANDLE_INVALID_ARG_ (str);
+	HANDLE_INVALID_ARG_(str);
 	return NULL;
 }
 
@@ -119,7 +119,7 @@ arg_processor (char const * str, void * SHIM_RESTRICT v_ctx) {
 static void
 set_mode_ (Threecrypt * ctx, int mode) {
 	if( ctx->mode != THREECRYPT_MODE_NONE )
-		SHIM_ERRX ("Error: 3crypt mode already set!\n");
+		shim_errx("Error: 3crypt mode already set!\n");
 	ctx->mode = mode;
 }
 
@@ -143,7 +143,7 @@ get_fname_ (char **      SHIM_RESTRICT str_arr,
 	    char const * SHIM_RESTRICT error_str)
 {
 	if( *target )
-		SHIM_ERRX (error_str, *target);
+		shim_errx(error_str, *target);
 	if( count >= 2 ) {
 		char const * fname = str_arr[ 1 ];
 		if( fname ) {

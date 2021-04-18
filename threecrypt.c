@@ -63,11 +63,11 @@ threecrypt (int argc, char ** argv)
 	 * never specified what action to perform.
 	 */
 	if( tcrypt.mode == THREECRYPT_MODE_NONE )
-		SHIM_ERRX ("Error: No mode specified.\n%s", Help_Suggestion);
+		shim_errx("Error: No mode specified.\n%s", Help_Suggestion);
 	/* Error: Input file not specified. Mode supplied, input file not supplied.
 	 */
 	if( !tcrypt.input_filename )
-		SHIM_ERRX ("Error: Input file not specified.\n%s", Help_Suggestion);
+		shim_errx("Error: Input file not specified.\n%s", Help_Suggestion);
 	/* On OpenBSD, we call unveil with "r" so we're allowed to
 	 * read from the input file.
 	 */
@@ -75,7 +75,7 @@ threecrypt (int argc, char ** argv)
 	/* If the input file does not seem to exist, error out.
 	 */
 	if( !shim_filepath_exists( tcrypt.input_filename ) )
-		SHIM_ERRX ("Error: The input file %s does not seem to exist.\n%s", tcrypt.input_filename, Help_Suggestion);
+		shim_errx("Error: The input file %s does not seem to exist.\n%s", tcrypt.input_filename, Help_Suggestion);
 	/* Get the size of the input file, and store it in the input_map.
 	 */
 	tcrypt.input_map.size = shim_enforce_get_filepath_size( tcrypt.input_filename );
@@ -106,7 +106,7 @@ threecrypt (int argc, char ** argv)
 			/* If there is already a file with the specified output filename, error out.
 			 */
 			if( shim_filepath_exists( tcrypt.output_filename ) )
-				SHIM_ERRX ("Error: The output file %s already seems to exist.\n", tcrypt.output_filename );
+				shim_errx("Error: The output file %s already seems to exist.\n", tcrypt.output_filename );
 			threecrypt_encrypt_( &tcrypt );
 		} break; /* THREECRYPT_MODE_SYMMETRIC_ENC */
 		case THREECRYPT_MODE_SYMMETRIC_DEC: {
@@ -117,7 +117,7 @@ threecrypt (int argc, char ** argv)
 				/* Minimum size of filename is 1 char + ".3c", 4 characters.
 				 */
 				if( tcrypt.input_filename_size < 4 )
-					SHIM_ERRX ("Error: No output file specified.\n");
+					shim_errx("Error: No output file specified.\n");
 				tcrypt.output_filename_size = tcrypt.input_filename_size - 3;
 				tcrypt.output_filename = (char *)shim_enforce_malloc( tcrypt.output_filename_size + 1 );
 				/* If the input file does end in ".3c"...
@@ -131,13 +131,13 @@ threecrypt (int argc, char ** argv)
 						tcrypt.output_filename_size );
 					tcrypt.output_filename[ tcrypt.output_filename_size ] = '\0';
 				} else {
-					SHIM_ERRX ("Error: No output file specified.\n");
+					shim_errx("Error: No output file specified.\n");
 				}
 
 			}
 			OPENBSD_UNVEIL_OUTPUT_ (tcrypt.output_filename);
 			if( shim_filepath_exists( tcrypt.output_filename ) )
-				SHIM_ERRX ("Error: The output file %s already seems to exist.\n", tcrypt.output_filename);
+				shim_errx("Error: The output file %s already seems to exist.\n", tcrypt.output_filename);
 			threecrypt_decrypt_( &tcrypt );
 		} break; /* THREECRYPT_MODE_SYMMETRIC_DEC */
 		case THREECRYPT_MODE_DUMP: {
@@ -146,7 +146,7 @@ threecrypt (int argc, char ** argv)
 			threecrypt_dump_( &tcrypt );
 		} break; /* THREECRYPT_MODE_DUMP */
 		default: {
-			SHIM_ERRX ("Error: Invalid, unrecognized mode (%d)\n%s", tcrypt.mode, Help_Suggestion);
+			shim_errx("Error: Invalid, unrecognized mode (%d)\n%s", tcrypt.mode, Help_Suggestion);
 		} break;
 	} /* switch( tcrypt.mode ) */
 	free( tcrypt.input_filename );
@@ -175,10 +175,9 @@ threecrypt_encrypt_ (Threecrypt * ctx) {
 		case SYMM_COMMON_PAD_MODE_TARGET: {
 			uint64_t target = ctx->catena_input.padding_bytes;
 			if( target <  SYMM_DRAGONFLY_V1_VISIBLE_METADATA_BYTES )
-				SHIM_ERRX ("Error: The --pad-to target (%" PRIu64 ") is too small!\n", target);
+				shim_errx("Error: The --pad-to target (%" PRIu64 ") is too small!\n", target);
 			if( (target - SYMM_DRAGONFLY_V1_VISIBLE_METADATA_BYTES < ctx->input_map.size ) )
-				SHIM_ERRX ("Error: The input file size (%" PRIu64 ") is too large to --pad-to %" PRIu64 "\n",
-					   ctx->input_map.size, target);
+				shim_errx("Error: The input file size (%" PRIu64 ") is too large to --pad-to %" PRIu64 "\n", ctx->input_map.size, target);
 			target -= ctx->input_map.size;
 			target -= SYMM_DRAGONFLY_V1_VISIBLE_METADATA_BYTES;
 			ctx->catena_input.padding_bytes = target;
@@ -187,10 +186,9 @@ threecrypt_encrypt_ (Threecrypt * ctx) {
 		case SYMM_COMMON_PAD_MODE_ASIF: {
 			uint64_t target = ctx->catena_input.padding_bytes;
 			if( target < 1 )
-				SHIM_ERRX ("Error: The --pad-as-if target (%" PRIu64 ") is too small!\n", target);
+				shim_errx("Error: The --pad-as-if target (%" PRIu64 ") is too small!\n", target);
 			if( target < ctx->input_map.size )
-				SHIM_ERRX ("Error: The input file size (%" PRIu64 ") is too large to --pad-as-if %" PRIu64 "\n",
-					   ctx->input_map.size, target);
+				shim_errx("Error: The input file size (%" PRIu64 ") is too large to --pad-as-if %" PRIu64 "\n", ctx->input_map.size, target);
 			target -= ctx->input_map.size;
 			ctx->catena_input.padding_bytes = target;
 			ctx->catena_input.padding_mode = SYMM_COMMON_PAD_MODE_ADD;
@@ -290,11 +288,10 @@ threecrypt_decrypt_ (Threecrypt * ctx) {
 		} break; /* THREECRYPT_METHOD_DRAGONFLY_V1 */
 #endif
 		case THREECRYPT_METHOD_NONE:
-			SHIM_ERRX ("Error: The input file %s does not appear to be a valid 3crypt encrypted file.\n%s",
-				   ctx->input_filename, Help_Suggestion);
+			shim_errx("Error: The input file %s does not appear to be a valid 3crypt encrypted file.\n%s", ctx->input_filename, Help_Suggestion);
 			break;
 		default:
-			SHIM_ERRX ("Error: Invalid decryption method %d\n", method);
+			shim_errx("Error: Invalid decryption method %d\n", method);
 			break;
 	} /* switch( method ) */
 }
@@ -310,11 +307,10 @@ threecrypt_dump_ (Threecrypt * ctx) {
 			break;
 #endif
 		case THREECRYPT_METHOD_NONE:
-			SHIM_ERRX ("Error: The input file %s does not appear to be a valid 3crypt encrypted file.\n%s",
-				   ctx->input_filename, Help_Suggestion);
+			shim_errx("Error: The input file %s does not appear to be a valid 3crypt encrypted file.\n%s", ctx->input_filename, Help_Suggestion);
 			break;
 		default:
-			SHIM_ERRX ("Error: Invalid decryption method %d\n", method);
+			shim_errx("Error: Invalid decryption method %d\n", method);
 			break;
 	} /* switch( method ) */
 }
