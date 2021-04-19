@@ -6,6 +6,21 @@
 #	define HANDLE_INVALID_ARG_(arg) /* Nil */
 #endif
 
+#ifdef SYMM_DRAGONFLY_V1_H
+#	define DFLY1_(code) code
+#else
+#	define DFLY1_(code) /*nil*/
+#endif
+
+#define STR_EQ_(s0, s1)  (!strcmp(s0, s1))
+#define STR_TO_F_(s, fn)  if (STR_EQ_(str, s)) return fn;
+
+#ifdef SYMM_DRAGONFLY_V1_H
+#	define STR_TO_DFLY1_F_(s, fn) STR_TO_F_(s, fn)
+#else
+#	define STR_TO_DFLY1_F_(s, fn) /* Nil */
+#endif
+
 Shim_Arg_Handler_f *
 short_parser (char const * str) {
 	size_t const str_size = strlen(str);
@@ -33,66 +48,37 @@ short_parser (char const * str) {
 	return NULL;
 }
 
-#ifdef SYMM_DRAGONFLY_V1_H
-#	define DFLY1_(code) code
-#else
-#	define DFLY1_(code) /*nil*/
-#endif
-
 Shim_Arg_Handler_f *
 long_parser (char const * str) {
 	size_t const str_size = strlen( str );
 	switch( str_size ) {
 		case 6: {
-			if( !strcmp( str, "--help" ) )
-				return help_handler;
-			if( !strcmp( str, "--dump" ) )
-				return dump_handler;
+			STR_TO_F_("--help", help_handler);
+			STR_TO_F_("--dump", help_handler);
 		} break;
 		case 7: {
-			if( !strcmp( str, "--input" ) )
-				return input_handler;
+			STR_TO_F_("--input", input_handler);
 		} break;
 		case 8: {
-			if( !strcmp( str, "--output" ) )
-				return output_handler;
-			DFLY1_ (
-			if( !strcmp( str, "--pad-by" ) )
-				return pad_by_handler;
-			if( !strcmp( str, "--pad-to" ) )
-				return pad_to_handler;
-			) /* DFLY1_ */
+			STR_TO_F_("--output", output_handler);
+			STR_TO_DFLY1_F_("--pad-by", pad_by_handler);
+			STR_TO_DFLY1_F_("--pad-to", pad_to_handler);
 		} break;
 		case 9: {
-			if( !strcmp( str, "--encrypt" ) )
-				return encrypt_handler;
-			if( !strcmp( str, "--decrypt" ) )
-				return decrypt_handler;
-			if( !strcmp( str, "--entropy" ) )
-				return entropy_handler;
-			DFLY1_ (
-			if( !strcmp( str, "--use-phi" ) )
-				return use_phi_handler;
-			) /* DFLY1_ */
+			STR_TO_F_("--encrypt", encrypt_handler);
+			STR_TO_F_("--decrypt", decrypt_handler);
+			STR_TO_F_("--entropy", entropy_handler);
+			STR_TO_DFLY1_F_("--use-phi", use_phi_handler);
 		} break;
-		DFLY1_ (
 		case 11: {
-			if( !strcmp( str, "--pad-as-if" ) )
-				return pad_as_if_handler;
+			STR_TO_DFLY1_F_("--pad-as-if", pad_as_if_handler);
 		} break;
-		) /* DFLY1_ */
-		DFLY1_ (
 		case 12: {
-			if( !strcmp( str, "--min-memory" ) )
-				return min_memory_handler;
-			if( !strcmp( str, "--max-memory" ) )
-				return max_memory_handler;
-			if( !strcmp( str, "--use-memory" ) )
-				return use_memory_handler;
-			if( !strcmp( str, "--iterations" ) )
-				return iterations_handler;
+			STR_TO_DFLY1_F_("--min-memory", min_memory_handler);
+			STR_TO_DFLY1_F_("--max-memory", max_memory_handler);
+			STR_TO_DFLY1_F_("--use-memory", use_memory_handler);
+			STR_TO_DFLY1_F_("--iterations", iterations_handler);
 		} break;
-		) /* DFLY1_ */
 	}
 	HANDLE_INVALID_ARG_ (str);
 	return NULL;
@@ -116,26 +102,22 @@ arg_processor (char const * str, void * SHIM_RESTRICT v_ctx) {
 	prefix##_handler (char ** str_arr, int const count, void * SHIM_RESTRICT v_ctx)
 #define CTX_ ((Threecrypt *)v_ctx)
 
+static char const * mode_strings[THREECRYPT_NUM_MODES] = {
+	"None", "Encrypt", "Decrypt", "Dump"
+};
+
 static void
 set_mode_ (Threecrypt * ctx, int mode) {
-	if( ctx->mode != THREECRYPT_MODE_NONE )
-		shim_errx("Error: 3crypt mode already set!\n");
+	if (ctx->mode != THREECRYPT_MODE_NONE)
+		shim_errx("Error: 3crypt mode already set to \"%s\".\n", mode_strings[ctx->mode]);
 	ctx->mode = mode;
 }
 
-HANDLER_ (h) {
-	print_help();
-	exit( EXIT_SUCCESS );
-}
-HANDLER_ (e) {
-	set_mode_( CTX_, THREECRYPT_MODE_SYMMETRIC_ENC );
-}
-HANDLER_ (d) {
-	set_mode_( CTX_, THREECRYPT_MODE_SYMMETRIC_DEC );
-}
-HANDLER_ (D) {
-	set_mode_( CTX_, THREECRYPT_MODE_DUMP );
-}
+HANDLER_(h) { print_help(); exit(EXIT_SUCCESS); }
+HANDLER_(e) { set_mode_(CTX_, THREECRYPT_MODE_SYMMETRIC_ENC); }
+HANDLER_(d) { set_mode_(CTX_, THREECRYPT_MODE_SYMMETRIC_DEC); }
+HANDLER_(D) { set_mode_(CTX_, THREECRYPT_MODE_DUMP); }
+
 static size_t
 get_fname_ (char **      SHIM_RESTRICT str_arr,
 	    char **      SHIM_RESTRICT target,
@@ -156,15 +138,15 @@ get_fname_ (char **      SHIM_RESTRICT str_arr,
 	}
 	return 0;
 }
-HANDLER_ (i) {
+HANDLER_(i) {
 	CTX_->input_filename_size = get_fname_( str_arr, &CTX_->input_filename, count,
 						"Error: Already specified input file as %s\n" );
 }
-HANDLER_ (o) {
+HANDLER_(o) {
 	CTX_->output_filename_size = get_fname_( str_arr, &CTX_->output_filename, count,
 						 "Error: Already specified output file as %s\n" );
 }
-HANDLER_ (E) {
+HANDLER_(E) {
 	CTX_->catena_input.supplement_entropy = true;
 }
 #ifdef THREECRYPT_DRAGONFLY_V1_H
@@ -185,24 +167,24 @@ get_dfly_v1_u8_param_ (char ** str_arr, int const count,
 	}
 	return param;
 }
-HANDLER_ (min_memory) {
+HANDLER_(min_memory) {
 	uint8_t memory = get_dfly_v1_u8_param_( str_arr, count, dfly_v1_parse_memory );
 	if( memory )
 		CTX_->catena_input.g_low = memory;
 }
-HANDLER_ (max_memory) {
+HANDLER_(max_memory) {
 	uint8_t memory = get_dfly_v1_u8_param_( str_arr, count, dfly_v1_parse_memory );
 	if( memory )
 		CTX_->catena_input.g_high = memory;
 }
-HANDLER_ (use_memory) {
+HANDLER_(use_memory) {
 	uint8_t memory = get_dfly_v1_u8_param_( str_arr, count, dfly_v1_parse_memory );
 	if( memory ) {
 		CTX_->catena_input.g_low  = memory;
 		CTX_->catena_input.g_high = memory;
 	}
 }
-HANDLER_ (iterations) {
+HANDLER_(iterations) {
 	uint8_t iterations = get_dfly_v1_u8_param_( str_arr, count, dfly_v1_parse_iterations );
 	if( iterations )
 		CTX_->catena_input.lambda = iterations;
@@ -219,20 +201,20 @@ get_dfly_v1_padding_ (char ** str_arr, int const count) {
 	}
 	return padding;
 }
-HANDLER_ (pad_by) {
+HANDLER_(pad_by) {
 	uint64_t padding = get_dfly_v1_padding_( str_arr, count );
 	if( padding )
 		CTX_->catena_input.padding_bytes = padding;
 }
-HANDLER_ (pad_to) {
+HANDLER_(pad_to) {
 	pad_by_handler( str_arr, count, v_ctx );
 	CTX_->catena_input.padding_mode = SYMM_COMMON_PAD_MODE_TARGET;
 }
-HANDLER_ (pad_as_if) {
+HANDLER_(pad_as_if) {
 	pad_by_handler( str_arr, count, v_ctx );
 	CTX_->catena_input.padding_mode = SYMM_COMMON_PAD_MODE_ASIF;
 }
-HANDLER_ (use_phi) {
+HANDLER_(use_phi) {
 	CTX_->catena_input.use_phi = UINT8_C (0x01);
 }
 #endif /* ifdef THREECRYPT_DRAGONFLY_V1_H */
