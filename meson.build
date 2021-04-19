@@ -92,6 +92,9 @@ if compiler.get_id() in _GCC_COMPATIBLE_COMPILERS
     lang_flags += '-g'
   endif
 endif
+if get_option('debug_build')
+  lang_flags += _D_PREFIX + 'THREECRYPT_EXT_DEBUG'
+endif
 if os in ['openbsd', 'freebsd', 'darwin', 'netbsd']
   lib_depends += compiler.find_library('shim', dirs: lib_dir, static: shim_static)
   lib_depends += compiler.find_library('symm', dirs: lib_dir, static: symm_static)
