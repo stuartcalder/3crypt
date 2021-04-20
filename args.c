@@ -48,24 +48,30 @@ long_parser (char const * str) {
 		case 4:
 			STR_TO_F_("help", help_handler);
 			STR_TO_F_("dump", dump_handler);
+			break;
 		case 5:
 			STR_TO_F_("input", input_handler);
+			break;
 		case 6:
 			STR_TO_F_("output", output_handler);
 			STR_TO_DFLY1_F_("pad-by", pad_by_handler);
 			STR_TO_DFLY1_F_("pad-to", pad_to_handler);
+			break;
 		case 7:
 			STR_TO_F_("encrypt", encrypt_handler);
 			STR_TO_F_("decrypt", decrypt_handler);
 			STR_TO_F_("entropy", entropy_handler);
 			STR_TO_DFLY1_F_("use-phi", use_phi_handler);
+			break;
 		case 9:
 			STR_TO_DFLY1_F_("pad-as-if", pad_as_if_handler);
+			break;
 		case 10:
 			STR_TO_DFLY1_F_("min-memory", min_memory_handler);
 			STR_TO_DFLY1_F_("max-memory", max_memory_handler);
 			STR_TO_DFLY1_F_("use-memory", use_memory_handler);
 			STR_TO_DFLY1_F_("iterations", iterations_handler);
+			break;
 	}
 	HANDLE_INVALID_ARG_(str);
 	return NULL;
