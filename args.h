@@ -15,8 +15,7 @@ Shim_Arg_Parser_f *
 arg_processor (char const *, void * SHIM_RESTRICT);
 
 #define PROTOTYPE_HANDLER_(prefix) \
-	void \
-	prefix##_handler (char **, int const, void * SHIM_RESTRICT)
+	void prefix##_handler (char **, int const, void * SHIM_RESTRICT)
 #define PROTOTYPE_EQUIVALENT_HANDLER_(f_ptr_prefix, handler_prefix) \
 	static Shim_Arg_Handler_f * const f_ptr_prefix##_handler = handler_prefix##_handler
 

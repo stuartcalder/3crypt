@@ -55,7 +55,7 @@ void
 threecrypt (int argc, char ** argv)
 {
 	/* Zero-Initialize the Threecrypt data
-	 * before processing the command-lind arguments.
+	 * before processing the command-line arguments.
 	 */
 	Threecrypt tcrypt = {0};
 	shim_process_args(argc, argv, arg_processor, &tcrypt);

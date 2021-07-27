@@ -6,12 +6,6 @@
 #	define HANDLE_INVALID_ARG_(arg) /* Nil */
 #endif
 
-#ifdef SYMM_DRAGONFLY_V1_H
-#	define DFLY1_(code) code
-#else
-#	define DFLY1_(code) /*nil*/
-#endif
-
 #define STR_EQ_(s0, s1)  (!strcmp(s0, s1))
 #define STR_TO_F_(s, fn)    if (STR_EQ_(str + 2, s)) return fn;
 
