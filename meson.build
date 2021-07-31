@@ -10,8 +10,8 @@ _SUPPORTED_COMPILERS         = _GCC_COMPATIBLE_COMPILERS + ['msvc']
 
 compiler = meson.get_compiler(_LANG)
 os = host_machine.system()
-shim_static = get_option('shim_static')
-symm_static = get_option('symm_static')
+base_static = get_option('base_static')
+skc_static  = get_option('skc_static')
 assert (os in _SUPPORTED_OPERATING_SYSTEMS, 'You are trying to build 3crypt using an unsupported operating system!')
 assert (compiler.get_id() in _SUPPORTED_COMPILERS, 'You are trying to build 3crypt using an unsupported compiler!')
 
@@ -40,18 +40,17 @@ gcc_compatible_flags = [
   '-Wall',
   '-funroll-loops'
   ]
-if shim_static
-  lang_flags += _D_PREFIX + 'SHIM_EXT_STATIC_LIB'
+if base_static
+  lang_flags += _D_PREFIX + 'BASE_EXTERN_STATIC_LIB'
 endif
-if symm_static
-  lang_flags += _D_PREFIX + 'SYMM_EXT_STATIC_LIB'
+if skc_static
+  lang_flags += _D_PREFIX + 'SKC_EXTERN_STATIC_LIB'
 endif
 if os != 'netbsd' and compiler.get_id() != 'clang'
   gcc_compatible_flags += '-flto'
 endif
 if os == 'darwin'
-  _flag = _D_PREFIX + '__STDC_WANT_LIB_EXT1__=1'
-  lang_flags += _flag
+  lang_flags += _D_PREFIX + '__STDC_WANT_LIB_EXT1__=1'
 endif
 if os in _UNIXLIKE_OPERATING_SYSTEMS and compiler.get_id() in _GCC_COMPATIBLE_COMPILERS
   lang_flags += gcc_compatible_flags
@@ -75,14 +74,14 @@ elif os == 'windows'
   lib_dir += 'C:/lib'
 endif
 if get_option('enable_dragonfly_v1')
-  lang_flags += _D_PREFIX + 'THREECRYPT_EXT_ENABLE_DRAGONFLY_V1'
+  lang_flags += _D_PREFIX + 'THREECRYPT_EXTERN_ENABLE_DRAGONFLY_V1'
   if get_option('dragonfly_v1_default_garlic') != 23
     _garlic = get_option('dragonfly_v1_default_garlic').to_string()
-    lang_flags += _D_PREFIX + 'THREECRYPT_EXT_DRAGONFLY_V1_DEFAULT_GARLIC' + _garlic
+    lang_flags += _D_PREFIX + 'THREECRYPT_EXTERN_DRAGONFLY_V1_DEFAULT_GARLIC' + _garlic
   endif
 endif
 if get_option('strict_arg_processing')
-  lang_flags += _D_PREFIX + 'THREECRYPT_EXT_STRICT_ARG_PROCESSING'
+  lang_flags += _D_PREFIX + 'THREECRYPT_EXTERN_STRICT_ARG_PROCESSING'
 endif
 if compiler.get_id() in _GCC_COMPATIBLE_COMPILERS
   if get_option('native_optimize')
@@ -93,25 +92,25 @@ if compiler.get_id() in _GCC_COMPATIBLE_COMPILERS
   endif
 endif
 if get_option('debug_build')
-  lang_flags += _D_PREFIX + 'THREECRYPT_EXT_DEBUG'
+  lang_flags += _D_PREFIX + 'THREECRYPT_EXTERN_DEBUG'
 endif
 if os in ['openbsd', 'freebsd', 'darwin', 'netbsd']
-  lib_depends += compiler.find_library('shim', dirs: lib_dir, static: shim_static)
-  lib_depends += compiler.find_library('symm', dirs: lib_dir, static: symm_static)
-  if shim_static
+  lib_depends += compiler.find_library('Base', dirs: lib_dir, static: base_static)
+  lib_depends += compiler.find_library('Skc', dirs: lib_dir, static: skc_static)
+  if base_static
     lib_depends += compiler.find_library('ncurses')
   endif
 elif os == 'linux'
-  lib_depends += compiler.find_library('shim', static: shim_static)
-  lib_depends += compiler.find_library('symm', static: symm_static)
-  if shim_static
+  lib_depends += compiler.find_library('Base', static: base_static)
+  lib_depends += compiler.find_library('Skc', static: skc_static)
+  if base_static
     lib_depends += compiler.find_library('ncurses')
     lib_depends += compiler.find_library('tinfo')
   endif
 elif os == 'windows'
-  lib_depends += compiler.find_library('shim', dirs: lib_dir, static: shim_static)
-  lib_depends += compiler.find_library('symm', dirs: lib_dir, static: symm_static)
-  if shim_static
+  lib_depends += compiler.find_library('Base', dirs: lib_dir, static: base_static)
+  lib_depends += compiler.find_library('Skc', dirs: lib_dir, static: skc_static)
+  if base_static
     lib_depends += compiler.find_library('bcrypt') #FIXME
   endif
 endif

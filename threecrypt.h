@@ -1,88 +1,79 @@
 #ifndef THREECRYPT_H
 #define THREECRYPT_H
-#include "macros.h"
+
 #define __STDC_FORMAT_MACROS
+#include "macros.h"
 #include <inttypes.h>
 #include <stdlib.h>
-#include <symm/common.h>
-#include <shim/macros.h>
-#ifdef THREECRYPT_EXT_ENABLE_DRAGONFLY_V1
-#	include <symm/dragonfly_v1.h>
-#	include "dragonfly_v1.h"
+#include <Base/macros.h>
+#include <Skc/common.h>
+#include "dragonfly_v1.h" /* Enable Dragonfly V1. */
+#if defined(BASE_OS_UNIXLIKE) || defined(BASE_OS_WINDOWS)
+#  if defined(BASE_OS_UNIXLIKE)
+#    ifdef __NetBSD__
+#      include <ncurses/ncurses.h>
+#    else
+#      include <ncurses.h>
+#    endif
+#  elif defined(BASE_OS_WINDOWS)
+#    include <Base/errors.h>
+#    include <windows.h>
+#    include <conio.h>
+#  else
+#    error "Critical error. Not unixlike or windows, as already detected."
+#  endif
 #else
-#	error "THREECRYPT_ENABLE_DRAGONFLY_V1 not defined... Currently the only supported crypto method."
+#  error "Unsupported OS."
 #endif
-#if    defined (SHIM_OS_UNIXLIKE) || defined (SHIM_OS_WINDOWS)
-#	if    defined (SHIM_OS_UNIXLIKE)
-#		ifdef __NetBSD__
-#			include <ncurses/ncurses.h>
-#		else
-#			include <ncurses.h>
-#		endif
-#	elif  defined (SHIM_OS_WINDOWS)
-#		include <shim/errors.h>
-#		include <windows.h>
-#		include <conio.h>
-#	else
-#		error "Critical error. Not unixlike or windows, as already detected."
-#	endif
+
+#ifdef THREECRYPT_EXTERN_TERM_BUFFER_SIZE
+#  define THREECRYPT_TERM_BUFFER_SIZE	THREECRYPT_EXTERN_TERM_BUFFER_SIZE
 #else
-#	error "Unsupported OS."
-#endif /* ~ if defined (SHIM_OS_UNIXLIKE) || defined (SHIM_OS_WINDOWS) */
-#ifdef THREECRYPT_EXT_TERM_BUFFER_SIZE
-#	define THREECRYPT_TERM_BUFFER_SIZE	THREECRYPT_EXT_TERM_BUFFER_SIZE
-#else
-#	define THREECRYPT_TERM_BUFFER_SIZE	120
+#  define THREECRYPT_TERM_BUFFER_SIZE	120
 #endif
+
 enum {
-	THREECRYPT_MODE_NONE,
-	THREECRYPT_MODE_SYMMETRIC_ENC,
-	THREECRYPT_MODE_SYMMETRIC_DEC,
-	THREECRYPT_MODE_DUMP,
-	THREECRYPT_NUM_MODE_ENUMS
+  THREECRYPT_MODE_NONE,
+  THREECRYPT_MODE_SYMMETRIC_ENC,
+  THREECRYPT_MODE_SYMMETRIC_DEC,
+  THREECRYPT_MODE_DUMP,
+  THREECRYPT_NUM_MODE_ENUMS
 };
 #define THREECRYPT_NUM_MODES (THREECRYPT_NUM_MODE_ENUMS - 1)
+
 enum {
-	THREECRYPT_METHOD_NONE,
+  THREECRYPT_METHOD_NONE,
 #ifdef THREECRYPT_DRAGONFLY_V1_H
-	THREECRYPT_METHOD_DRAGONFLY_V1,
+  THREECRYPT_METHOD_DRAGONFLY_V1,
+#else
+#  error "Only supported method!"
 #endif
-	THREECRYPT_NUM_METHOD_ENUMS
+  THREECRYPT_NUM_METHOD_ENUMS
 };
 #define THREECRYPT_NUM_METHODS (THREECRYPT_NUM_METHOD_ENUMS - 1)
+
 #define THREECRYPT_ARGMAP_MAX_COUNT	100
-#define THREECRYPT_MIN_ID_STRING_BYTES	sizeof(SYMM_DRAGONFLY_V1_ID)
-#define THREECRYPT_MAX_ID_STRING_BYTES	sizeof(SYMM_DRAGONFLY_V1_ID)
-#define THREECRYPT_NUMBER_METHODS	1
+#define THREECRYPT_MIN_ID_STR_BYTES	sizeof(SKC_DRAGONFLY_V1_ID)
+#define THREECRYPT_MAX_ID_STR_BYTES	THREECRYPT_MIN_ID_STR_BYTES
 
-typedef struct Threecrypt_ {
-	Symm_Catena_Input catena_input;
-	Shim_Map          input_map;
-	Shim_Map          output_map;
-	char *            input_filename;
-	char *            output_filename;
-	size_t            input_filename_size;
-	size_t            output_filename_size;
-	int               mode;
+typedef struct {
+	Skc_Catena512_Input input;
+	Base_MMap           input_map;
+	Base_MMap           output_map;
+	char*               input_filename;
+	size_t              input_filename_size;
+	char*               output_filename;
+	size_t              output_filename_size;
+	int                 mode;
 } Threecrypt;
-#define THREECRYPT_NULL_INIT { \
-	.catena_input = SYMM_CATENA_INPUT_NULL_INIT, \
-	.input_map = SHIM_MAP_NULL_INIT, \
-	.output_map = SHIM_MAP_NULL_INIT, \
-	.input_filename = NULL, \
-	.output_filename = NULL, \
-	.input_filename_size = 0, \
-	.output_filename_size = 0, \
-	.mode = 0 \
-}
 
-SHIM_BEGIN_DECLS
+#define THREECRYPT_NULL_LITERAL (Threecrypt){0}
 
-void
-print_help ();
-void
-threecrypt (int, char **);
+#define R_(p) p BASE_RESTRICT
+BASE_BEGIN_DECLS
+void print_help (void);
+void threecrypt (int, R_(char**));
+BASE_END_DECLS
+#undef R_
 
-SHIM_END_DECLS
-
-#endif /* ~ THREECRYPT_H */
+#endif /* ! */

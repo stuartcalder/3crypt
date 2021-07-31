@@ -1,7 +1,7 @@
 #include "threecrypt.h"
 #include "args.h"
-#include <shim/operations.h>
-#include <shim/term.h>
+#include <Base/operations.h>
+#include <Base/term.h>
 #include <ctype.h>
 
 static char const * Help_Suggestion =  "(Use 3crypt --help for more information)\n";
@@ -18,7 +18,7 @@ static char const * Help = "Usage: 3crypt <Mode> [Switches...]\n"
 			   "-i, --input  <filename>\t\tSpecifies the input file.\n"
 			   "-o, --output <filename>\t\tSpecifies the output file.\n"
 			   "-E, --entropy\t\t\tProvide random input characters to increase the entropy of the pseudorandom number generator.\n\n"
-#ifndef SYMM_DRAGONFLY_V1_H
+#ifndef THREECRYPT_DRAGONFLY_V1_H
 #	error "Dragonfly V1 is the only supported method now."
 #endif
 			   "Dragonfly_V1 Encryption Options\n"
@@ -38,45 +38,32 @@ static char const * Help = "Usage: 3crypt <Mode> [Switches...]\n"
 			   "    password, but introduces the potential for cache-timing attacks...\n"
 			   "    Do NOT use this feature unless you understand the security implications!\n";
 
-SHIM_BEGIN_DECLS
+static int  determine_crypto_method_ (Base_MMap*);
+static void threecrypt_encrypt_ (Threecrypt*);
+static void threecrypt_decrypt_ (Threecrypt*);
+static void threecrypt_dump_    (Threecrypt*);
 
-static int
-determine_crypto_method_ (Shim_Map * shim_map);
-static void
-threecrypt_encrypt_ (Threecrypt *);
-static void
-threecrypt_decrypt_ (Threecrypt *);
-static void
-threecrypt_dump_ (Threecrypt *);
-
-SHIM_END_DECLS
-
-void
-threecrypt (int argc, char ** argv)
-{
+void threecrypt (int argc, char** argv) {
 	/* Zero-Initialize the Threecrypt data
 	 * before processing the command-line arguments.
 	 */
 	Threecrypt tcrypt = {0};
-	shim_process_args(argc, argv, arg_processor, &tcrypt);
+	Base_process_args(argc, argv, arg_processor, &tcrypt);
 	/* Error: No mode specified. User may have supplied input/output filenames but
 	 * never specified what action to perform.
 	 */
-	shim_assert_msg(tcrypt.mode != THREECRYPT_MODE_NONE, "Error: No mode specified.\n%s", Help_Suggestion);
-	/* Error: Input file not specified. Mode supplied, input file not supplied.
-	 */
-	shim_assert_msg(tcrypt.input_filename, "Error: Input file was not specified.\n%s", Help_Suggestion);
+	Base_assert_msg(tcrypt.mode != THREECRYPT_MODE_NONE, "Error: No mode specified.\n%s", Help_Suggestion);
+	/* Error: Input file not specified. Mode supplied, input file not supplied. */
+	Base_assert_msg(tcrypt.input_filename, "Error: Input file was not specified.\n%s", Help_Suggestion);
 	/* On OpenBSD, we call unveil with "r" so we're allowed to
 	 * read from the input file.
 	 */
-	SHIM_OPENBSD_UNVEIL (tcrypt.input_filename, "r");
-	/* If the input file does not seem to exist, error out.
-	 */
-	shim_assert_msg(shim_filepath_exists(tcrypt.input_filename), "Error: The input file %s does not seem to exist.\n%s",
+	BASE_OPENBSD_UNVEIL (tcrypt.input_filename, "r");
+	/* If the input file does not seem to exist, error out. */
+	Base_assert_msg(Base_filepath_exists(tcrypt.input_filename), "Error: The input file %s does not seem to exist.\n%s",
 		tcrypt.input_filename, Help_Suggestion);
-	/* Get the size of the input file, and store it in the input_map.
-	 */
-	tcrypt.input_map.size = shim_enforce_get_filepath_size(tcrypt.input_filename);
+	/* Get the size of the input file, and store it in the input_map. */
+	tcrypt.input_map.size = Base_get_filepath_size_or_die(tcrypt.input_filename);
 	switch (tcrypt.mode) {
 		case THREECRYPT_MODE_SYMMETRIC_ENC: {
 			/* We're encrypting. During encryption output filename need not be specified.
@@ -84,7 +71,7 @@ threecrypt (int argc, char ** argv)
 			 */
 			if (!tcrypt.output_filename) {
 				size_t const buf_size = tcrypt.input_filename_size + sizeof(".3c");
-				tcrypt.output_filename = (char *)shim_enforce_malloc(buf_size);
+				tcrypt.output_filename = (char*)Base_malloc_or_die(buf_size);
 				tcrypt.output_filename_size = buf_size - 1;
 				memcpy(tcrypt.output_filename, tcrypt.input_filename, tcrypt.input_filename_size);
 				memcpy(tcrypt.output_filename + tcrypt.input_filename_size, ".3c", sizeof(".3c"));
@@ -94,205 +81,204 @@ threecrypt (int argc, char ** argv)
 			 * NULL pointers to prevent further calls to unveil.
 			 */
 #define OPENBSD_UNVEIL_OUTPUT_(output_filename_v) \
-	SHIM_OPENBSD_UNVEIL (output_filename_v, "rwc"); \
-	SHIM_OPENBSD_UNVEIL (NULL, NULL)
+	BASE_OPENBSD_UNVEIL(output_filename_v, "rwc"); \
+	BASE_OPENBSD_UNVEIL(NULL, NULL)
 			OPENBSD_UNVEIL_OUTPUT_(tcrypt.output_filename);
-			/* If there is already a file with the specified output filename, error out.
-			 */
-			shim_assert_msg(!shim_filepath_exists(tcrypt.output_filename),
+			/* If there is already a file with the specified output filename, error out. */
+			Base_assert_msg(!Base_filepath_exists(tcrypt.output_filename),
 				"Error: The output file %s already seems to exist.\n", tcrypt.output_filename);
 			threecrypt_encrypt_(&tcrypt);
-		} break; /* THREECRYPT_MODE_SYMMETRIC_ENC */
+		} break; /* THREECRYPT_MODE_SKCETRIC_ENC */
 		case THREECRYPT_MODE_SYMMETRIC_DEC: {
 			/* We're decrypting. Output filename need not be specified if the input filename
 			 * ends in ".3c".
 			 */
 			if (!tcrypt.output_filename) {
-				/* Minimum size of filename is 1 char + ".3c", 4 characters.
-				 */
-				shim_assert_msg(tcrypt.input_filename_size >= 4, "Error: No output file specified.\n");
+				/* Minimum size of filename is 1 char + ".3c", 4 characters.  */
+				Base_assert_msg(tcrypt.input_filename_size >= 4, "Error: No output file specified.\n");
 				tcrypt.output_filename_size = tcrypt.input_filename_size - 3;
-				shim_assert_msg(!strcmp(tcrypt.input_filename + tcrypt.output_filename_size, ".3c"),
+				Base_assert_msg(!strcmp(tcrypt.input_filename + tcrypt.output_filename_size, ".3c"),
 					"Error: No output file specified.\n");
-				tcrypt.output_filename = (char *)shim_enforce_malloc(tcrypt.output_filename_size + 1);
+				tcrypt.output_filename = (char*)Base_malloc_or_die(tcrypt.output_filename_size + 1);
 				memcpy(tcrypt.output_filename, tcrypt.input_filename, tcrypt.output_filename_size);
 				tcrypt.output_filename[tcrypt.output_filename_size] = '\0';
 
 			}
 			OPENBSD_UNVEIL_OUTPUT_(tcrypt.output_filename);
-			shim_assert_msg(!shim_filepath_exists(tcrypt.output_filename),
+			Base_assert_msg(!Base_filepath_exists(tcrypt.output_filename),
 				"Error: The output file %s already seems to exist.\n", tcrypt.output_filename);
 			threecrypt_decrypt_(&tcrypt);
-		} break; /* THREECRYPT_MODE_SYMMETRIC_DEC */
+		} break; /* THREECRYPT_MODE_SKCETRIC_DEC */
 		case THREECRYPT_MODE_DUMP: {
-			SHIM_OPENBSD_UNVEIL(NULL, NULL);
-			SHIM_OPENBSD_PLEDGE("stdio rpath tty", NULL);
+			BASE_OPENBSD_UNVEIL(NULL, NULL);
+			BASE_OPENBSD_PLEDGE("stdio rpath tty", NULL);
 			threecrypt_dump_(&tcrypt);
 		} break; /* THREECRYPT_MODE_DUMP */
 		default: {
-			shim_errx("Error: Invalid, unrecognized mode (%d)\n%s", tcrypt.mode, Help_Suggestion);
+			Base_errx("Error: Invalid, unrecognized mode (%d)\n%s", tcrypt.mode, Help_Suggestion);
 		} break;
 	} /* switch( tcrypt.mode ) */
 	free(tcrypt.input_filename);
 	free(tcrypt.output_filename);
 }
 
-int
-determine_crypto_method_ (Shim_Map * shim_map)
+int determine_crypto_method_ (Base_MMap * map)
 {
-	if (shim_map->size < THREECRYPT_MIN_ID_STRING_BYTES)
+	if (map->size < THREECRYPT_MIN_ID_STR_BYTES)
 		return THREECRYPT_METHOD_NONE;
-#ifdef SYMM_DRAGONFLY_V1_H
+#ifdef THREECRYPT_DRAGONFLY_V1_H
 	{
-		SHIM_STATIC_ASSERT(sizeof(SYMM_DRAGONFLY_V1_ID) >= THREECRYPT_MIN_ID_STRING_BYTES, "Less than the minimum # of ID bytes.");
-		SHIM_STATIC_ASSERT(sizeof(SYMM_DRAGONFLY_V1_ID) <= THREECRYPT_MAX_ID_STRING_BYTES, "More than the maximum # of ID bytes.");
-		if (!memcmp(shim_map->ptr, SYMM_DRAGONFLY_V1_ID, sizeof(SYMM_DRAGONFLY_V1_ID)))
+		BASE_STATIC_ASSERT(sizeof(SKC_DRAGONFLY_V1_ID) >= THREECRYPT_MIN_ID_STR_BYTES, "Less than the minimum # of ID bytes.");
+		BASE_STATIC_ASSERT(sizeof(SKC_DRAGONFLY_V1_ID) <= THREECRYPT_MAX_ID_STR_BYTES, "More than the minimum # of ID bytes.");
+		if (!memcmp(map->ptr, SKC_DRAGONFLY_V1_ID, sizeof(SKC_DRAGONFLY_V1_ID)))
 			return THREECRYPT_METHOD_DRAGONFLY_V1;
 	}
+#else
+#  error "Only supported method!"
 #endif
 	return THREECRYPT_METHOD_NONE;
 }
 
-void
-threecrypt_encrypt_ (Threecrypt * ctx) {
-	switch (ctx->catena_input.padding_mode) {
-		case SYMM_COMMON_PAD_MODE_TARGET: {
-			uint64_t target = ctx->catena_input.padding_bytes;
-			shim_assert_msg(target >= SYMM_DRAGONFLY_V1_VISIBLE_METADATA_BYTES,
+void threecrypt_encrypt_ (Threecrypt * ctx) {
+	switch (ctx->input.padding_mode) {
+		case SKC_COMMON_PAD_MODE_TARGET: {
+			uint64_t target = ctx->input.padding_bytes;
+			Base_assert_msg(target >= SKC_DRAGONFLY_V1_VISIBLE_METADATA_BYTES,
 				"Error: The --pad-to target (%" PRIu64 ") is too small!\n", target);
-			shim_assert_msg((target - SYMM_DRAGONFLY_V1_VISIBLE_METADATA_BYTES) >= ctx->input_map.size,
-				"Error: The input file size (%" PRIu64 ") is too large to --pad-to %" PRIu64 "\n",
+			Base_assert_msg((target - SKC_DRAGONFLY_V1_VISIBLE_METADATA_BYTES) >= ctx->input_map.size,
+				"Error: The input file size (%zu) is too large to --pad-to %" PRIu64 "\n",
 				ctx->input_map.size, target);
 			target -= ctx->input_map.size;
-			target -= SYMM_DRAGONFLY_V1_VISIBLE_METADATA_BYTES;
-			ctx->catena_input.padding_bytes = target;
-			ctx->catena_input.padding_mode = SYMM_COMMON_PAD_MODE_ADD;
+			target -= SKC_DRAGONFLY_V1_VISIBLE_METADATA_BYTES;
+			ctx->input.padding_bytes = target;
+			ctx->input.padding_mode = SKC_COMMON_PAD_MODE_ADD;
 		} break;
-		case SYMM_COMMON_PAD_MODE_ASIF: {
-			uint64_t target = ctx->catena_input.padding_bytes;
-			shim_assert_msg(target >= 1, "Error: The --pad-as-if target (%" PRIu64 ") is too small!\n", target);
-			shim_assert_msg(target >= ctx->input_map.size,
-				"Error: The input file size (%" PRIu64 ") is too large to --pad-as-if %" PRIu64 "\n",
+		case SKC_COMMON_PAD_MODE_ASIF: {
+			uint64_t target = ctx->input.padding_bytes;
+			Base_assert_msg(target >= 1, "Error: The --pad-as-if target (%" PRIu64 ") is too small!\n", target);
+			Base_assert_msg(target >= ctx->input_map.size,
+				"Error: The input file size (%zu) is too large to --pad-as-if %" PRIu64 "\n",
 				ctx->input_map.size, target);
 			target -= ctx->input_map.size;
-			ctx->catena_input.padding_bytes = target;
-			ctx->catena_input.padding_mode = SYMM_COMMON_PAD_MODE_ADD;
+			ctx->input.padding_bytes = target;
+			ctx->input.padding_mode = SKC_COMMON_PAD_MODE_ADD;
 		} break;
 	}
-	ctx->input_map.file = shim_enforce_open_filepath(ctx->input_filename, true);
-	shim_enforce_map_memory( &ctx->input_map, true );
-	ctx->output_map.file = shim_enforce_create_filepath(ctx->output_filename);
-#ifdef THREECRYPT_EXT_DRAGONFLY_V1_DEFAULT_GARLIC
-	SHIM_STATIC_ASSERT(THREECRYPT_EXT_DRAGONFLY_V1_DEFAULT_GARLIC >  0, "Must be greater than 0");
-	SHIM_STATIC_ASSERT(THREECRYPT_EXT_DRAGONFLY_V1_DEFAULT_GARLIC < 63, "Must be less than 63");
-#	define DEFAULT_GARLIC_ UINT8_C (THREECRYPT_EXT_DRAGONFLY_V1_DEFAULT_GARLIC)
+	ctx->input_map.file = Base_open_filepath_or_die(ctx->input_filename, true);
+	Base_MMap_map_or_die(&ctx->input_map, true);
+	ctx->output_map.file = Base_create_filepath_or_die(ctx->output_filename);
+
+#ifdef THREECRYPT_EXTERN_DRAGONFLY_V1_DEFAULT_GARLIC
+#  define DEFAULT_GARLIC_IMPL_(v) UINT8_C(v)
+#  define DEFAULT_GARLIC_         DEFAULT_GARLIC_IMPL_(THREECRYPT_EXTERN_DRAGONFLY_V1_DEFAULT_GARLIC)
+	BASE_STATIC_ASSERT(THREECRYPT_EXTERN_DRAGONFLY_V1_DEFAULT_GARLIC > 0, "Must be greater than 0");
+	BASE_STATIC_ASSERT(THREECRYPT_EXTERN_DRAGONFLY_V1_DEFAULT_GARLIC < 63, "Must be less than 64");
 #else
-#	define DEFAULT_GARLIC_ UINT8_C (23)
+#  define DEFAULT_GARLIC_ UINT8_C(23)
 #endif
-	if (!ctx->catena_input.g_low)
-		ctx->catena_input.g_low = DEFAULT_GARLIC_;
-	if (!ctx->catena_input.g_high)
-		ctx->catena_input.g_high = DEFAULT_GARLIC_;
-	if (ctx->catena_input.g_low > ctx->catena_input.g_high)
-		ctx->catena_input.g_high = ctx->catena_input.g_low;
-	if (!ctx->catena_input.lambda)
-		ctx->catena_input.lambda = UINT8_C(1);
-	Symm_Dragonfly_V1 dfly_v1;
-	memcpy(&dfly_v1.secret.catena_input, &ctx->catena_input, sizeof(ctx->catena_input));
-	shim_secure_zero(&ctx->catena_input, sizeof(ctx->catena_input));
+
+	if (!ctx->input.g_low)
+		ctx->input.g_low = DEFAULT_GARLIC_;
+	if (!ctx->input.g_high)
+		ctx->input.g_high = DEFAULT_GARLIC_;
+	if (ctx->input.g_low > ctx->input.g_high)
+		ctx->input.g_high = ctx->input.g_low;
+	if (!ctx->input.lambda)
+		ctx->input.lambda = UINT8_C(1);
+	Skc_Dragonfly_V1_Encrypt dfly_v1;
+	memcpy(&dfly_v1.secret.input, &ctx->input, sizeof(ctx->input));
+	Base_secure_zero(&ctx->input, sizeof(ctx->input));
 	{ /* Get the password. */
-		shim_term_init();
-		memset(dfly_v1.secret.catena_input.password_buffer, 0, sizeof(dfly_v1.secret.catena_input.password_buffer));
-		memset(dfly_v1.secret.catena_input.check_buffer, 0, sizeof(dfly_v1.secret.catena_input.check_buffer));
-		int pw_size = shim_term_obtain_password_checked(dfly_v1.secret.catena_input.password_buffer,
-								dfly_v1.secret.catena_input.check_buffer,
-								SYMM_COMMON_PASSWORD_PROMPT,
-								SYMM_COMMON_REENTRY_PROMPT,
+		Base_term_init();
+		memset(dfly_v1.secret.input.password_buffer, 0, sizeof(dfly_v1.secret.input.password_buffer));
+		memset(dfly_v1.secret.input.check_buffer   , 0, sizeof(dfly_v1.secret.input.check_buffer));
+		int pw_size = Base_term_obtain_password_checked(dfly_v1.secret.input.password_buffer,
+		                                                dfly_v1.secret.input.check_buffer,
+								SKC_COMMON_PASSWORD_PROMPT,
+								SKC_COMMON_REENTRY_PROMPT,
 								1,
-								SYMM_COMMON_MAX_PASSWORD_BYTES,
-								(SYMM_COMMON_MAX_PASSWORD_BYTES + 1));
-		dfly_v1.secret.catena_input.password_size = pw_size;
-		shim_term_end();
+								SKC_COMMON_MAX_PASSWORD_BYTES,
+								(SKC_COMMON_MAX_PASSWORD_BYTES + 1));
+		dfly_v1.secret.input.password_size = pw_size;
+		Base_term_end();
 	}
 	{ /* Initialize the CSPRNG. */
-		Symm_CSPRNG * csprng_p = &dfly_v1.secret.catena_input.csprng;
-		symm_csprng_init(csprng_p);
-		if (dfly_v1.secret.catena_input.supplement_entropy) {
-			shim_term_init();
-			memset(dfly_v1.secret.catena_input.check_buffer, 0, sizeof(dfly_v1.secret.catena_input.check_buffer));
-			int pw_size = shim_term_obtain_password(dfly_v1.secret.catena_input.check_buffer,
-								SYMM_COMMON_ENTROPY_PROMPT,
+		Skc_CSPRNG* csprng_p = &dfly_v1.secret.input.csprng;
+		Skc_CSPRNG_init(csprng_p);
+		if (dfly_v1.secret.input.supplement_entropy) {
+			Base_term_init();
+			memset(dfly_v1.secret.input.check_buffer, 0, sizeof(dfly_v1.secret.input.check_buffer));
+			int pw_size = Base_term_obtain_password(dfly_v1.secret.input.check_buffer,
+								SKC_COMMON_ENTROPY_PROMPT,
 								1,
-								SYMM_COMMON_MAX_PASSWORD_BYTES,
-								(SYMM_COMMON_MAX_PASSWORD_BYTES + 1));
-			shim_term_end();
-			symm_skein512_hash_native(&dfly_v1.secret.ubi512,
-						  dfly_v1.secret.hash_out,
-						  dfly_v1.secret.catena_input.check_buffer,
-						  pw_size);
-			shim_secure_zero(dfly_v1.secret.catena_input.check_buffer, sizeof(dfly_v1.secret.catena_input.check_buffer));
-			symm_csprng_reseed(csprng_p, dfly_v1.secret.hash_out);
-			shim_secure_zero(dfly_v1.secret.hash_out, sizeof(dfly_v1.secret.hash_out));
+								SKC_COMMON_MAX_PASSWORD_BYTES,
+								(SKC_COMMON_MAX_PASSWORD_BYTES + 1));
+			Base_term_end();
+			Skc_Skein512_hash_native(&dfly_v1.secret.ubi512,
+			                         dfly_v1.secret.hash_out,
+						 dfly_v1.secret.input.check_buffer,
+						 pw_size);
+			Base_secure_zero(dfly_v1.secret.input.check_buffer, sizeof(dfly_v1.secret.input.check_buffer));
+			Skc_CSPRNG_reseed(csprng_p, dfly_v1.secret.hash_out);
+			Base_secure_zero(dfly_v1.secret.hash_out, sizeof(dfly_v1.secret.hash_out));
 		}
 	}
 	/* Encrypt. */
-	symm_dragonfly_v1_encrypt(&dfly_v1,
-				  &ctx->input_map,
-				  &ctx->output_map,
-				  ctx->output_filename);
-	shim_secure_zero(&dfly_v1, sizeof(dfly_v1));
+	Skc_Dragonfly_V1_encrypt(&dfly_v1, &ctx->input_map,
+	                         &ctx->output_map, ctx->output_filename);
+	Base_secure_zero(&dfly_v1, sizeof(dfly_v1));
 }
-void
-threecrypt_decrypt_ (Threecrypt * ctx) {
-	ctx->input_map.file = shim_enforce_open_filepath(ctx->input_filename, true);
-	shim_enforce_map_memory(&ctx->input_map, true);
+
+void threecrypt_decrypt_ (Threecrypt * ctx) {
+	ctx->input_map.file = Base_open_filepath_or_die(ctx->input_filename, true);
+	Base_MMap_map_or_die(&ctx->input_map, true);
 	int const method = determine_crypto_method_(&ctx->input_map);
 	switch (method) {
 #ifdef THREECRYPT_DRAGONFLY_V1_H
 		case THREECRYPT_METHOD_DRAGONFLY_V1: {
-			ctx->output_map.file = shim_enforce_create_filepath(ctx->output_filename);
-			Symm_Dragonfly_V1_Decrypt dfly_dcrypt;
+			ctx->output_map.file = Base_create_filepath_or_die(ctx->output_filename);
+			Skc_Dragonfly_V1_Decrypt dfly_dcrypt;
 			memset(dfly_dcrypt.password, 0, sizeof(dfly_dcrypt.password));
 			{
-				shim_term_init();
-				dfly_dcrypt.password_size = shim_term_obtain_password(dfly_dcrypt.password,
-										      SYMM_COMMON_PASSWORD_PROMPT,
+				Base_term_init();
+				dfly_dcrypt.password_size = Base_term_obtain_password(dfly_dcrypt.password,
+										      SKC_COMMON_PASSWORD_PROMPT,
 										      1,
-										      SYMM_COMMON_MAX_PASSWORD_BYTES,
-										      (SYMM_COMMON_MAX_PASSWORD_BYTES + 1));
-				shim_term_end();
+										      SKC_COMMON_MAX_PASSWORD_BYTES,
+										      (SKC_COMMON_MAX_PASSWORD_BYTES + 1));
+				Base_term_end();
 			}
-			symm_dragonfly_v1_decrypt(&dfly_dcrypt,
-						  &ctx->input_map,
-						  &ctx->output_map,
-						  ctx->output_filename);
-			shim_secure_zero(&dfly_dcrypt, sizeof(dfly_dcrypt));
+			Skc_Dragonfly_V1_decrypt(&dfly_dcrypt, &ctx->input_map,
+			                         &ctx->output_map, ctx->output_filename);
+			Base_secure_zero(&dfly_dcrypt, sizeof(dfly_dcrypt));
 		} break; /* THREECRYPT_METHOD_DRAGONFLY_V1 */
+#else
+#  error "Only supported method!"
 #endif
 		case THREECRYPT_METHOD_NONE:
-			shim_errx("Error: The input file %s does not appear to be a valid 3crypt encrypted file.\n%s", ctx->input_filename, Help_Suggestion);
+			Base_errx("Error: The input file %s does not appear to be a valid 3crypt encrypted file.\n%s", ctx->input_filename, Help_Suggestion);
 			break;
 		default:
-			shim_errx("Error: Invalid decryption method %d\n", method);
+			Base_errx("Error: Invalid decryption method %d\n", method);
 			break;
 	} /* switch( method ) */
 }
 void
 threecrypt_dump_ (Threecrypt * ctx) {
-	ctx->input_map.file = shim_enforce_open_filepath(ctx->input_filename, true);
-	shim_enforce_map_memory(&ctx->input_map, true);
+	ctx->input_map.file = Base_open_filepath_or_die(ctx->input_filename, true);
+	Base_MMap_map_or_die(&ctx->input_map, true);
 	int method = determine_crypto_method_(&ctx->input_map);
 	switch (method) {
 #ifdef THREECRYPT_DRAGONFLY_V1_H
 		case THREECRYPT_METHOD_DRAGONFLY_V1:
-			symm_dragonfly_v1_dump_header(&ctx->input_map, ctx->input_filename);
+			Skc_Dragonfly_V1_dump_header(&ctx->input_map, ctx->input_filename);
 			break;
 #endif
 		case THREECRYPT_METHOD_NONE:
-			shim_errx("Error: The input file %s does not appear to be a valid 3crypt encrypted file.\n%s", ctx->input_filename, Help_Suggestion);
+			Base_errx("Error: The input file %s does not appear to be a valid 3crypt encrypted file.\n%s", ctx->input_filename, Help_Suggestion);
 			break;
 		default:
-			shim_errx("Error: Invalid decryption method %d\n", method);
+			Base_errx("Error: Invalid decryption method %d\n", method);
 			break;
 	} /* switch( method ) */
 }
