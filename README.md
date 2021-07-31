@@ -6,8 +6,8 @@ CLI file encryption program aiming for 512 bits of security.
 
 ## Buildtime Dependencies
 ### (Required on all supported systems)
--   [shim](https://github.com/stuartcalder/shim) header and library files.
--   [symm](https://github.com/stuartcalder/symm) header and library files.
+-   [Base](https://github.com/stuartcalder/Base) header and library files.
+-   [Skc](https://github.com/stuartcalder/Skc) header and library files.
 -   __meson__ frontend build system.
 -   __ninja__ backend build system.
 ### (Required on OpenBSD, FreeBSD, MacOS, and GNU/Linux)
@@ -33,8 +33,8 @@ or
 ```
 ## How To Build 3crypt With Meson
 ### MacOS and BSD Build instructions
-1. build and install [shim](https://github.com/stuartcalder/shim.git).
-2. buidl and install [symm](https://github.com/stuartcalder/symm.git).
+1. build and install [Base](https://github.com/stuartcalder/Base.git).
+2. buidl and install [Skc](https://github.com/stuartcalder/Skc.git).
 3. git clone [3crypt](https://github.com/stuartcalder/3crypt.git) anywhere.
 4. cd into the 3crypt project directory and execute the following:
 ```
@@ -46,8 +46,8 @@ $ ninja
 # ninja install
 ```
 ### GNU/Linux build instructions
-1. build and install [shim](https://github.com/stuartcalder/shim.git).
-2. build and install [symm](https://github.com/stuartcalder/symm.git).
+1. build and install [Base](https://github.com/stuartcalder/Base.git).
+2. build and install [Skc](https://github.com/stuartcalder/Skc.git).
 3. git clone [3crypt](https://github.com/stuartcalder/3crypt) anywhere.
 4. cd into the 3crypt project directory and execute the following:
 ```
@@ -59,8 +59,8 @@ $ ninja
 # ninja install
 ```
 ### On Microsoft Windows systems
-1. Build and install [shim](https://github.com/stuartcalder/shim.git).
-2. Build and install [symm](https://github.com/stuartcalder/symm.git).
+1. Build and install [Base](https://github.com/stuartcalder/Base.git).
+2. Build and install [Skc](https://github.com/stuartcalder/Skc.git).
 3. git clone [3crypt](https://github.com/stuartcalder/3crypt.git) anywhere.
 4. Open a command-prompt, **specifically** you must open __"x64 Native Tools Command Prompt for VS 2019"__.
 ```
