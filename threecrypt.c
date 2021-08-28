@@ -1,8 +1,26 @@
 #include "threecrypt.h"
 #include "args.h"
+#include <Base/mlock.h>
 #include <Base/operations.h>
 #include <Base/term.h>
 #include <ctype.h>
+
+#ifdef BASE_MLOCK_H
+#  define LOCK_INIT_			Base_MLock_g_init_handled()
+#  define LOCK_M_(mem, size)		Base_mlock_or_die(mem, size)
+#  define ULOCK_M_(mem, size)		Base_munlock_or_die(mem, size)
+#  define ALLOC_M_(alignment, size) 	Base_aligned_malloc(alignment, size)
+#  define DEALLOC_M_(mem)		Base_aligned_free(mem)
+#else
+#  define LOCK_INIT_			/* Nil. */
+#  define LOCK_M_(mem, size)		/* Nil. */
+#  define ULOCK_M_(mem, size)		/* Nil. */
+#  define ALLOC_M_(alignment, size)	malloc(size)
+#  define DEALLOC_M_(mem)		free(mem)
+#endif
+
+typedef Skc_Dragonfly_V1_Encrypt Encrypt_t;
+typedef Skc_Dragonfly_V1_Decrypt Decrypt_t;
 
 static char const * Help_Suggestion =  "(Use 3crypt --help for more information)\n";
 static char const * Help = "Usage: 3crypt <Mode> [Switches...]\n"
@@ -48,6 +66,7 @@ void threecrypt (int argc, char** argv) {
 	 * before processing the command-line arguments.
 	 */
 	Threecrypt tcrypt = {0};
+	LOCK_INIT_; /* Initialize Base_MLock_g, if we're going to use memory locking procedures. */
 	Base_process_args(argc, argv, arg_processor, &tcrypt);
 	/* Error: No mode specified. User may have supplied input/output filenames but
 	 * never specified what action to perform.
@@ -139,7 +158,7 @@ int determine_crypto_method_ (Base_MMap * map)
 	return THREECRYPT_METHOD_NONE;
 }
 
-void threecrypt_encrypt_ (Threecrypt * ctx) {
+void threecrypt_encrypt_ (Threecrypt* ctx) {
 	switch (ctx->input.padding_mode) {
 		case SKC_COMMON_PAD_MODE_TARGET: {
 			uint64_t target = ctx->input.padding_bytes;
@@ -185,48 +204,49 @@ void threecrypt_encrypt_ (Threecrypt * ctx) {
 		ctx->input.g_high = ctx->input.g_low;
 	if (!ctx->input.lambda)
 		ctx->input.lambda = UINT8_C(1);
-	Skc_Dragonfly_V1_Encrypt dfly_v1;
-	memcpy(&dfly_v1.secret.input, &ctx->input, sizeof(ctx->input));
+	Encrypt_t* enc_p;
+	Base_assert_msg((bool)(enc_p = (Encrypt_t*)ALLOC_M_(Base_MLock_g.page_size, sizeof(Encrypt_t))),
+			"Error: Memory allocation failed!\n");
+	memcpy(&(enc_p->secret.input), &ctx->input, sizeof(ctx->input));
 	Base_secure_zero(&ctx->input, sizeof(ctx->input));
-	{ /* Get the password. */
+	{
 		Base_term_init();
-		memset(dfly_v1.secret.input.password_buffer, 0, sizeof(dfly_v1.secret.input.password_buffer));
-		memset(dfly_v1.secret.input.check_buffer   , 0, sizeof(dfly_v1.secret.input.check_buffer));
-		int pw_size = Base_term_obtain_password_checked(dfly_v1.secret.input.password_buffer,
-		                                                dfly_v1.secret.input.check_buffer,
+		memset(enc_p->secret.input.password_buffer, 0, sizeof(enc_p->secret.input.password_buffer));
+		memset(enc_p->secret.input.check_buffer   , 0, sizeof(enc_p->secret.input.check_buffer)   );
+		int pw_size = Base_term_obtain_password_checked(enc_p->secret.input.password_buffer,
+								enc_p->secret.input.check_buffer,
 								SKC_COMMON_PASSWORD_PROMPT,
 								SKC_COMMON_REENTRY_PROMPT,
 								1,
 								SKC_COMMON_MAX_PASSWORD_BYTES,
 								(SKC_COMMON_MAX_PASSWORD_BYTES + 1));
-		dfly_v1.secret.input.password_size = pw_size;
+		enc_p->secret.input.password_size = pw_size;
 		Base_term_end();
 	}
-	{ /* Initialize the CSPRNG. */
-		Skc_CSPRNG* csprng_p = &dfly_v1.secret.input.csprng;
+	{
+		Skc_CSPRNG* csprng_p = &enc_p->secret.input.csprng;
 		Skc_CSPRNG_init(csprng_p);
-		if (dfly_v1.secret.input.supplement_entropy) {
+		if (enc_p->secret.input.supplement_entropy) {
 			Base_term_init();
-			memset(dfly_v1.secret.input.check_buffer, 0, sizeof(dfly_v1.secret.input.check_buffer));
-			int pw_size = Base_term_obtain_password(dfly_v1.secret.input.check_buffer,
+			memset(enc_p->secret.input.check_buffer, 0, sizeof(enc_p->secret.input.check_buffer));
+			int pw_size = Base_term_obtain_password(enc_p->secret.input.check_buffer,
 								SKC_COMMON_ENTROPY_PROMPT,
 								1,
 								SKC_COMMON_MAX_PASSWORD_BYTES,
 								(SKC_COMMON_MAX_PASSWORD_BYTES + 1));
 			Base_term_end();
-			Skc_Skein512_hash_native(&dfly_v1.secret.ubi512,
-			                         dfly_v1.secret.hash_out,
-						 dfly_v1.secret.input.check_buffer,
+			Skc_Skein512_hash_native(&enc_p->secret.ubi512,
+						 enc_p->secret.hash_out,
+						 enc_p->secret.input.check_buffer,
 						 pw_size);
-			Base_secure_zero(dfly_v1.secret.input.check_buffer, sizeof(dfly_v1.secret.input.check_buffer));
-			Skc_CSPRNG_reseed(csprng_p, dfly_v1.secret.hash_out);
-			Base_secure_zero(dfly_v1.secret.hash_out, sizeof(dfly_v1.secret.hash_out));
+			Base_secure_zero(enc_p->secret.input.check_buffer, sizeof(enc_p->secret.input.check_buffer));
+			Skc_CSPRNG_reseed(csprng_p, enc_p->secret.hash_out);
+			Base_secure_zero(enc_p->secret.hash_out, sizeof(enc_p->secret.hash_out));
 		}
 	}
-	/* Encrypt. */
-	Skc_Dragonfly_V1_encrypt(&dfly_v1, &ctx->input_map,
-	                         &ctx->output_map, ctx->output_filename);
-	Base_secure_zero(&dfly_v1, sizeof(dfly_v1));
+	Skc_Dragonfly_V1_encrypt(enc_p, &ctx->input_map, &ctx->output_map, ctx->output_filename);
+	Base_secure_zero(enc_p, sizeof(*enc_p));
+	DEALLOC_M_(enc_p);
 }
 
 void threecrypt_decrypt_ (Threecrypt * ctx) {
