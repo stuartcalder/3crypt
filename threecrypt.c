@@ -61,13 +61,51 @@ static void threecrypt_encrypt_ (Threecrypt*);
 static void threecrypt_decrypt_ (Threecrypt*);
 static void threecrypt_dump_    (Threecrypt*);
 
+#define ARG_ARR_SIZE_(array, type) ((sizeof(array) / sizeof(type)) - 1)
+
+static const Base_Arg_Long longs[] = {
+	BASE_ARG_LONG_LITERAL(decrypt_argproc, "decrypt"),
+	BASE_ARG_LONG_LITERAL(dump_argproc,    "dump"),
+	BASE_ARG_LONG_LITERAL(encrypt_argproc, "encrypt"),
+	BASE_ARG_LONG_LITERAL(entropy_argproc, "entropy"),
+	BASE_ARG_LONG_LITERAL(help_argproc,    "help"),
+	BASE_ARG_LONG_LITERAL(input_argproc,   "input"),
+#ifdef SKC_DRAGONFLY_V1_H
+	BASE_ARG_LONG_LITERAL(iterations_argproc, "iterations"),
+	BASE_ARG_LONG_LITERAL(max_memory_argproc, "max-memory"),
+	BASE_ARG_LONG_LITERAL(min_memory_argproc, "min-memory"),
+#endif
+	BASE_ARG_LONG_LITERAL(output_argproc, "output"),
+#ifdef SKC_DRAGONFLY_V1_H
+	BASE_ARG_LONG_LITERAL(pad_as_if_argproc,  "pad-as-if"),
+	BASE_ARG_LONG_LITERAL(pad_by_argproc,     "pad-by"),
+	BASE_ARG_LONG_LITERAL(pad_to_argproc,     "pad-to"),
+	BASE_ARG_LONG_LITERAL(use_memory_argproc, "use-memory"),
+	BASE_ARG_LONG_LITERAL(use_phi_argproc,    "use-phi"),
+#endif
+	BASE_ARG_LONG_NULL_LITERAL
+};
+#define NUM_LONGS_ ARG_ARR_SIZE_(longs, Base_Arg_Long)
+static const Base_Arg_Short shorts[] = {
+	BASE_ARG_SHORT_LITERAL(dump_argproc   , 'D'),
+	BASE_ARG_SHORT_LITERAL(entropy_argproc, 'E'),
+	BASE_ARG_SHORT_LITERAL(decrypt_argproc, 'd'),
+	BASE_ARG_SHORT_LITERAL(encrypt_argproc, 'e'),
+	BASE_ARG_SHORT_LITERAL(help_argproc,    'h'),
+	BASE_ARG_SHORT_LITERAL(input_argproc,   'i'),
+	BASE_ARG_SHORT_LITERAL(output_argproc,  'o'),
+	BASE_ARG_SHORT_NULL_LITERAL
+};
+#define NUM_SHORTS_ ARG_ARR_SIZE_(shorts, Base_Arg_Short)
+
 void threecrypt (int argc, char** argv) {
 	/* Zero-Initialize the Threecrypt data
 	 * before processing the command-line arguments.
 	 */
 	Threecrypt tcrypt = {0};
 	LOCK_INIT_; /* Initialize Base_MLock_g, if we're going to use memory locking procedures. */
-	Base_process_args(argc, argv, arg_processor, &tcrypt);
+	Base_assert(argc);
+	Base_process_args(argc - 1, argv + 1, NUM_SHORTS_, shorts, NUM_LONGS_, longs, &tcrypt, NULL);
 	/* Error: No mode specified. User may have supplied input/output filenames but
 	 * never specified what action to perform.
 	 */
