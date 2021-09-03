@@ -20,18 +20,18 @@ uint8_t dfly_v1_parse_memory (R_(const char*) mem_str, const int size) {
 		switch (toupper((unsigned char)mem_str[i])) {
 		case 'K':
 			multiplier = (KIBIBYTE_ / 64);
-			goto JUMP_have_multiplier_0_;
+			goto have_multiplier;
 		case 'M':
 			multiplier = (MEBIBYTE_ / 64);
-			goto JUMP_have_multiplier_0_;
+			goto have_multiplier;
 		case 'G':
 			multiplier = (GIBIBYTE_ / 64);
-			goto JUMP_have_multiplier_0_;
+			goto have_multiplier;
 		default:
 			Base_assert_msg(isdigit((unsigned char)mem_str[i]), "Dragonfly_V1 Error: Invalid memory string!\n");
 		}
 	}
-JUMP_have_multiplier_0_:
+have_multiplier:
 	num_digits = Base_shift_left_digits(temp, size);
 	Base_assert_msg(num_digits, "Dragonfly_V1 Error: No number supplied with memory-usage specification!\n");
 #define BYTE_MAX_		UINT64_C(10000)
@@ -88,17 +88,17 @@ uint64_t dfly_v1_parse_padding (R_(const char*) pad_str, const int size) {
 		switch (toupper((unsigned char)pad_str[i])) {
 			case 'K':
 				multiplier = KIBIBYTE_;
-				goto JUMP_have_multiplier_1_;
+				goto have_multiplier;
 			case 'M':
 				multiplier = MEBIBYTE_;
-				goto JUMP_have_multiplier_1_;
+				goto have_multiplier;
 			case 'G':
 				multiplier = GIBIBYTE_;
-				goto JUMP_have_multiplier_1_;
+				goto have_multiplier;
 		}
 	}
+have_multiplier:
 	int num_digits;
-JUMP_have_multiplier_1_:
 	num_digits = Base_shift_left_digits(temp, size);
 	Base_assert_msg(num_digits, "Dragonfly_V1_Error: Asked for padding, without providing a random number of padding bytes.\n");
 	uint64_t pad = (uint64_t)strtoumax(temp, NULL, 10);

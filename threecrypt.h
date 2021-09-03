@@ -67,7 +67,10 @@ typedef struct {
 	int                 mode;
 } Threecrypt;
 
-#define THREECRYPT_NULL_LITERAL (Threecrypt){0}
+#define THREECRYPT_NULL_LITERAL (Threecrypt){(Skc_Catena512_Input){0}, \
+					     BASE_MMAP_NULL_LITERAL, \
+					     BASE_MMAP_NULL_LITERAL, \
+					     NULL, 0, NULL, 0, 0}
 
 #define R_(p) p BASE_RESTRICT
 BASE_BEGIN_DECLS
