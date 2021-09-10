@@ -321,8 +321,7 @@ void threecrypt_decrypt_ (Threecrypt * ctx) {
 			break;
 	} /* switch( method ) */
 }
-void
-threecrypt_dump_ (Threecrypt * ctx) {
+void threecrypt_dump_ (Threecrypt * ctx) {
 	ctx->input_map.file = Base_open_filepath_or_die(ctx->input_filename, true);
 	Base_MMap_map_or_die(&ctx->input_map, true);
 	int method = determine_crypto_method_(&ctx->input_map);
@@ -340,7 +339,6 @@ threecrypt_dump_ (Threecrypt * ctx) {
 			break;
 	} /* switch( method ) */
 }
-void
-print_help () {
-	puts( Help );
+void print_help (void) {
+	puts(Help);
 }

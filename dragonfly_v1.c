@@ -97,8 +97,8 @@ uint64_t dfly_v1_parse_padding (R_(const char*) pad_str, const int size) {
 				goto have_multiplier;
 		}
 	}
-have_multiplier:
 	int num_digits;
+have_multiplier:
 	num_digits = Base_shift_left_digits(temp, size);
 	Base_assert_msg(num_digits, "Dragonfly_V1_Error: Asked for padding, without providing a random number of padding bytes.\n");
 	uint64_t pad = (uint64_t)strtoumax(temp, NULL, 10);

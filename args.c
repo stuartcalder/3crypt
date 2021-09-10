@@ -19,7 +19,7 @@ static int set_mode_(R_(Threecrypt*) ctx, int mode, R_(char*) str, int offset) {
 }
 
 ARG_PROC_(decrypt) { return set_mode_(CTX_(state), THREECRYPT_MODE_SYMMETRIC_DEC, argv[0], offset); }
-ARG_PROC_(dump)    { return set_mode_(CTX_(state), THREECRYPT_MODE_DUMP,          argv[0], offset); }
+ARG_PROC_(dump)    { return set_mode_(CTX_(state), THREECRYPT_MODE_DUMP         , argv[0], offset); }
 ARG_PROC_(encrypt) { return set_mode_(CTX_(state), THREECRYPT_MODE_SYMMETRIC_ENC, argv[0], offset); }
 ARG_PROC_(entropy) {
 	CTX_(state)->input.supplement_entropy = true;
