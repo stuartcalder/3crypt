@@ -6,9 +6,9 @@
 
 #define R_(p) p BASE_RESTRICT
 
-#define KIBIBYTE_	UINT64_C(1024)
-#define MEBIBYTE_	(KIBIBYTE_ * UINT64_C(1024))
-#define GIBIBYTE_	(MEBIBYTE_ * UINT64_C(1024))
+#define KIBIBYTE_ UINT64_C(1024)
+#define MEBIBYTE_ (KIBIBYTE_ * UINT64_C(1024))
+#define GIBIBYTE_ (MEBIBYTE_ * UINT64_C(1024))
 
 uint8_t dfly_v1_parse_memory (R_(const char*) mem_str, const int size) {
 	uint64_t requested_bytes = 0;
@@ -76,7 +76,7 @@ uint8_t dfly_v1_parse_iterations (R_(const char*) iter_str, const int size) {
 	Base_assert_msg(num_digits > 0 && num_digits < 4, INVALID_ITER_COUNT_);
 	int it = atoi(temp);
 	free(temp);
-	Base_assert_msg(it > 1 && it < 255, INVALID_ITER_COUNT_);
+	Base_assert_msg(it >= 1 && it <= 255, INVALID_ITER_COUNT_);
 	return (uint8_t)it;
 }
 
@@ -100,7 +100,7 @@ uint64_t dfly_v1_parse_padding (R_(const char*) pad_str, const int size) {
 	int num_digits;
 have_multiplier:
 	num_digits = Base_shift_left_digits(temp, size);
-	Base_assert_msg(num_digits, "Dragonfly_V1_Error: Asked for padding, without providing a random number of padding bytes.\n");
+	Base_assert_msg(num_digits > 0, "Dragonfly_V1_Error: Asked for padding, without providing the desired number of padding bytes.\n");
 	uint64_t pad = (uint64_t)strtoumax(temp, NULL, 10);
 	free(temp);
 	return pad * multiplier;

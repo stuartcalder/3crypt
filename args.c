@@ -8,120 +8,220 @@
 
 #define R_(p)		p BASE_RESTRICT
 #define ARG_PROC_(name) int name##_argproc(const int argc, R_(char**) argv, const int offset, R_(void*) state)
-#define CTX_(v)		((Threecrypt*)v)
+#define ARGS_ (const int argc, R_(char**) argv, const int offset, R_(void*) state)
 
-static const char* const mode_strings[THREECRYPT_NUM_MODE_ENUMS] = { "None", "Encrypt", "Decrypt", "Dump" };
+static const char* const mode_strings[THREECRYPT_MODE_MCOUNT] = { "None", "Encrypt", "Decrypt", "Dump" };
 
-static int set_mode_(R_(Threecrypt*) ctx, int mode, R_(char*) str, int offset) {
-	Base_assert_msg((ctx->mode == THREECRYPT_MODE_NONE), "Error: 3crypt mode already set to \"%s\"!\n", mode_strings[ctx->mode]);
-	ctx->mode = mode;
-	return Base_1opt(str[offset]);
+static int
+set_mode_
+(R_(Threecrypt*)   ctx,
+ Threecrypt_Mode_t mode,
+ R_(char*)         str,
+ int               offset)
+{
+  Base_assert_msg((ctx->mode == THREECRYPT_MODE_NONE), "Error: 3crypt mode already set to %s!\n", mode_strings[ctx->mode]);
+  ctx->mode = mode;
+  return Base_1opt(str[offset]);
 }
 
-ARG_PROC_(decrypt) { return set_mode_(CTX_(state), THREECRYPT_MODE_SYMMETRIC_DEC, argv[0], offset); }
-ARG_PROC_(dump)    { return set_mode_(CTX_(state), THREECRYPT_MODE_DUMP         , argv[0], offset); }
-ARG_PROC_(encrypt) { return set_mode_(CTX_(state), THREECRYPT_MODE_SYMMETRIC_ENC, argv[0], offset); }
-ARG_PROC_(entropy) {
-	CTX_(state)->input.supplement_entropy = true;
-	return Base_1opt(argv[0][offset]);
+int
+decrypt_argproc
+ARGS_
+{ return set_mode_((Threecrypt*)state, THREECRYPT_MODE_SYMMETRIC_DEC, argv[0], offset); }
+
+int
+dump_argproc
+ARGS_
+{ return set_mode_((Threecrypt*)state, THREECRYPT_MODE_DUMP, argv[0], offset); }
+
+int
+encrypt_argproc
+ARGS_
+{ return set_mode_((Threecrypt*)state, THREECRYPT_MODE_SYMMETRIC_ENC, argv[0], offset); }
+
+int
+entropy_argproc
+ARGS_
+{
+  Threecrypt* ctx = (Threecrypt*)state;
+  ctx->input.supplement_entropy = true;
+  return Base_1opt(argv[0][offset]);
 }
-ARG_PROC_(help) {
-	print_help();
-	exit(EXIT_SUCCESS);
-	return 0;
+
+#define EQ_NOT_FOUND_ (-1)
+static int
+find_eq_
+(R_(const char*) s,
+ const int       len)
+{
+  for (int i = 0; i < len; ++i) {
+    if (s[i] == '=')
+      return i;
+  }
+  return EQ_NOT_FOUND_;
 }
-ARG_PROC_(input) {
-	Base_assert_msg((!CTX_(state)->input_filename), "Error: Already specified %s as %s!\n", "input file", CTX_(state)->input_filename);
-	Base_Arg_Parser bap;
-	Base_Arg_Parser_init(&bap, argv[0] + offset, argc, argv);
-	if (bap.to_read) {
-		CTX_(state)->input_filename = (char*)Base_malloc_or_die(bap.size + 1);
-		CTX_(state)->input_filename_size = bap.size;
-		memcpy(CTX_(state)->input_filename, bap.to_read, bap.size + 1);
-	}
-	return bap.consumed;
+
+int
+help_argproc
+ARGS_
+{
+  Base_Arg_Parser bap;
+  Base_Arg_Parser_init(&bap, argv[0] + offset, argc, argv);
+  print_help(bap.to_read);
+  exit(EXIT_SUCCESS);
+  return 0; /* Suppress warnings about no return value. */
 }
+
+int
+input_argproc
+ARGS_
+{
+  Threecrypt* ctx = (Threecrypt*)state;
+  Base_assert_msg((ctx->input_filename == NULL), "Error: Already specified %s as %s!\n", "input file", ctx->input_filename);
+  Base_Arg_Parser bap;
+  Base_Arg_Parser_init(&bap, argv[0] + offset, argc, argv);
+  if (bap.to_read) {
+    ctx->input_filename = (char*)Base_malloc_or_die(bap.size + 1);
+    ctx->input_filename_size = bap.size;
+    memcpy(ctx->input_filename, bap.to_read, bap.size + 1);
+  }
+  return bap.consumed;
+}
+
 #ifdef SKC_DRAGONFLY_V1_H
 typedef uint8_t Dfly_V1_U8_f (R_(const char*), const int);
-static uint8_t get_dfly_v1_u8_param_(R_(Base_Arg_Parser*) bap, Dfly_V1_U8_f* dfly) {
-	uint8_t param = 0;
-	if (bap->to_read)
-		param = dfly(bap->to_read, bap->size);
-	return param;
+
+static uint8_t
+get_dfly_v1_u8_param_
+(R_(Base_Arg_Parser*) bap,
+Dfly_V1_U8_f*         dfly)
+{
+  uint8_t param = 0;
+  if (bap->to_read)
+    param = dfly(bap->to_read, bap->size);
+  return param;
 }
-static uint64_t get_dfly_v1_padding_(Base_Arg_Parser* bap) {
-	uint64_t padding = 0;
-	if (bap->to_read)
-		padding = dfly_v1_parse_padding(bap->to_read, bap->size);
-	return padding;
+
+static uint64_t
+get_dfly_v1_padding_
+(Base_Arg_Parser* bap)
+{
+  uint64_t padding = 0;
+  if (bap->to_read)
+    padding = dfly_v1_parse_padding(bap->to_read, bap->size);
+  return padding;
 }
-ARG_PROC_(iterations) {
-	Base_Arg_Parser bap;
-	Base_Arg_Parser_init(&bap, argv[0] + offset, argc, argv);
-	uint8_t iterations = get_dfly_v1_u8_param_(&bap, dfly_v1_parse_iterations);
-	if (iterations)
-		CTX_(state)->input.lambda = iterations;
-	return bap.consumed;
+
+int
+iterations_argproc
+ARGS_
+{
+  Base_Arg_Parser bap;
+  Base_Arg_Parser_init(&bap, argv[0] + offset, argc, argv);
+  uint8_t iterations = get_dfly_v1_u8_param_(&bap, dfly_v1_parse_iterations);
+  Threecrypt* ctx = (Threecrypt*)state;
+  if (iterations)
+    ctx->input.lambda = iterations;
+  return bap.consumed;
 }
-ARG_PROC_(max_memory) {
-	Base_Arg_Parser bap;
-	Base_Arg_Parser_init(&bap, argv[0] + offset, argc, argv);
-	uint8_t memory = get_dfly_v1_u8_param_(&bap, dfly_v1_parse_memory);
-	if (memory)
-		CTX_(state)->input.g_high = memory;
-	return bap.consumed;
+
+int
+max_memory_argproc
+ARGS_
+{
+  Base_Arg_Parser bap;
+  Base_Arg_Parser_init(&bap, argv[0] + offset, argc, argv);
+  uint8_t memory = get_dfly_v1_u8_param_(&bap, dfly_v1_parse_memory);
+  Threecrypt* ctx = (Threecrypt*)state;
+  if (memory)
+    ctx->input.g_high = memory;
+  return bap.consumed;
 }
-ARG_PROC_(min_memory) {
-	Base_Arg_Parser bap;
-	Base_Arg_Parser_init(&bap, argv[0] + offset, argc, argv);
-	uint8_t memory = get_dfly_v1_u8_param_(&bap, dfly_v1_parse_memory);
-	if (memory)
-		CTX_(state)->input.g_low = memory;
-	return bap.consumed;
+
+int
+min_memory_argproc
+ARGS_
+{
+  Base_Arg_Parser bap;
+  Base_Arg_Parser_init(&bap, argv[0] + offset, argc, argv);
+  uint8_t memory = get_dfly_v1_u8_param_(&bap, dfly_v1_parse_memory);
+  Threecrypt* ctx = (Threecrypt*)state;
+  if (memory)
+    ctx->input.g_low = memory;
+  return bap.consumed;
 }
 #endif /* ! SKC_DRAGONFLY_V1_H */
-ARG_PROC_(output) {
-	Base_assert_msg((!CTX_(state)->output_filename), "Error: Already specified %s as %s!\n", "output file", CTX_(state)->output_filename);
-	Base_Arg_Parser bap;
-	Base_Arg_Parser_init(&bap, argv[0] + offset, argc, argv);
-	if (bap.to_read) {
-		CTX_(state)->output_filename = (char*)Base_malloc_or_die(bap.size + 1);
-		CTX_(state)->output_filename_size = bap.size;
-		memcpy(CTX_(state)->output_filename, bap.to_read, bap.size + 1);
-	}
-	return bap.consumed;
+
+int
+output_argproc
+ARGS_
+{
+  Threecrypt* ctx = (Threecrypt*)state;
+  Base_assert_msg((ctx->output_filename == NULL), "Error: Already specified %s as %s!\n", "output file", ctx->output_filename);
+  Base_Arg_Parser bap;
+  Base_Arg_Parser_init(&bap, argv[0] + offset, argc, argv);
+  if (bap.to_read) {
+    ctx->output_filename = (char*)Base_malloc_or_die(bap.size + 1);
+    ctx->output_filename_size = bap.size;
+    memcpy(ctx->output_filename, bap.to_read, bap.size + 1);
+  }
+  return bap.consumed;
 }
+
 #ifdef SKC_DRAGONFLY_V1_H
-ARG_PROC_(pad_as_if) {
-	int consumed = pad_by_argproc(argc, argv, offset, state);
-	CTX_(state)->input.padding_mode = SKC_COMMON_PAD_MODE_ASIF;
-	return consumed;
+
+int
+pad_as_if_argproc
+ARGS_
+{
+  Threecrypt* ctx = (Threecrypt*)state;
+  ctx->input.padding_mode = SKC_COMMON_PAD_MODE_ASIF;
+  return pad_by_argproc(argc, argv, offset, ctx);
 }
-ARG_PROC_(pad_by) {
-	Base_Arg_Parser bap;
-	Base_Arg_Parser_init(&bap, argv[0] + offset, argc, argv);
-	uint64_t padding = get_dfly_v1_padding_(&bap);
-	if (padding)
-		CTX_(state)->input.padding_bytes = padding;
-	return bap.consumed;
+
+int
+pad_by_argproc
+ARGS_
+{
+  Base_Arg_Parser bap;
+  Base_Arg_Parser_init(&bap, argv[0] + offset, argc, argv);
+  uint64_t padding = get_dfly_v1_padding_(&bap);
+  Threecrypt* ctx = (Threecrypt*)state;
+  if (padding)
+    ctx->input.padding_bytes = padding;
+  return bap.consumed;
 }
-ARG_PROC_(pad_to) {
-	int consumed = pad_by_argproc(argc, argv, offset, state);
-	CTX_(state)->input.padding_mode = SKC_COMMON_PAD_MODE_TARGET;
-	return consumed;
+
+int
+pad_to_argproc
+ARGS_
+{
+  Threecrypt* ctx = (Threecrypt*)state;
+  ctx->input.padding_mode = SKC_COMMON_PAD_MODE_TARGET;
+  return pad_by_argproc(argc, argv, offset, ctx);
 }
-ARG_PROC_(use_memory) {
-	Base_Arg_Parser bap;
-	Base_Arg_Parser_init(&bap, argv[0] + offset, argc, argv);
-	uint8_t memory = get_dfly_v1_u8_param_(&bap, dfly_v1_parse_memory);
-	if (memory) {
-		CTX_(state)->input.g_low  = memory;
-		CTX_(state)->input.g_high = memory;
-	}
-	return bap.consumed;
+
+int
+use_memory_argproc
+ARGS_
+{
+  Base_Arg_Parser bap;
+  Base_Arg_Parser_init(&bap, argv[0] + offset, argc, argv);
+  uint8_t memory = get_dfly_v1_u8_param_(&bap, dfly_v1_parse_memory);
+  Threecrypt* ctx = (Threecrypt*)state;
+  if (memory) {
+    ctx->input.g_low  = memory;
+    ctx->input.g_high = memory;
+  }
+  return bap.consumed;
 }
-ARG_PROC_(use_phi) {
-	CTX_(state)->input.use_phi = UINT8_C(0x01);
-	return 0;
+
+int
+use_phi_argproc
+ARGS_
+{
+  Threecrypt* ctx = (Threecrypt*)state;
+  ctx->input.use_phi = UINT8_C(0x01);
+  return 0;
 }
-#endif
+#endif /* ! ifdef SKC_DRAGONFLY_V1_H */

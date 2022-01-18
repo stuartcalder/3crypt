@@ -5,7 +5,7 @@
 #include "threecrypt.h"
 
 #define ARG_PROC_(name) int name##_argproc(const int, char** BASE_RESTRICT, const int, void* BASE_RESTRICT)
-BASE_BEGIN_DECLS
+BASE_BEGIN_C_DECLS
 ARG_PROC_(decrypt);
 ARG_PROC_(dump);
 ARG_PROC_(encrypt);
@@ -25,7 +25,7 @@ ARG_PROC_(pad_to);
 ARG_PROC_(use_memory);
 ARG_PROC_(use_phi);
 #endif
-BASE_END_DECLS
+BASE_END_C_DECLS
 #undef ARG_PROC_
 
 #endif /* ! */
