@@ -44,20 +44,18 @@
 BASE_BEGIN_C_DECLS
 
 /* Describe 3crypt modes. */
-typedef enum {
-  THREECRYPT_MODE_NONE          = 0,
-  THREECRYPT_MODE_SYMMETRIC_ENC = 1,
-  THREECRYPT_MODE_SYMMETRIC_DEC = 2,
-  THREECRYPT_MODE_DUMP          = 3,
-  THREECRYPT_MODE_MCOUNT        = 4,
-  THREECRYPT_NUM_MODES          = 3
-} Threecrypt_Mode_t;
+#define THREECRYPT_MODE_NONE          0
+#define THREECRYPT_MODE_SYMMETRIC_ENC 1
+#define THREECRYPT_MODE_SYMMETRIC_DEC 2
+#define THREECRYPT_MODE_DUMP          3
+#define THREECRYPT_MODE_MCOUNT        4
+#define THREECRYPT_NUM_MODES          3
 #ifdef THREECRYPT_EXTERN_MODE_DEFAULT
 # define THREECRYPT_MODE_DEFAULT THREECRYPT_EXTERN_MODE_DEFAULT
 #else
-  /* Default to encrypt, if not already specified. */
 # define THREECRYPT_MODE_DEFAULT THREECRYPT_MODE_SYMMETRIC_ENC
 #endif
+typedef int_fast8_t Threecrypt_Mode_t;
 
 /* Below, defining *_ISDEF to 1 implies that method is supported.
  * Defining *_ISDEF to 0 implies that method is unsupported.
@@ -88,7 +86,12 @@ typedef enum {
 #  define THREECRYPT_METHOD_DEFAULT THREECRYPT_METHOD_NONE
 # endif
 #endif
+
+#if THREECRYPT_NUM_MODES < INT_FAST8_MAX
+typedef int_fast8_t Threecrypt_Method_t;
+#else
 typedef int Threecrypt_Method_t;
+#endif
 
 #ifdef THREECRYPT_EXTERN_USE_ENTROPY
 # define THREECRYPT_USE_ENTROPY THREECRYPT_EXTERN_USE_ENTROPY
@@ -99,8 +102,24 @@ typedef int Threecrypt_Method_t;
 #define THREECRYPT_USE_KEYFILES 0 /* Not implemented yet. */
 
 #define THREECRYPT_ARGMAP_MAX_COUNT	100
-#define THREECRYPT_MIN_ID_STR_BYTES     17 /* sizeof("SSC_DRAGONFLY_V1"), including null terminator. */
-#define THREECRYPT_MAX_ID_STR_BYTES	THREECRYPT_MIN_ID_STR_BYTES /* Only 1 ID right now. */
+
+#define THREECRYPT_MIN_ID_STR_BYTES INT_MAX /* Temporary... */
+#define THREECRYPT_MAX_ID_STR_BYTES INT_MIN /* Temporary... */
+#if THREECRYPT_METHOD_DRAGONFLY_V1_ISDEF
+# if (SKC_DRAGONFLY_V1_ID_NBYTES < THREECRYPT_MIN_ID_STR_BYTES)
+#  undef  THREECRYPT_MIN_ID_STR_BYTES
+#  define THREECRYPT_MIN_ID_STR_BYTES SKC_DRAGONFLY_V1_ID_NBYTES
+# endif
+# if (SKC_DRAGONFLY_V1_ID_NBYTES > THREECRYPT_MAX_ID_STR_BYTES)
+#  undef  THREECRYPT_MAX_ID_STR_BYTES
+#  define THREECRYPT_MAX_ID_STR_BYTES SKC_DRAGONFLY_V1_ID_NBYTES
+# endif
+#endif
+#if   (THREECRYPT_MIN_ID_STR_BYTES == INT_MAX)
+# error "THREECRYPT_MIN_ID_STR_BYTES never got set!"
+#elif (THREECRYPT_MAX_ID_STR_BYTES == INT_MIN)
+# error "THREECRYPT_MAX_IS_STR_BYTES never got set!"
+#endif
 
 typedef struct {
   Skc_Catena512_Input input;

@@ -257,6 +257,7 @@ void threecrypt_encrypt_ (Threecrypt* ctx) {
 	Encrypt_t* enc_p;
 	Base_assert_msg((enc_p = (Encrypt_t*)ALLOC_M_(Base_MLock_g.page_size, sizeof(Encrypt_t))) != NULL,
 	                "Error: Memory allocation failed!\n");
+	Skc_Dragonfly_V1_Encrypt_init(enc_p);
 	memcpy(&(enc_p->secret.input), &ctx->input, sizeof(ctx->input));
 	Base_secure_zero(&ctx->input, sizeof(ctx->input));
 	{
@@ -307,7 +308,8 @@ void threecrypt_decrypt_ (Threecrypt * ctx) {
 #if THREECRYPT_METHOD_DRAGONFLY_V1_ISDEF
 		case THREECRYPT_METHOD_DRAGONFLY_V1: {
 			ctx->output_map.file = Base_create_filepath_or_die(ctx->output_filename);
-			Skc_Dragonfly_V1_Decrypt dfly_dcrypt;
+			Decrypt_t dfly_dcrypt;
+			Skc_Dragonfly_V1_Decrypt_init(&dfly_dcrypt);
 			memset(dfly_dcrypt.password, 0, sizeof(dfly_dcrypt.password));
 			{
 				Base_term_init();
