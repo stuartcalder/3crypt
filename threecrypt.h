@@ -133,21 +133,27 @@ typedef struct {
   Threecrypt_Method_t method;
 } Threecrypt;
 
-#define THREECRYPT_NULL_LITERAL (Threecrypt){(Skc_Catena512_Input){0}, \
-					     BASE_MMAP_NULL_LITERAL, \
-					     BASE_MMAP_NULL_LITERAL, \
-					     NULL, NULL, 0, 0, \
-					     THREECRYPT_MODE_NONE, \
-					     THREECRYPT_METHOD_NONE}
+#define THREECRYPT_NULL_LITERAL BASE_COMPOUND_LITERAL( \
+                                 Threecrypt, \
+                                 BASE_COMPOUND_LITERAL(Skc_Catena512_Input, 0), \
+				 BASE_MMAP_NULL_LITERAL, \
+				 BASE_MMAP_NULL_LITERAL, \
+				 NULL, NULL, 0, 0, \
+				 THREECRYPT_MODE_NONE, \
+				 THREECRYPT_METHOD_NONE \
+                                )
+#define THREECRYPT_DEFAULT_LITERAL BASE_COMPOUND_LITERAL( \
+                                    Threecrypt, \
+				    BASE_COMPOUND_LITERAL(Skc_Catena512_Input, 0), \
+				    BASE_MMAP_NULL_LITERAL, \
+				    BASE_MMAP_NULL_LITERAL, \
+				    NULL, NULL, 0, 0, \
+				    THREECRYPT_MODE_DEFAULT, \
+				    THREECRYPT_METHOD_DEFAULT \
+                                   )
 /* Default literal here passes uninitialized data like
  * THREECRYPT_NULL_LITERAL, except chooses the default method and mode.
  */
-#define THREECRYPT_DEFAULT_LITERAL (Threecrypt){(Skc_Catena512_Input){0}, \
-                                                BASE_MMAP_NULL_LITERAL, \
-						BASE_MMAP_NULL_LITERAL, \
-						NULL, NULL, 0, 0, \
-						THREECRYPT_MODE_DEFAULT, \
-						THREECRYPT_METHOD_DEFAULT}
 
 void print_help(const char* topic);
 void threecrypt(int argc, R_(char**) argv);
