@@ -60,22 +60,29 @@ if os in _UNIXLIKE_OPERATING_SYSTEMS and compiler.get_id() in _GCC_COMPATIBLE_CO
   lang_flags += gcc_compatible_flags
 endif
 is_gcc_compatible = (compiler.get_id() in _GCC_COMPATIBLE_COMPILERS)
-if os == 'openbsd' or os == 'freebsd' or os == 'darwin'
-  include += '/usr/local/include'
-  lib_dir += '/usr/local/lib'
-elif os == 'netbsd'
-  include  += '/usr/local/include'
-  include  += '/usr/pkg/include'
-  lib_dir += '/usr/local/lib'
-  lib_dir += '/usr/pkg/lib'
-elif os == 'linux'
-  include += '/usr/include'
-  if compiler.get_id() == 'gcc'
-    lang_flags += '-flto'
+_LIB_DIRS = {
+  'bsd':   ['/usr/lib', '/usr/local/lib'],
+  'netbsd': ['/usr/local/lib', '/usr/pkg/lib'],
+  'linux': ['/usr/lib64', '/usr/lib'],
+  'windows': ['C:\lib']
+}
+_INC_DIRS = {
+  'bsd': ['/usr/local/include'],
+  'netbsd': ['/usr/local/include', '/usr/pkg/include'],
+  'linux': ['/usr/include'],
+  'windows': ['C:\include']
+}
+if os in ['openbsd', 'freebsd', 'darwin', 'dragonfly']
+  include += _INC_DIRS.get('bsd')
+  lib_dir += _LIB_DIRS.get('bsd')
+else
+  include += _INC_DIRS.get(os)
+  lib_dir += _LIB_DIRS.get(os)
+  if os == 'linux'
+    if compiler.get_id() == 'gcc' or compiler.get_id() == 'clang'
+      lang_flags += '-flto'
+    endif
   endif
-elif os == 'windows'
-  include += 'C:/include'
-  lib_dir += 'C:/lib'
 endif
 if get_option('enable_dragonfly_v1')
   lang_flags += _D + 'THREECRYPT_EXTERN_ENABLE_DRAGONFLY_V1'
@@ -105,8 +112,8 @@ if os in ['openbsd', 'freebsd', 'darwin', 'netbsd']
     lib_depends += compiler.find_library('ncurses')
   endif
 elif os == 'linux'
-  lib_depends += compiler.find_library('Base', static: Base_static)
-  lib_depends += compiler.find_library('Skc', static: Skc_static)
+  lib_depends += compiler.find_library('Base', static: Base_static, dirs: lib_dir)
+  lib_depends += compiler.find_library('Skc', static: Skc_static, dirs: lib_dir)
   if Base_static
     lib_depends += compiler.find_library('ncurses')
     lib_depends += compiler.find_library('tinfo')
