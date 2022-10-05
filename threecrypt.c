@@ -243,7 +243,7 @@ void threecrypt_encrypt_ (Threecrypt* ctx) {
 	BASE_STATIC_ASSERT(THREECRYPT_EXTERN_DRAGONFLY_V1_DEFAULT_GARLIC >   0, "Must be greater than 0");
 	BASE_STATIC_ASSERT(THREECRYPT_EXTERN_DRAGONFLY_V1_DEFAULT_GARLIC <= 63, "Must be less than 64");
 #else
-#  define DEFAULT_GARLIC_ UINT8_C(23)
+#  define DEFAULT_GARLIC_ UINT8_C(24)
 #endif
 
 	if (!ctx->input.g_low)

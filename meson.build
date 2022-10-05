@@ -86,7 +86,7 @@ else
 endif
 if get_option('enable_dragonfly_v1')
   lang_flags += _D + 'THREECRYPT_EXTERN_ENABLE_DRAGONFLY_V1'
-  if get_option('dragonfly_v1_default_garlic') != 23
+  if get_option('dragonfly_v1_default_garlic') != 24
     _garlic = get_option('dragonfly_v1_default_garlic').to_string()
     lang_flags += _D + 'THREECRYPT_EXTERN_DRAGONFLY_V1_DEFAULT_GARLIC=' + _garlic
   endif
