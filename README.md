@@ -4,17 +4,6 @@ CLI file encryption program aiming for 512 bits of security.
 ![Alt text](/../screenshots/plaintext.png?raw=true "Before 3crypt Encryption")
 ![Alt text](/../screenshots/ciphertext.png?raw=true "After 3crypt Encryption")
 
-## Buildtime Dependencies
-### (Required on all supported systems)
--   [Base](https://github.com/stuartcalder/Base) header and library files.
--   [Skc](https://github.com/stuartcalder/Skc) header and library files.
--   __meson__ frontend build system.
--   __ninja__ backend build system.
-### (Required on OpenBSD, FreeBSD, MacOS, and GNU/Linux)
--   __ncurses__ header and library files.
-### (Required on Microsoft Windows only)
--   __Windows Vista/Server 2008__ or later.
--   __Visual Studio 2019__ development suite.
 ## How To Encrypt Files
 ```
 3crypt -e -i $filename
@@ -31,6 +20,17 @@ or
 ```
 3crypt --decrypt --input $filename
 ```
+## Buildtime Dependencies
+### (Required on all supported systems)
+-   [Base](https://github.com/stuartcalder/Base) header and library files.
+-   [Skc](https://github.com/stuartcalder/Skc) header and library files.
+-   __meson__ frontend build system.
+-   __ninja__ backend build system.
+### (Required on OpenBSD, FreeBSD, MacOS, and GNU/Linux)
+-   __ncurses__ header and library files.
+### (Required on Microsoft Windows only)
+-   __Windows Vista/Server 2008__ or later.
+-   __Visual Studio 2019__ development suite.
 ## How To Build 3crypt With Meson
 ### MacOS and BSD Build instructions
 1. build and install [Base](https://github.com/stuartcalder/Base.git).
@@ -58,7 +58,7 @@ $ meson --backend=ninja --prefix=/usr builddir
 $ ninja
 # ninja install
 ```
-### On Microsoft Windows systems
+### Microsoft Windows build instructions
 1. Build and install [Base](https://github.com/stuartcalder/Base.git).
 2. Build and install [Skc](https://github.com/stuartcalder/Skc.git).
 3. git clone [3crypt](https://github.com/stuartcalder/3crypt.git) anywhere.

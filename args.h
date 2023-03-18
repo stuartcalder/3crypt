@@ -4,28 +4,46 @@
 #include <Base/args.h>
 #include "threecrypt.h"
 
-#define ARG_PROC_(name) int name##_argproc(const int, char** BASE_RESTRICT, const int, void* BASE_RESTRICT)
+#define R_ BASE_RESTRICT
 BASE_BEGIN_C_DECLS
-ARG_PROC_(decrypt);
-ARG_PROC_(dump);
-ARG_PROC_(encrypt);
-ARG_PROC_(entropy);
-ARG_PROC_(help);
-ARG_PROC_(input);
-ARG_PROC_(iterations);
+
+int
+decrypt_argproc(const int, char** R_, const int, void* R_);
+int
+dump_argproc(const int, char** R_, const int, void* R_);
+int
+encrypt_argproc(const int, char** R_, const int, void* R_);
+int
+entropy_argproc(const int, char** R_, const int, void* R_);
+int
+help_argproc(const int, char** R_, const int, void* R_);
+int
+input_argproc(const int, char** R_, const int, void* R_);
+int
+iterations_argproc(const int, char** R_, const int, void* R_);
+
 #ifdef SKC_DRAGONFLY_V1_H
-ARG_PROC_(max_memory);
-ARG_PROC_(min_memory);
+int
+max_memory_argproc(const int, char** R_, const int, void* R_);
+int
+min_memory_argproc(const int, char** R_, const int, void* R_);
 #endif
-ARG_PROC_(output);
+int
+output_argproc(const int, char** R_, const int, void* R_);
 #ifdef SKC_DRAGONFLY_V1_H
-ARG_PROC_(pad_as_if);
-ARG_PROC_(pad_by);
-ARG_PROC_(pad_to);
-ARG_PROC_(use_memory);
-ARG_PROC_(use_phi);
+int
+pad_as_if_argproc(const int, char** R_, const int, void* R_);
+int
+pad_by_argproc(const int, char** R_, const int, void* R_);
+int
+pad_to_argproc(const int, char** R_, const int, void* R_);
+int
+use_memory_argproc(const int, char** R_, const int, void* R_);
+int
+use_phi_argproc(const int, char** R_, const int, void* R_);
 #endif
+
 BASE_END_C_DECLS
-#undef ARG_PROC_
+#undef R_
 
 #endif /* ! */

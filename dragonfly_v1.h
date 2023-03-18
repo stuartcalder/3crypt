@@ -4,12 +4,22 @@
 #include <Base/macros.h>
 #include <Skc/dragonfly_v1.h>
 
-#define R_(p) p BASE_RESTRICT
+#define R_ BASE_RESTRICT
 BASE_BEGIN_C_DECLS
-uint8_t  dfly_v1_parse_memory     (R_(const char*) mem_str , const int size);
-uint8_t  dfly_v1_parse_iterations (R_(const char*) iter_str, const int size);
-uint64_t dfly_v1_parse_padding    (R_(const char*) pad_str , const int size);
+
+/* TODO: Documentation. */
+uint8_t
+dfly_v1_parse_memory(const char* R_ mem_str , const int size);
+
+/* TODO: Documentation. */
+uint8_t
+dfly_v1_parse_iterations(const char* R_ iter_str, const int size);
+
+/* TODO: Documentation. */
+uint64_t
+dfly_v1_parse_padding(const char* R_ pad_str , const int size);
+
 BASE_END_C_DECLS
 #undef R_
 
-#endif /* ! */
+#endif
