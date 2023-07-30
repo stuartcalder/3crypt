@@ -4,36 +4,44 @@
 #include <ctype.h>
 #include <string.h>
 
-#define R_(p) p BASE_RESTRICT
+#define R_ BASE_RESTRICT
 
 #define KIBIBYTE_ UINT64_C(1024)
 #define MEBIBYTE_ (KIBIBYTE_ * KIBIBYTE_)
 #define GIBIBYTE_ (MEBIBYTE_ * KIBIBYTE_)
 
+#define KIBIBYTE_MUL_ (KIBIBYTE_ / 64)
+#define MEBIBYTE_MUL_ (MEBIBYTE_ / 64)
+#define GIBIBYTE_MUL_ (GIBIBYTE_ / 64)
+
 uint8_t
-dfly_v1_parse_memory(R_(const char*) mem_str, const int size)
+dfly_v1_parse_memory(const char* R_ mem_str, const int size)
 {
   uint64_t requested_bytes = 0;
   uint64_t multiplier = 1;
   int num_digits;
   char* const temp = (char*)Base_malloc_or_die(size + 1);
   memcpy(temp, mem_str, size + 1);
+
   for (int i = 0; i < size; ++i) {
     switch (toupper((unsigned char)mem_str[i])) {
-    case 'K':
-      multiplier = (KIBIBYTE_ / 64);
-      goto have_multiplier;
-    case 'M':
-      multiplier = (MEBIBYTE_ / 64);
-      goto have_multiplier;
-    case 'G':
-      multiplier = (GIBIBYTE_ / 64);
-      goto have_multiplier;
-    default:
-      Base_assert_msg(isdigit((unsigned char)mem_str[i]), "Dragonfly_V1 Error: Invalid memory string!\n");
+      case 'K':
+        multiplier = KIBIBYTE_MUL_;
+        goto have_multiplier;
+      case 'M':
+        multiplier = MEBIBYTE_MUL_;
+        goto have_multiplier;
+      case 'G':
+        multiplier = GIBIBYTE_MUL_;
+        goto have_multiplier;
+      default:
+        /* If the character is not a 'K', 'M', or 'G' size designation force it to be a digit. */
+        Base_assert_msg(isdigit((unsigned char)mem_str[i]), "Dragonfly_V1 Error: Invalid memory string, '%s'!\n", mem_str);
     }
   }
 have_multiplier:
+  /* Shift all the digits to the beginning of the @temp string, and store the
+   * number of digits in @num_digits. */
   num_digits = Base_shift_left_digits(temp, size);
   Base_assert_msg(num_digits, "Dragonfly_V1 Error: No number supplied with memory-usage specification!\n");
   #define BYTE_MAX_          UINT64_C(10000)
@@ -43,21 +51,21 @@ have_multiplier:
   #define INVALID_MEM_PARAM_ "Dragonfly_V1 Error: Specified memory parameter digits (%d)\n"
   uint64_t digit_count_limit = 0;
   switch (multiplier) {
-  case 1:
-    digit_count_limit = BYTE_MAX_;
-    break;
-  case (KIBIBYTE_ / 64):
-    digit_count_limit = KIBIBYTE_MAX_;
-    break;
-  case (MEBIBYTE_ / 64):
-    digit_count_limit = MEBIBYTE_MAX_;
-    break;
-  case (GIBIBYTE_ / 64):
-    digit_count_limit = GIBIBYTE_MAX_;
-    break;
+    case 1:
+      digit_count_limit = BYTE_MAX_;
+      break;
+    case KIBIBYTE_MUL_:
+      digit_count_limit = KIBIBYTE_MAX_;
+      break;
+    case MEBIBYTE_MUL_:
+      digit_count_limit = MEBIBYTE_MAX_;
+      break;
+    case GIBIBYTE_MUL_:
+      digit_count_limit = GIBIBYTE_MAX_;
+      break;
   }
   Base_assert_msg(num_digits <= digit_count_limit, INVALID_MEM_PARAM_, num_digits);
-  requested_bytes = (uint64_t)strtoumax(temp, NULL, 10);
+  requested_bytes = (uint64_t)strtoumax(temp, BASE_NULL, 10);
   free(temp);
   requested_bytes *= multiplier;
   Base_assert_msg(requested_bytes, "DragonflY_V1 Error: Zero memory requested?\n");
@@ -71,13 +79,13 @@ have_multiplier:
 }
 
 uint8_t
-dfly_v1_parse_iterations (R_(const char*) iter_str, const int size)
+dfly_v1_parse_iterations (const char* R_ iter_str, const int size)
 {
   #define INVALID_ITER_COUNT_ "Dragonfly_V1 Error: Invalid iteration count.\n"
   char* const temp = (char*)Base_malloc_or_die(size + 1);
   memcpy(temp, iter_str, (size + 1));
   int num_digits = Base_shift_left_digits(temp, size);
-  Base_assert_msg(num_digits > 0 && num_digits < 4, INVALID_ITER_COUNT_);
+  Base_assert_msg(num_digits >= 1 && num_digits <= 3, INVALID_ITER_COUNT_);
   int it = atoi(temp);
   free(temp);
   Base_assert_msg(it >= 1 && it <= 255, INVALID_ITER_COUNT_);
@@ -85,7 +93,7 @@ dfly_v1_parse_iterations (R_(const char*) iter_str, const int size)
 }
 
 uint64_t
-dfly_v1_parse_padding(R_(const char*) pad_str, const int size)
+dfly_v1_parse_padding(const char* R_ pad_str, const int size)
 {
   char* const temp = (char*)Base_malloc_or_die(size + 1);
   memcpy(temp, pad_str, (size + 1));
