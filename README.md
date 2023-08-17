@@ -22,19 +22,19 @@ or
 ```
 ## Buildtime Dependencies
 ### (Required on all supported systems)
--   [Base](https://github.com/stuartcalder/Base) header and library files.
--   [Skc](https://github.com/stuartcalder/Skc) header and library files.
+-   [SSC](https://github.com/stuartcalder/SSC) header and library files.
+-   [PPQ](https://github.com/stuartcalder/PPQ) header and library files.
 -   __meson__ frontend build system.
 -   __ninja__ backend build system.
 ### (Required on OpenBSD, FreeBSD, MacOS, and GNU/Linux)
 -   __ncurses__ header and library files.
 ### (Required on Microsoft Windows only)
 -   __Windows Vista/Server 2008__ or later.
--   __Visual Studio 2019__ development suite.
+-   __Visual Studio 2019__ development suite or later.
 ## How To Build 3crypt With Meson
 ### MacOS and BSD Build instructions
-1. build and install [Base](https://github.com/stuartcalder/Base.git).
-2. buidl and install [Skc](https://github.com/stuartcalder/Skc.git).
+1. build and install [SSC](https://github.com/stuartcalder/SSC.git).
+2. buidl and install [PPQ](https://github.com/stuartcalder/PPQ.git).
 3. git clone [3crypt](https://github.com/stuartcalder/3crypt.git) anywhere.
 4. cd into the 3crypt project directory and execute the following:
 ```
@@ -46,8 +46,8 @@ $ ninja
 # ninja install
 ```
 ### GNU/Linux build instructions
-1. build and install [Base](https://github.com/stuartcalder/Base.git).
-2. build and install [Skc](https://github.com/stuartcalder/Skc.git).
+1. build and install [SSC](https://github.com/stuartcalder/SSC.git).
+2. build and install [PPQ](https://github.com/stuartcalder/PPQ.git).
 3. git clone [3crypt](https://github.com/stuartcalder/3crypt) anywhere.
 4. cd into the 3crypt project directory and execute the following:
 ```
@@ -59,10 +59,10 @@ $ ninja
 # ninja install
 ```
 ### Microsoft Windows build instructions
-1. Build and install [Base](https://github.com/stuartcalder/Base.git).
-2. Build and install [Skc](https://github.com/stuartcalder/Skc.git).
+1. Build and install [SSC](https://github.com/stuartcalder/SSC.git).
+2. Build and install [PPQ](https://github.com/stuartcalder/PPQ.git).
 3. git clone [3crypt](https://github.com/stuartcalder/3crypt.git) anywhere.
-4. Open a command-prompt, **specifically** you must open __"x64 Native Tools Command Prompt for VS 2019"__.
+4. Open a command-prompt, **specifically** you must open __"x64 Native Tools Command Prompt for VS 2022"__.
 ```
 meson --backend=ninja builddir
 ```
